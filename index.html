@@ -82,7 +82,6 @@
             letter-spacing: 2px;
         }
         
-        /* Bảng chọn nhạc MP3 */
         .audio-uploader {
             background: rgba(255, 255, 255, 0.08);
             border: 2px dashed #00f0ff;
@@ -101,3 +100,238 @@
             color: #000;
             padding: 8px 18px;
             font-weight: bold;
+            border-radius: 5px;cursor: pointer;
+            margin-top: 8px;
+            box-shadow: 0 0 10px #00f0ff;
+        }
+        #audio-file {
+            display: none;
+        }
+        #song-title {
+            font-size: 14px;
+            color: #00ff66;
+            margin-top: 6px;
+        }
+
+        .play-btn {
+            background: #ffe600;
+            color: #000;
+            font-size: 20px;
+            font-weight: 800;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 0 15px #ffe600;
+            transition: transform 0.2s;
+        }
+        .play-btn:hover {
+            transform: scale(1.08);
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="progress-container"><div id="progress-bar"></div></div>
+    <div class="ui-overlay">
+        <div id="mode-text">MODE: CUBE</div>
+        <div id="percent-text">0%</div>
+    </div>
+    
+    <div id="start-overlay">
+        <h1>GEOMETRY DASH</h1>
+        
+        <div class="audio-uploader">
+            <p style="color: #ccc; font-size: 14px;">Chọn bài hát MP3 từ máy tính:</p>
+            <label for="audio-file" class="custom-file-btn">📁 Tải file MP3</label>
+            <input type="file" id="audio-file" accept="audio/mp3, audio/wav, audio/ogg">
+            <div id="song-title">Chưa chọn bài hát nào</div>
+        </div>
+
+        <button class="play-btn" id="start-btn">BẮT ĐẦU CHƠI</button>
+    </div>
+
+    <canvas id="gameCanvas" width="900" height="450"></canvas>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const progressBar = document.getElementById('progress-bar');
+const percentText = document.getElementById('percent-text');
+const modeText = document.getElementById('mode-text');
+const startOverlay = document.getElementById('start-overlay');
+const audioFileInput = document.getElementById('audio-file');
+const songTitle = document.getElementById('song-title');
+const startBtn = document.getElementById('start-btn');
+
+const CANVAS_WIDTH = canvas.width;
+const CANVAS_HEIGHT = canvas.height;
+const FLOOR_Y = 370;
+const PLAYER_SIZE = 30;
+
+let gameStarted = false;
+let isInputActive = false;
+
+// --- HỆ THỐNG ÂM THANH ---
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+// Khởi tạo đối tượng Audio trống (không bị lỗi CORS)
+let bgm = new Audio();
+bgm.loop = true;
+bgm.volume = 0.5;
+
+// Xử lý khi chọn file MP3
+audioFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const fileURL = URL.createObjectURL(file);
+        bgm.src = fileURL;
+        songTitle.innerText = "Đã chọn: " + file.name;
+    }
+});
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new AudioContext();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}/ Sound FX bằng Web Audio API
+function playSound(type) {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+
+    if (type === 'jump') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.12);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+        osc.start(now);
+        osc.stop(now + 0.12);
+    } else if (type === 'pad') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(900, now + 0.2);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2);
+    } else if (type === 'explode') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.3);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+    } else if (type === 'portal') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(800, now + 0.25);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+        osc.start(now);
+        osc.stop(now + 0.25);
+    }
+}
+
+function startGame() {
+    if (!gameStarted) {
+        initAudio();
+        if (bgm.src) {
+            bgm.currentTime = 0;
+            bgm.play().catch(() => {});
+        }
+        gameStarted = true;
+        startOverlay.style.display = 'none';
+    }
+}
+
+startBtn.addEventListener('click', startGame);
+
+window.addEventListener('keydown', (e) => {
+    if ((e.code === 'Space' || e.code === 'ArrowUp') && gameStarted) isInputActive = true;
+});
+window.addEventListener('keyup', (e) => {
+    if ((e.code === 'Space' || e.code === 'ArrowUp') && gameStarted) isInputActive = false;
+});
+canvas.addEventListener('mousedown', () => { if (gameStarted) isInputActive = true; });
+canvas.addEventListener('mouseup', () => { if (gameStarted) isInputActive = false; });
+
+// --- CÁC HIỆU ỨNG HẠT ---
+class Particle {
+    constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 12;
+        this.vy = (Math.random() - 0.5) * 12;
+        this.size = Math.random() * 6 + 2;
+        this.color = color;
+        this.alpha = 1;
+    }
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.alpha -= 0.025;
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.alpha);
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.size, this.size);ctx.restore();
+    }
+}
+
+// --- PLAYER ---
+class Player {
+    constructor() {
+        this.reset();
+    }
+
+    reset() {
+        this.x = 120;
+        this.y = FLOOR_Y - PLAYER_SIZE;
+        this.vy = 0;
+        this.mode = 'CUBE';
+        this.angle = 0;
+        this.isGrounded = true;
+        this.isDead = false;
+        this.trail = [];
+    }
+
+    update() {
+        if (this.isDead) return;
+
+        if (Math.random() < 0.6) {
+            this.trail.push({ x: this.x, y: this.y + PLAYER_SIZE/2, alpha: 0.6 });
+        }
+        this.trail.forEach(t => t.alpha -= 0.03);
+        this.trail = this.trail.filter(t => t.alpha > 0);
+
+        if (this.mode === 'CUBE') {
+            const GRAVITY = 0.85;
+            const JUMP_FORCE = -12.5;
+
+            this.vy += GRAVITY;
+            this.y += this.vy;
+
+            if (this.isGrounded && isInputActive) {
+                this.vy = JUMP_FORCE;
+                this.isGrounded = false;
+                playSound('jump');
+            }
+
+            if (this.y >= FLOOR_Y - PLAYER_SIZE) {
+                this.y = FLOOR_Y - PLAYER_SIZE;
+                this.
