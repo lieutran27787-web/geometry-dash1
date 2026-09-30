@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Extended Edition</title>
+    <title>Geometry Dash - Attempts & Settings Edition</title>
     <style>
         body {
-            background-color: #06060c;
+            background-color: #030308;
             color: white;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -16,6 +16,7 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
+            user-select: none;
         }
         h2 {
             margin-bottom: 5px;
@@ -24,17 +25,20 @@
             letter-spacing: 2px;
         }
         .control-panel {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
-            background: #121222;
-            padding: 8px 18px;
+            background: #0d0d1a;
+            padding: 8px 15px;
             border-radius: 8px;
-            border: 1px solid #252545;
+            border: 1px solid #1f1f3a;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 950px;
         }
         .control-panel label {
-            font-size: 14px;
+            font-size: 13px;
             color: #ffaa00;
             font-weight: bold;
             cursor: pointer;
@@ -42,34 +46,122 @@
         .control-panel input[type="file"] {
             display: none;
         }
-        .level-selector {
+        .selector-group {
             display: flex;
-            gap: 8px;
+            gap: 3px;
+            align-items: center;
+            flex-wrap: wrap;
+            max-width: 550px;
         }
-        .level-btn {
-            background: #1a1a38;
+        .btn {
+            background: #15152a;
             color: white;
             border: 1px solid #00ffcc;
-            padding: 5px 12px;
-            border-radius: 5px;
+            padding: 2px 6px;
+            border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
+            font-size: 11px;
             transition: 0.2s;
         }
-        .level-btn:hover, .level-btn.active {
+        .btn:hover, .btn.active {
             background: #00ffcc;
-            color: #06060c;
-            box-shadow: 0 0 12px #00ffcc;
+            color: #030308;
+            box-shadow: 0 0 8px #00ffcc;
         }
+        .btn-diff-easy { border-color: #00ffcc; color: #00ffcc; }
+        .btn-diff-easy.active { background: #00ffcc; color: #030308; }
+        
+        .btn-diff-med { border-color: #ffaa00; color: #ffaa00; }
+        .btn-diff-med.active { background: #ffaa00; color: #030308; }
+        
+        .btn-diff-hard { border-color: #ff0055; color: #ff0055; }
+        .btn-diff-hard.active { background: #ff0055; color: white; }
+
+        .settings-btn {
+            background: #222244;
+            border: 1px solid #ffaa00;
+            color: #ffaa00;
+            padding: 3px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .settings-btn:hover {
+            background: #ffaa00;
+            color: #030308;
+        }
+
+        .game-container {
+            position: relative;
+        }
+
         canvas {
             border: 4px solid #1a1a36;
-            background: #0d0d1a;
+            background: #0a0a16;
             box-shadow: 0 0 40px rgba(0, 255, 204, 0.3);
             border-radius: 12px;
         }
-        #info {
-            font-size: 16px;
+
+        /* Khung hiển thị Attempts góc trên bên trái */
+        #attemptsDisplay {
+            position: absolute;
+            top: 12px;
+            left: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffaa00;
+            text-shadow: 0 0 8px rgba(255, 170, 0, 0.6);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Modal Cài Đặt (Settings Popup) */
+        #settingsModal {
+            display: none;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(13, 13, 26, 0.95);
+            border: 2px solid #ffaa00;
+            padding: 25px 35px;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(255, 170, 0, 0.4);
+            z-index: 100;
+            text-align: center;
+        }
+        #settingsModal h3 {
+            margin-top: 0;
+            color: #ffaa00;
+        }
+        .setting-option {
+            margin: 15px 0;
+            font-size: 15px;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: center;
+        }
+        .setting-option input {
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+        .close-modal {
+            background: #ff0055;
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
             margin-top: 10px;
+        }
+        .close-modal:hover { background: #ff3377; }
+
+        #info {
+            font-size: 15px;
+            margin-top: 8px;
             font-weight: bold;
             color: #ff0055;
             text-shadow: 0 0 8px rgba(255,0,85,0.4);
@@ -78,25 +170,71 @@
 </head>
 <body>
 
-    <h2>GEOMETRY DASH: EXTENDED MAPS</h2>
+    <h2>GEOMETRY DASH: ATTEMPTS & SETTINGS</h2>
     
     <div class="control-panel">
-        <label for="musicUpload">📁 Chọn Nhạc MP3:</label>
+        <label for="musicUpload">📁 Chọn MP3:</label>
         <input type="file" id="musicUpload" accept="audio/*">
-        <span id="songName" style="font-size: 13px; color: #777;">Chưa chọn nhạc</span>
+        <span id="songName" style="font-size: 11px; color: #777;">Mặc định</span>
 
-        <div style="border-left: 1px solid #333; height: 20px; margin: 0 5px;"></div>
+        <div style="border-left: 1px solid #333; height: 20px; margin: 0 2px;"></div>
 
-        <div class="level-selector">
-            <span style="color: white; font-size: 14px; align-self: center;">Màn:</span>
-            <button class="level-btn active" onclick="selectLevel(1)">1. Stereo Madness</button>
-            <button class="level-btn" onclick="selectLevel(2)">2. Back On Track</button>
-            <button class="level-btn" onclick="selectLevel(3)">3. Polargeist</button>
+        <div class="selector-group">
+            <span style="font-size: 12px; color: white;">Màn:</span>
+            <button class="btn level-btn active" onclick="selectLevel(1)">1</button>
+            <button class="btn level-btn" onclick="selectLevel(2)">2</button>
+            <button class="btn level-btn" onclick="selectLevel(3)">3</button>
+            <button class="btn level-btn" onclick="selectLevel(4)">4</button>
+            <button class="btn level-btn" onclick="selectLevel(5)">5</button>
+            <button class="btn level-btn" onclick="selectLevel(6)">6</button>
+            <button class="btn level-btn" onclick="selectLevel(7)">7</button>
+            <button class="btn level-btn" onclick="selectLevel(8)">8</button>
+            <button class="btn level-btn" onclick="selectLevel(9)">9</button>
+            <button class="btn level-btn" onclick="selectLevel(10)">10</button>
+            <button class="btn level-btn" onclick="selectLevel(11)">11</button>
+            <button class="btn level-btn" onclick="selectLevel(12)">12</button>
+            <button class="btn level-btn" onclick="selectLevel(13)">13</button>
+            <button class="btn level-btn" onclick="selectLevel(14)">14</button>
+            <button class="btn level-btn" onclick="selectLevel(15)">15</button>
+        </div>
+
+        <div style="border-left: 1px solid #333; height: 20px; margin: 0 2px;"></div>
+
+        <div class="selector-group">
+            <span style="font-size: 12px; color: white;">Khó:</span>
+            <button class="btn btn-diff-easy active" onclick="selectDifficulty('easy')">Dễ</button>
+            <button class="btn btn-diff-med" onclick="selectDifficulty('medium')">Thường</button>
+            <button class="btn btn-diff-hard" onclick="selectDifficulty('hard')">Khó</button>
+        </div>
+
+        <button class="settings-btn" onclick="toggleSettings(true)">⚙️ Cài Đặt</button>
+    </div>
+
+    <!-- Khung game và Attempts -->
+    <div class="game-container">
+        <div id="attemptsDisplay">Attempts: 1</div>
+        <canvas id="gameCanvas" width="850" height="400"></canvas>
+
+        <!-- Menu Cài Đặt Modal -->
+        <div id="settingsModal">
+            <h3>⚙️ GAME SETTINGS</h3>
+            <div class="setting-option">
+                <span>Hiệu ứng rung màn hình (Screen Shake):</span>
+                <input type="checkbox" id="settingShake" checked>
+            </div>
+            <div class="setting-option">
+                <span>Đổi màu nền động (Dynamic BG):</span>
+                <input type="checkbox" id="settingBgColor" checked>
+            </div>
+            <div class="setting-option">
+                <span>Bật âm thanh hiệu ứng/synth:</span>
+                <input type="checkbox" id="settingAudio" checked>
+            </div>
+            <button class="close-modal" onclick="toggleSettings(false)">Đóng & Lưu</button>
         </div>
     </div>
 
-    <canvas id="gameCanvas" width="850" height="400"></canvas>
-    <div id="info">Chọn màn chơi và nhấn Space để bắt đầu</div>
+    <div id="info">Chọn màn, độ khó và nhấn Space để bắt đầu</div>
 
     <audio id="bgMusic" loop></audio>
 
@@ -107,27 +245,123 @@
         const bgMusic = document.getElementById("bgMusic");
         const musicUpload = document.getElementById("musicUpload");
         const songNameEl = document.getElementById("songName");
+        const attemptsDisplay = document.getElementById("attemptsDisplay");
+        const settingsModal = document.getElementById("settingsModal");
+
+        // Biến Cài đặt (Settings)
+        let settings = {
+            shake: true,
+            bgColor: true,
+            audio: true
+        };
+
+        function toggleSettings(isOpen) {
+            settingsModal.style.display = isOpen ? "block" : "none";
+            if (!isOpen) {
+                settings.shake = document.getElementById("settingShake").checked;
+                settings.bgColor = document.getElementById("settingBgColor").checked;
+                settings.audio = document.getElementById("settingAudio").checked;
+            }
+        }
+
+        let customAudioActive = false;
+        let attemptCount = 1; // Đếm số lần thua
 
         musicUpload.addEventListener("change", function(e) {
             const file = e.target.files[0];
             if (file) {
                 bgMusic.src = URL.createObjectURL(file);
                 songNameEl.innerText = "🎵 " + file.name;
+                customAudioActive = true;
             }
         });
 
+        // 15 Bản nhạc cho 15 màn
+        const levelSongs = [
+            { name: "Stereo Madness", notes: [220, 247, 261, 293, 329, 349, 392], speed: 250 },
+            { name: "Back On Track", notes: [261, 293, 329, 392, 440, 523], speed: 220 },
+            { name: "Polargeist", notes: [196, 220, 247, 293, 330, 392], speed: 200 },
+            { name: "Dry Out", notes: [330, 349, 392, 440, 493, 523], speed: 180 },
+            { name: "Base After Base", notes: [247, 293, 329, 370, 440, 493], speed: 210 },
+            { name: "Can't Let Go", notes: [220, 277, 329, 370, 440, 554], speed: 190 },
+            { name: "Jumper", notes: [293, 329, 370, 440, 493, 587], speed: 230 },
+            { name: "Time Machine", notes: [174, 196, 220, 261, 293, 349], speed: 240 },
+            { name: "Cycles", notes: [261, 311, 392, 466, 523, 622], speed: 170 },
+            { name: "xStep", notes: [220, 261, 329, 392, 440, 523], speed: 160 },
+            { name: "Clutterfunk", notes: [196, 233, 293, 349, 392, 466], speed: 150 },
+            { name: "Theory of Everything", notes: [330, 392, 493, 587, 659, 784], speed: 140 },
+            { name: "Electroman Adventures", notes: [247, 311, 370, 493, 587, 622], speed: 180 },
+            { name: "Clubstep", notes: [164, 185, 220, 247, 293, 330], speed: 130 },
+            { name: "Deadlocked", notes: [150, 180, 210, 250, 300, 360], speed: 120 }
+        ];
+
+        let audioCtx = null;
+        let synthTimer = null;
+
+        function startSynthMusic(levelId) {
+            if (!settings.audio) return;
+            if (customAudioActive) {
+                bgMusic.play().catch(() => {});
+                return;
+            }
+
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            stopSynthMusic();
+            let songData = levelSongs[levelId - 1];
+            let step = 0;
+
+            synthTimer = setInterval(() => {
+                if (!isPlaying || !settings.audio) return;
+                try {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+
+                    osc.type = levelId > 10 ? 'sawtooth' : (levelId > 5 ? 'square' : 'sine');
+                    osc.frequency.setValueAtTime(songData.notes[step % songData.notes.length], audioCtx.currentTime);
+
+                    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.22);
+
+                    step++;
+                } catch(e) {}
+            }, songData.speed);
+        }
+
+        function stopSynthMusic() {
+            if (synthTimer) {
+                clearInterval(synthTimer);
+                synthTimer = null;
+            }
+            if (!customAudioActive) {
+                bgMusic.pause();
+            }
+        }
+
         let currentLevel = 1;
+        let currentDifficulty = "easy"; 
         let gameMode = "cube";
         let isPlaying = false;
         let isGameOver = false;
         let isWon = false;
-        let gameSpeed = 8;
+        let gameSpeed = 7;
         let frameCount = 0;
         let particles = [];
         let shipTrails = [];
         let screenShake = 0;
         let flashAlpha = 0;
-        let bgHue = 200;
+        let bgHue = 210;
 
         let player = {
             x: 150, y: 300, size: 30, vy: 0, gravity: 0.85, jumpPower: -13.5, rotation: 0, isGrounded: false,
@@ -135,132 +369,85 @@
         };
 
         let objects = [];
-        let levelLength = 7000; // Tăng chiều dài đường đua lên rất dài (gấp đôi)
-
-        function loadLevel(levelId) {
-            currentLevel = levelId;
-            objects = [];
-            
-            document.querySelectorAll('.level-btn').forEach((btn, idx) => {
-                if (idx + 1 === levelId) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
-
-            if (levelId === 1) {
-                levelLength = 7000;
-                objects = [
-                    // Đoạn đầu: Khối vuông & gai đơn/kép dưới
-                    { type: "spike", x: 600, y: 330, w: 25, h: 35 },
-                    { type: "spike", x: 900, y: 330, w: 25, h: 35 },
-                    { type: "spike", x: 930, y: 330, w: 25, h: 35 },
-                    { type: "spike", x: 1300, y: 330, w: 25, h: 35 },
-                    { type: "spike", x: 1500, y: 330, w: 25, h: 35 },
-                    { type: "spike", x: 1530, y: 330, w: 25, h: 35 },
-                    
-                    // Cổng 1: Vào Phi Thuyền
-                    { type: "portal_ship", x: 1900, y: 250, w: 30, h: 80, activated: false },
-                    
-                    // Chướng ngại vật cả trên lẫn dưới cho phi thuyền
-                    { type: "block", x: 2300, y: 0, w: 50, h: 120 },
-                    { type: "block", x: 2300, y: 280, w: 50, h: 120 },
-                    { type: "block", x: 2700, y: 50, w: 50, h: 100 },
-                    { type: "block", x: 2700, y: 270, w: 50, h: 130 },
-                    { type: "block", x: 3100, y: 0, w: 50, h: 150 },
-                    { type: "block", x: 3100, y: 250, w: 50, h: 150 },
-
-                    // Cổng 2: Trở về Khối Vuông
-                    { type: "portal_cube", x: 3600, y: 250, w: 30, h: 80, activated: false },
-                    { type: "spike", x: 4000, y: 330, w: 25, h: 35 },
-                    { type: "spike", x: 4030, y: 330, w: 25, h: 35 },
-                    { type: "spike", x: 4400, y: 330, w: 25, h: 35 },
-
-                    // Cổng 3: Vào Wave (Mũi tên)
-                    { type: "portal_wave", x: 4900, y: 250, w: 30, h: 80, activated: false },
-                    { type: "block", x: 5300, y: 0, w: 40, h: 140 },
-                    { type: "block", x: 5300, y: 240, w: 40, h: 160 },
-                    { type: "block", x: 5700, y: 80, w: 40, h: 120 },
-                    { type: "block", x: 5700, y: 280, w: 40, h: 120 },
-
-                    // Cổng cuối & Về đích
-                    { type: "portal_cube", x: 6300, y: 250, w: 30, h: 80, activated: false },
-                    { type: "spike", x: 6700, y: 330, w: 25, h: 35 },
-                    { type: "goal", x: levelLength, y: 0, w: 20, h: 400 }
-                ];
-            } else if (levelId === 2) {
-                levelLength = 8000;
-                objects = [
-                    { type: "portal_ship", x: 500, y: 250, w: 30, h: 80, activated: false },
-                    // Rừng chướng ngại vật trên dưới liên tục
-                    { type: "block", x: 900, y: 0, w: 40, h: 130 },
-                    { type: "block", x: 900, y: 270, w: 40, h: 130 },
-                    { type: "block", x: 1300, y: 80, w: 40, h: 140 },
-                    { type: "block", x: 1300, y: 260, w: 40, h: 140 },
-                    { type: "block", x: 1700, y: 0, w: 40, h: 160 },
-                    { type: "block", x: 1700, y: 280, w: 40, h: 120 },
-                    
-                    { type: "portal_wave", x: 2300, y: 250, w: 30, h: 80, activated: false },
-                    { type: "block", x: 2700, y: 50, w: 35, h: 130 },
-                    { type: "block", x: 2700, y: 250, w: 35, h: 150 },
-                    { type: "block", x: 3100, y: 120, w: 35, h: 140 },
-                    { type: "block", x: 3100, y: 300, w: 35, h: 100 },
-                    { type: "block", x: 3500, y: 0, w: 35, h: 150 },
-                    { type: "block", x: 3500, y: 270, w: 35, h: 130 },
-
-                    { type: "portal_cube", x: 4200, y: 250, w: 30, h: 80, activated: false },
-                    { type: "spike", x: 4600, y: 330, w: 25, h: 35 },
-                    { type: "spike", x: 4630, y: 330, w: 25, h: 35 },
-                    { type: "spike", x: 5000, y: 330, w: 25, h: 35 },
-
-                    { type: "portal_ship", x: 5500, y: 250, w: 30, h: 80, activated: false },
-                    { type: "block", x: 6000, y: 0, w: 40, h: 150 },
-                    { type: "block", x: 6000, y: 260, w: 40, h: 140 },
-
-                    { type: "goal", x: levelLength, y: 0, w: 20, h: 400 }
-                ];
-            } else if (levelId === 3) {
-                levelLength = 9000;
-                objects = [
-                    { type: "portal_wave", x: 500, y: 250, w: 30, h: 80, activated: false },
-                    { type: "block", x: 900, y: 0, w: 35, h: 140 },
-                    { type: "block", x: 900, y: 260, w: 35, h: 140 },
-                    { type: "block", x: 1300, y: 80, w: 35, h: 130 },
-                    { type: "block", x: 1300, y: 250, w: 35, h: 150 },
-                    { type: "block", x: 1700, y: 40, w: 35, h: 150 },
-                    { type: "block", x: 1700, y: 280, w: 35, h: 120 },
-
-                    { type: "portal_ship", x: 2300, y: 250, w: 30, h: 80, activated: false },
-                    { type: "block", x: 2800, y: 0, w: 45, h: 130 },
-                    { type: "block", x: 2800, y: 270, w: 45, h: 130 },
-                    { type: "block", x: 3300, y: 100, w: 45, h: 140 },
-                    { type: "block", x: 3300, y: 280, w: 45, h: 120 },
-
-                    { type: "portal_cube", x: 4000, y: 250, w: 30, h: 80, activated: false },
-                    { type: "spike", x: 4400, y: 330, w: 25, h: 35 },
-                    { type: "spike", x: 4430, y: 330, w: 25, h: 35 },
-
-                    { type: "portal_wave", x: 5000, y: 250, w: 30, h: 80, activated: false },
-                    { type: "block", x: 5500, y: 0, w: 35, h: 160 },
-                    { type: "block", x: 5500, y: 250, w: 35, h: 150 },
-                    { type: "block", x: 6000, y: 60, w: 35, h: 140 },
-                    { type: "block", x: 6000, y: 270, w: 35, h: 130 },
-                    { type: "block", x: 6500, y: 100, w: 35, h: 140 },
-                    { type: "block", x: 6500, y: 280, w: 35, h: 120 },
-
-                    { type: "goal", x: levelLength, y: 0, w: 20, h: 400 }
-                ];
-            }
-        }
+        let levelLength = 8000;
 
         function selectLevel(id) {
             if (isPlaying) return;
-            loadLevel(id);
-            infoEl.innerText = `Đã chọn Màn ${id} (Đường siêu dài). Nhấn Space để chơi!`;
+            currentLevel = id;
+            attemptCount = 1; // Reset số lần thua khi đổi màn mới
+            attemptsDisplay.innerText = "Attempts: " + attemptCount;
+            document.querySelectorAll('.level-btn').forEach((btn, idx) => {
+                if (idx + 1 === id) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            loadLevelData();
+        }
+
+        function selectDifficulty(diff) {
+            if (isPlaying) return;
+            currentDifficulty = diff;
+            attemptCount = 1;
+            attemptsDisplay.innerText = "Attempts: " + attemptCount;
+            document.querySelectorAll('.btn-diff-easy, .btn-diff-med, .btn-diff-hard').forEach(btn => btn.classList.remove('active'));
+            if (diff === 'easy') document.querySelector('.btn-diff-easy').classList.add('active');
+            if (diff === 'medium') document.querySelector('.btn-diff-med').classList.add('active');
+            if (diff === 'hard') document.querySelector('.btn-diff-hard').classList.add('active');
+            loadLevelData();
+        }
+
+        function loadLevelData() {
+            objects = [];
+            let baseSpeed = currentDifficulty === 'easy' ? 7.0 : (currentDifficulty === 'medium' ? 8.2 : 9.8);
+            gameSpeed = baseSpeed + (currentLevel - 1) * 0.15;
+            levelLength = 8000 + currentLevel * 800;
+
+            let cursor = 500;
+            while (cursor < levelLength - 600) {
+                if (cursor % 3000 === 1500) {
+                    let portalType = (cursor % 6000 === 1500) ? "portal_ship" : "portal_wave";
+                    objects.push({ type: portalType, x: cursor, y: 250, w: 30, h: 80, activated: false });
+                    cursor += 300;
+                } else if (cursor % 6000 === 4500) {
+                    objects.push({ type: "portal_cube", x: cursor, y: 250, w: 30, h: 80, activated: false });
+                    cursor += 300;
+                }
+
+                if (currentDifficulty === 'easy') {
+                    objects.push({ type: "spike", x: cursor, y: 330, w: 25, h: 35 });
+                    cursor += 380;
+                } else if (currentDifficulty === 'medium') {
+                    if (cursor % 750 === 0) {
+                        objects.push({ type: "block", x: cursor, y: 0, w: 40, h: 120 });
+                        objects.push({ type: "block", x: cursor, y: 280, w: 40, h: 120 });
+                    } else {
+                        objects.push({ type: "spike", x: cursor, y: 330, w: 25, h: 35 });
+                    }
+                    cursor += 300;
+                } else {
+                    if (cursor % 550 === 0) {
+                        let topH = 110 + (cursor % 60);
+                        let botH = 120 + (cursor % 50);
+                        objects.push({ type: "block", x: cursor, y: 0, w: 35, h: topH });
+                        objects.push({ type: "block", x: cursor, y: 400 - botH, w: 35, h: botH });
+                    } else {
+                        objects.push({ type: "spike", x: cursor, y: 330, w: 25, h: 35 });
+                        if (cursor % 1100 === 250) {
+                            objects.push({ type: "block", x: cursor, y: 170, w: 35, h: 35 });
+                        }
+                    }
+                    cursor += 230;
+                }
+            }
+
+            objects.push({ type: "goal", x: levelLength, y: 0, w: 20, h: 400 });
+            infoEl.innerText = `Màn ${currentLevel}: ${levelSongs[currentLevel-1].name} [${currentDifficulty.toUpperCase()}]. Nhấn Space!`;
         }
 
         let isHolding = false;
 
         window.addEventListener("keydown", function(e) {
             if (e.code === "Space" || e.code === "ArrowUp") {
+                if (settingsModal.style.display === "block") return;
                 isHolding = true;
                 if (!isPlaying) startGame();
                 else if (gameMode === "cube" && player.isGrounded) {
@@ -276,6 +463,7 @@
         });
 
         canvas.addEventListener("mousedown", () => {
+            if (settingsModal.style.display === "block") return;
             isHolding = true;
             if (!isPlaying) startGame();
             else if (gameMode === "cube" && player.isGrounded) {
@@ -290,25 +478,24 @@
             isPlaying = true;
             isGameOver = false;
             isWon = false;
-            gameSpeed = currentLevel === 1 ? 8 : (currentLevel === 2 ? 8.6 : 9.2);
             frameCount = 0;
             gameMode = "cube";
             player.y = 300; player.vy = 0; player.rotation = 0;
             player.scaleX = 1; player.scaleY = 1;
             particles = [];
             shipTrails = [];
-            loadLevel(currentLevel);
+            loadLevelData();
 
-            if (bgMusic.src) {
-                bgMusic.currentTime = 0;
-                bgMusic.play().catch(() => {});
-            }
+            startSynthMusic(currentLevel);
             loop();
         }
 
         function triggerExplosion(x, y) {
-            screenShake = 22;
+            if (settings.shake) screenShake = 22;
             flashAlpha = 0.8;
+            attemptCount++; // Tăng số lần thua khi va chạm
+            attemptsDisplay.innerText = "Attempts: " + attemptCount;
+            stopSynthMusic();
             for (let i = 0; i < 50; i++) {
                 particles.push({
                     x: x, y: y,
@@ -325,7 +512,7 @@
             if (!isPlaying || isGameOver || isWon) return;
 
             frameCount++;
-            bgHue = (bgHue + 0.35) % 360;
+            if (settings.bgColor) bgHue = (bgHue + 0.35) % 360;
             if (screenShake > 0) screenShake--;
             if (flashAlpha > 0) flashAlpha -= 0.05;
 
@@ -335,10 +522,10 @@
             let currentDist = frameCount * gameSpeed;
             let percent = Math.min(100, Math.floor((currentDist / levelLength) * 100));
             
-            let modeName = "Khối Vuông (Cube)";
-            if (gameMode === "ship") modeName = "Phi Thuyền (Ship)";
+            let modeName = "Khối Vuông";
+            if (gameMode === "ship") modeName = "Phi Thuyền";
             if (gameMode === "wave") modeName = "Mũi Tên (Wave)";
-            infoEl.innerText = `Màn ${currentLevel} | Tiến độ: ${percent}% | Chế độ: ${modeName}`;
+            infoEl.innerText = `Màn ${currentLevel} (${levelSongs[currentLevel-1].name}) | ${percent}% | ${modeName}`;
 
             if (gameMode === "cube") {
                 player.vy += player.gravity;
@@ -353,17 +540,17 @@
                     player.isGrounded = false; player.rotation += 10;
                 }
             } else if (gameMode === "ship") {
-                if (isHolding) player.vy -= 0.7; else player.vy += 0.7;
-                if (player.vy > 9) player.vy = 9;
-                if (player.vy < -9) player.vy = -9;
+                if (isHolding) player.vy -= 0.75; else player.vy += 0.75;
+                if (player.vy > 9.5) player.vy = 9.5;
+                if (player.vy < -9.5) player.vy = -9.5;
                 player.y += player.vy; player.rotation = player.vy * 2.5;
                 if (player.y < 0) { player.y = 0; player.vy = 0; }
                 if (player.y > 330) { player.y = 330; player.vy = 0; }
 
                 shipTrails.push({ x: player.x, y: player.y + player.size/2, alpha: 1.0 });
             } else if (gameMode === "wave") {
-                if (isHolding) { player.vy = -8; player.rotation = -45; }
-                else { player.vy = 8; player.rotation = 45; }
+                if (isHolding) { player.vy = -8.5; player.rotation = -45; }
+                else { player.vy = 8.5; player.rotation = 45; }
                 player.y += player.vy;
                 if (player.y < 0) player.y = 0;
                 if (player.y > 330) player.y = 330;
@@ -383,43 +570,43 @@
 
                 if (obj.type === "spike" || obj.type === "block") {
                     if (
-                        player.x < obj.x + obj.w - 5 &&
-                        player.x + player.size > obj.x + 5 &&
-                        player.y < obj.y + obj.h &&
-                        player.y + player.size > obj.y + 5
+                        player.x < obj.x + obj.w - 4 &&
+                        player.x + player.size > obj.x + 4 &&
+                        player.y < obj.y + obj.h - 4 &&
+                        player.y + player.size > obj.y + 4
                     ) {
                         isGameOver = true;
-                        bgMusic.pause();
+                        stopSynthMusic();
                         triggerExplosion(player.x + player.size/2, player.y + player.size/2);
                     }
                 }
 
                 if (obj.type === "portal_ship" && !obj.activated) {
                     if (player.x < obj.x + obj.w && player.x + player.size > obj.x && player.y < obj.y + obj.h && player.y + player.size > obj.y) {
-                        gameMode = "ship"; obj.activated = true; flashAlpha = 0.5; screenShake = 12;
+                        gameMode = "ship"; obj.activated = true; flashAlpha = 0.5; if (settings.shake) screenShake = 12;
                     }
                 }
                 if (obj.type === "portal_wave" && !obj.activated) {
                     if (player.x < obj.x + obj.w && player.x + player.size > obj.x && player.y < obj.y + obj.h && player.y + player.size > obj.y) {
-                        gameMode = "wave"; obj.activated = true; flashAlpha = 0.5; screenShake = 12;
+                        gameMode = "wave"; obj.activated = true; flashAlpha = 0.5; if (settings.shake) screenShake = 12;
                     }
                 }
                 if (obj.type === "portal_cube" && !obj.activated) {
                     if (player.x < obj.x + obj.w && player.x + player.size > obj.x && player.y < obj.y + obj.h && player.y + player.size > obj.y) {
-                        gameMode = "cube"; obj.activated = true; flashAlpha = 0.5; screenShake = 12;
+                        gameMode = "cube"; obj.activated = true; flashAlpha = 0.5; if (settings.shake) screenShake = 12;
                     }
                 }
 
                 if (obj.type === "goal" && player.x > obj.x) {
                     isWon = true;
-                    bgMusic.pause();
+                    stopSynthMusic();
                 }
             }
         }
 
         function draw() {
             ctx.save();
-            if (screenShake > 0) {
+            if (screenShake > 0 && settings.shake) {
                 let sx = (Math.random() - 0.5) * 9;
                 let sy = (Math.random() - 0.5) * 9;
                 ctx.translate(sx, sy);
@@ -431,10 +618,10 @@
             ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = "#05050e";
+            ctx.fillStyle = "#030308";
             ctx.fillRect(0, 365, canvas.width, 35);
-            ctx.fillStyle = "#00ffcc";
-            ctx.shadowColor = "#00ffcc";
+            ctx.fillStyle = currentDifficulty === 'hard' ? "#ff0055" : "#00ffcc";
+            ctx.shadowColor = ctx.fillStyle;
             ctx.shadowBlur = 15;
             ctx.fillRect(0, 365, canvas.width, 4);
             ctx.shadowBlur = 0;
@@ -459,7 +646,7 @@
                 } else if (obj.type === "block") {
                     ctx.fillStyle = "#222244";
                     ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
-                    ctx.strokeStyle = "#00ffcc";
+                    ctx.strokeStyle = currentDifficulty === 'hard' ? "#ff0055" : "#00ffcc";
                     ctx.lineWidth = 2;
                     ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
                 } else if (obj.type.startsWith("portal") && !obj.activated) {
@@ -487,8 +674,8 @@
                 ctx.scale(player.scaleX, player.scaleY);
 
                 if (gameMode === "cube") {
-                    ctx.fillStyle = "#00ffcc";
-                    ctx.shadowColor = "#00ffcc";
+                    ctx.fillStyle = currentDifficulty === 'hard' ? "#ff0055" : "#00ffcc";
+                    ctx.shadowColor = ctx.fillStyle;
                     ctx.shadowBlur = 14;
                     ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
                     ctx.shadowBlur = 0;
@@ -527,12 +714,12 @@
                 ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = "#00ffcc";
-                ctx.font = "bold 34px 'Segoe UI'";
+                ctx.font = "bold 30px 'Segoe UI'";
                 ctx.textAlign = "center";
-                ctx.fillText(`MÀN ${currentLevel} - SẴN SÀNG`, canvas.width / 2, canvas.height / 2 - 20);
+                ctx.fillText(`MÀN ${currentLevel}: ${levelSongs[currentLevel-1].name}`, canvas.width / 2, canvas.height / 2 - 25);
                 ctx.fillStyle = "white";
-                ctx.font = "18px 'Segoe UI'";
-                ctx.fillText("Nhấn Space hoặc Click chuột để Bắt đầu", canvas.width / 2, canvas.height / 2 + 25);
+                ctx.font = "16px 'Segoe UI'";
+                ctx.fillText("Nhấn Space hoặc Click chuột để Bắt đầu", canvas.width / 2, canvas.height / 2 + 20);
             }
 
             if (isGameOver) {
@@ -551,12 +738,12 @@
                 ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = "#00ffcc";
-                ctx.font = "bold 40px 'Segoe UI'";
+                ctx.font = "bold 38px 'Segoe UI'";
                 ctx.textAlign = "center";
                 ctx.fillText(`HOÀN THÀNH MÀN ${currentLevel}!`, canvas.width / 2, canvas.height / 2 - 20);
                 ctx.fillStyle = "white";
                 ctx.font = "18px 'Segoe UI'";
-                ctx.fillText("Nhấn Space để sang Màn tiếp theo", canvas.width / 2, canvas.height / 2 + 25);
+                ctx.fillText("Nhấn Space để sang màn tiếp theo", canvas.width / 2, canvas.height / 2 + 25);
             }
         }
 
@@ -570,26 +757,26 @@
 
         window.addEventListener("keydown", function(e) {
             if (e.code === "Space" || e.code === "ArrowUp") {
-                if (isGameOver) {
-                    startGame();
-                } else if (isWon) {
-                    if (currentLevel < 3) selectLevel(currentLevel + 1);
-                    else selectLevel(1);
+                if (settingsModal.style.display === "block") return;
+                if (isGameOver || isWon) {
+                    if (isWon && currentLevel < 15) {
+                        selectLevel(currentLevel + 1);
+                    }
                     startGame();
                 }
             }
         });
         canvas.addEventListener("click", function() {
-            if (isGameOver) {
-                startGame();
-            } else if (isWon) {
-                if (currentLevel < 3) selectLevel(currentLevel + 1);
-                else selectLevel(1);
+            if (settingsModal.style.display === "block") return;
+            if (isGameOver || isWon) {
+                if (isWon && currentLevel < 15) {
+                    selectLevel(currentLevel + 1);
+                }
                 startGame();
             }
         });
 
-        loadLevel(1);
+        loadLevelData();
         draw();
     </script>
 </body>
