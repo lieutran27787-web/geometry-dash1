@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Ultra Smooth</title>
+    <title>Geometry Dash Final Fixed</title>
     <style>
         body {
             background-color: #0b0b14;
@@ -259,7 +259,7 @@
         <canvas id="gameCanvas" width="850" height="400"></canvas>
 
         <div id="settingsModal">
-            <h3>⚙️ GAME SETTINGS</h3>
+            <h3>⚙️️ GAME SETTINGS</h3>
             <div class="setting-option"><span>Rung màn hình (Screen Shake):</span><input type="checkbox" id="settingShake" checked></div>
             <div class="setting-option"><span>Đổi màu nền động (Dynamic BG):</span><input type="checkbox" id="settingBgColor" checked></div>
             <div class="setting-option"><span>Âm thanh điện tử (Synth):</span><input type="checkbox" id="settingAudio" checked></div>
@@ -433,7 +433,6 @@
 
                 let r = cursor % 4;
                 if (r === 0) {
-                    // Khối gạch lơ lửng để chạy trên đó
                     objects.push({ type: "platform", x: cursor, y: 275, w: 120, h: 90 });
                     objects.push({ type: "spike", x: cursor + 45, y: 240, w: 25, h: 35 });
                 } else if (r === 1) {
@@ -449,25 +448,48 @@
         }
 
         let isHolding = false;
+
+        // Xử lý sự kiện bàn phím (Đã fix logic chơi lại khi thua/thắng)
         window.addEventListener("keydown", (e) => {
             if (e.code === "Space" || e.code === "ArrowUp") {
                 if (settingsModal.style.display === "block" || menuScreen.style.display === "flex") return;
+                
+                if (isGameOver || isWon) {
+                    startGame();
+                    gameLoop();
+                    e.preventDefault();
+                    return;
+                }
+
                 isHolding = true;
-                if (!isPlaying && (isGameOver || isWon)) { startGame(); gameLoop(); }
-                else if (gameMode === "cube" && player.isGrounded) {
+                if (!isPlaying) {
+                    startGame();
+                    gameLoop();
+                } else if (gameMode === "cube" && player.isGrounded) {
                     player.vy = player.jumpPower; player.isGrounded = false;
                     player.scaleX = 0.7; player.scaleY = 1.3;
                 }
                 e.preventDefault();
             }
         });
+
         window.addEventListener("keyup", (e) => { if (e.code === "Space" || e.code === "ArrowUp") isHolding = false; });
 
+        // Xử lý sự kiện chuột (Đã fix logic chơi lại)
         canvas.addEventListener("mousedown", () => {
             if (settingsModal.style.display === "block") return;
+            
+            if (isGameOver || isWon) {
+                startGame();
+                gameLoop();
+                return;
+            }
+
             isHolding = true;
-            if (!isPlaying && (isGameOver || isWon)) { startGame(); gameLoop(); }
-            else if (gameMode === "cube" && player.isGrounded) {
+            if (!isPlaying) {
+                startGame();
+                gameLoop();
+            } else if (gameMode === "cube" && player.isGrounded) {
                 player.vy = player.jumpPower; player.isGrounded = false;
                 player.scaleX = 0.7; player.scaleY = 1.3;
             }
@@ -535,15 +557,12 @@
                 player.y += player.vy;
                 
                 let landed = false;
-                // Kiểm tra tiếp đất trên sàn chính
                 if (player.y >= 333) {
                     player.y = 333; 
                     landed = true;
                 } else {
-                    // Kiểm tra chạy và tiếp đất trên bề mặt các khối (Platform)
                     for (let obj of objects) {
                         if (obj.type === "platform") {
-                            // Chỉ bắt va chạm khi nhân vật rơi xuống từ phía trên (vy > 0) và nằm trong khoảng chiều rộng bệ
                             if (player.vy >= 0 &&
                                 player.x + player.size - 6 > obj.x && 
                                 player.x + 6 < obj.x + obj.w &&
@@ -584,7 +603,6 @@
                 let obj = objects[i];
                 obj.x -= gameSpeed;
 
-                // Va chạm Gai nhọn
                 if (obj.type === "spike") {
                     if (
                         player.x < obj.x + obj.w - 6 && player.x + player.size > obj.x + 6 &&
@@ -595,7 +613,6 @@
                     }
                 }
 
-                // Va chạm đệm lò xo
                 if (obj.type === "pad") {
                     if (
                         player.x < obj.x + obj.w && player.x + player.size > obj.x &&
