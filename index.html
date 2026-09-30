@@ -3,334 +3,388 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Deluxe</title>
+    <title>Geometry Dash Pro Edition</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-        }
         body {
-            background-color: #05050d;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            overflow: hidden;
-        }
-        #game-container {
-            position: relative;
-            box-shadow: 0 0 40px rgba(0, 240, 255, 0.4);
-            border-radius: 10px;
-            overflow: hidden;
-            border: 2px solid rgba(0, 240, 255, 0.3);
-            cursor: pointer;
-        }
-        canvas {
-            display: block;
-            background: #000;
-        }
-        .ui-overlay {
-            position: absolute;
-            top: 15px;
-            left: 20px;
-            right: 20px;
-            display: flex;
-            justify-content: space-between;
-            color: #fff;
-            font-weight: 800;
-            font-size: 18px;
-            text-shadow: 0 0 10px rgba(0,0,0,0.9);
-            pointer-events: none;
-            z-index: 10;
-        }
-        #progress-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.15);
-            z-index: 10;
-        }
-        #progress-bar {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #00f0ff, #00ff66, #ffe600);
-            box-shadow: 0 0 12px #00f0ff;
-        }
-        #start-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            background-color: #0c0c14;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            color: #fff;
-            z-index: 20;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
         }
-        #start-overlay h1 {
-            font-size: 40px;
-            color: #ffe600;
-            text-shadow: 0 0 20px #ffe600;
-            margin-bottom: 15px;
-            letter-spacing: 2px;
+        h2 {
+            margin-bottom: 5px;
+            color: #00ffcc;
+            text-shadow: 0 0 10px #00ffcc;
         }
-        .play-btn {
-            background: #ffe600;
-            color: #000;
-            font-size: 22px;
-            font-weight: 800;
-            padding: 15px 40px;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 0 20px #ffe600;
-            transition: transform 0.2s;
+        canvas {
+            border: 4px solid #1f1f3a;
+            background: linear-gradient(to bottom, #111122, #1b1b3a);
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
+            border-radius: 10px;
+        }
+        #info {
+            font-size: 18px;
             margin-top: 10px;
-        }
-        .play-btn:hover {
-            transform: scale(1.08);
-        }
-        .hint-text {
-            margin-top: 15px;
-            color: #888;
-            font-size: 14px;
+            font-weight: bold;
+            color: #ffaa00;
         }
     </style>
 </head>
-<body><div id="game-container">
-    <div id="progress-container"><div id="progress-bar"></div></div>
-    <div class="ui-overlay">
-        <div id="mode-text">MODE: CUBE</div>
-        <div id="percent-text">0%</div>
-    </div>
-    
-    <div id="start-overlay">
-        <h1>GEOMETRY DASH</h1>
-        <button class="play-btn" id="start-btn">BẮT ĐẦU CHƠI</button>
-        <p class="hint-text">(Hoặc bấm phím Space / Click màn hình để chơi)</p>
-    </div>
+<body>
 
-    <canvas id="gameCanvas" width="900" height="450"></canvas>
-</div>
+    <h2>GEOMETRY DASH PRO</h2>
+    <canvas id="gameCanvas" width="850" height="400"></canvas>
+    <div id="info">Tiến độ: 0% | Chế độ: Khối Vuông</div>
 
-<script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const infoEl = document.getElementById("info");
 
-const progressBar = document.getElementById('progress-bar');
-const percentText = document.getElementById('percent-text');
-const modeText = document.getElementById('mode-text');
-const startOverlay = document.getElementById('start-overlay');
-const startBtn = document.getElementById('start-btn');
-const gameContainer = document.getElementById('game-container');
+        // Trạng thái game
+        let gameMode = "cube"; // "cube" hoặc "ship"
+        let isPlaying = false;
+        let isGameOver = false;
+        let isWon = false;
+        let score = 0;
+        let gameSpeed = 7;
+        let frameCount = 0;
+        let particles = [];
 
-const CANVAS_WIDTH = canvas.width;
-const CANVAS_HEIGHT = canvas.height;
-const FLOOR_Y = 370;
-const PLAYER_SIZE = 30;
+        // Người chơi
+        let player = {
+            x: 150,
+            y: 300,
+            size: 30,
+            vy: 0,
+            gravity: 0.8,
+            jumpPower: -13,
+            rotation: 0,
+            isGrounded: false
+        };
 
-let gameStarted = false;
-let isInputActive = false;
+        // Danh sách vật phẩm & chướng ngại vật trong level mẫu
+        let objects = [];
 
-// --- HỆ THỐNG ÂM THANH SFX ---
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-let audioCtx;
-
-function initAudio() {
-    if (!audioCtx) {
-        audioCtx = new AudioContext();
-    }
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
-}
-
-function playSound(type) {
-    if (!audioCtx) return;
-    try {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        const now = audioCtx.currentTime;
-
-        if (type === 'jump') {
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(150, now);
-            osc.frequency.exponentialRampToValueAtTime(600, now + 0.12);
-            gain.gain.setValueAtTime(0.15, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
-            osc.start(now);
-            osc.stop(now + 0.12);
-        } else if (type === 'pad') {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(300, now);
-            osc.frequency.exponentialRampToValueAtTime(900, now + 0.2);
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
-            osc.start(now);
-            osc.stop(now + 0.2);
-        } else if (type === 'explode') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(120, now);
-            osc.frequency.exponentialRampToValueAtTime(30, now + 0.3);
-            gain.gain.setValueAtTime(0.3, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-            osc.start(now);
-            osc.stop(now + 0.3);
-        } else if (type === 'portal') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(400, now);osc.frequency.exponentialRampToValueAtTime(800, now + 0.25);
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-            osc.start(now);
-            osc.stop(now + 0.25);
+        function initLevel() {
+            objects = [
+                { type: "spike", x: 600, y: 330, w: 25, h: 35 },
+                { type: "spike", x: 900, y: 330, w: 25, h: 35 },
+                { type: "spike", x: 930, y: 330, w: 25, h: 35 },
+                // Cổng đổi sang phi thuyền
+                { type: "portal_ship", x: 1300, y: 250, w: 30, h: 80, activated: false },
+                // Chướng ngại vật trên không cho phi thuyền
+                { type: "block", x: 1600, y: 0, w: 50, h: 120 },
+                { type: "block", x: 1600, y: 280, w: 50, h: 120 },
+                { type: "spike", x: 2000, y: 330, w: 25, h: 35 },
+                // Cổng đổi về khối vuông
+                { type: "portal_cube", x: 2300, y: 250, w: 30, h: 80, activated: false },
+                { type: "spike", x: 2700, y: 330, w: 25, h: 35 },
+                { type: "spike", x: 2730, y: 330, w: 25, h: 35 },
+                // Về đích
+                { type: "goal", x: 3200, y: 0, w: 20, h: 400 }
+            ];
         }
-    } catch(e){}
-}
 
-function startGame() {
-    if (!gameStarted) {
-        initAudio();
-        gameStarted = true;
-        startOverlay.style.display = 'none';
-    }
-}
+        let isHolding = false;
 
-// Bắt sự kiện bắt đầu chơi đa dạng
-startBtn.addEventListener('click', (e) => { e.stopPropagation(); startGame(); });
-startOverlay.addEventListener('click', startGame);
-
-window.addEventListener('keydown', (e) => {
-    if (!gameStarted) {
-        if (e.code === 'Space' || e.code === 'Enter') startGame();
-    } else {
-        if (e.code === 'Space' || e.code === 'ArrowUp') isInputActive = true;
-    }
-});
-
-window.addEventListener('keyup', (e) => {
-    if (gameStarted && (e.code === 'Space' || e.code === 'ArrowUp')) isInputActive = false;
-});
-
-gameContainer.addEventListener('mousedown', () => { if (gameStarted) isInputActive = true; });
-window.addEventListener('mouseup', () => { if (gameStarted) isInputActive = false; });
-
-// --- CÁC HIỆU ỨNG HẠT ---
-class Particle {
-    constructor(x, y, color) {
-        this.x = x;
-        this.y = y;
-        this.vx = (Math.random() - 0.5) * 12;
-        this.vy = (Math.random() - 0.5) * 12;
-        this.size = Math.random() * 6 + 2;
-        this.color = color;
-        this.alpha = 1;
-    }
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.alpha -= 0.025;
-    }
-    draw(ctx) {
-        ctx.save();
-        ctx.globalAlpha = Math.max(0, this.alpha);
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y, this.size, this.size);
-        ctx.restore();
-    }
-}
-
-// --- PLAYER ---
-class Player {
-    constructor() {
-        this.reset();
-    }
-
-    reset() {
-        this.x = 120;
-        this.y = FLOOR_Y - PLAYER_SIZE;
-        this.vy = 0;
-        this.mode = 'CUBE';
-        this.angle = 0;
-        this.isGrounded = true;
-        this.isDead = false;
-        this.trail = [];
-    }
-
-    update() {
-        if (this.isDead) return;
-
-        if (Math.random() < 0.6) {
-            this.trail.push({ x: this.x, y: this.y + PLAYER_SIZE/2, alpha: 0.6 });
-        }
-        this.trail.forEach(t => t.alpha -= 0.03);
-        this.trail = this.trail.filter(t => t.alpha > 0);
-
-        if (this.mode === 'CUBE') {
-            const GRAVITY = 0.85;
-            const JUMP_FORCE = -12.5;
-
-            this.vy += GRAVITY;
-            this.y += this.vy;
-
-            if (this.isGrounded && isInputActive) {
-                this.vy = JUMP_FORCE;
-                this.isGrounded = false;
-                playSound('jump');
+        // Xử lý phím bấm & chuột
+        window.addEventListener("keydown", function(e) {
+            if (e.code === "Space" || e.code === "ArrowUp") {
+                isHolding = true;
+                if (!isPlaying) {
+                    startGame();
+                } else if (gameMode === "cube" && player.isGrounded) {
+                    player.vy = player.jumpPower;
+                    player.isGrounded = false;
+                }
+                e.preventDefault();
             }
-
-            if (this.y >= FLOOR_Y - PLAYER_SIZE) {
-                this.y = FLOOR_Y - PLAYER_SIZE;
-                this.vy = 0;
-                this.isGrounded = true;this.angle = Math.round(this.angle / 90) * 90;
-            } else {
-                this.isGrounded = false;
-                this.angle += 8.5;
-            }
-        } else if (this.mode === 'SHIP') {
-            const SHIP_GRAVITY = 0.45;
-            const LIFT = -0.7;
-
-            if (isInputActive) {
-                this.vy += LIFT;
-            } else {
-                this.vy += SHIP_GRAVITY;
-            }
-
-            this.vy = Math.max(-7, Math.min(7, this.vy));
-            this.y += this.vy;
-            this.angle = this.vy * 4;
-
-            if (this.y >= FLOOR_Y - PLAYER_SIZE) {
-                this.y = FLOOR_Y - PLAYER_SIZE;
-                this.vy = 0;
-            }
-            if (this.y <= 0) {
-                this.y = 0;
-                this.vy = 0;
-            }
-        }
-    }
-
-    draw(ctx) {
-        if (this.isDead) return;
-
-        this.trail.forEach(t => {
-            ctx.save();
-            ctx.globalAlpha = t.alpha;
-            ctx.fillStyle = '#00f0ff';
-            ctx.fillRect(t.x - 10, t.y - 3, 10, 6);
-            ctx.restore();
         });
 
-        ctx.save();
-        ctx.translate(this.x + PLAYER_SIZE
+        window.addEventListener("keyup", function(e) {
+            if (e.code === "Space" || e.code === "ArrowUp") {
+                isHolding = false;
+            }
+        });
+
+        canvas.addEventListener("mousedown", () => {
+            isHolding = true;
+            if (!isPlaying) startGame();
+            else if (gameMode === "cube" && player.isGrounded) {
+                player.vy = player.jumpPower;
+                player.isGrounded = false;
+            }
+        });
+
+        canvas.addEventListener("mouseup", () => { isHolding = false; });
+
+        function startGame() {
+            isPlaying = true;
+            isGameOver = false;
+            isWon = false;
+            score = 0;
+            gameSpeed = 7;
+            frameCount = 0;
+            gameMode = "cube";
+            player.y = 300;
+            player.vy = 0;
+            player.rotation = 0;
+            particles = [];
+            initLevel();
+            loop();
+        }
+
+        // Tạo hiệu ứng nổ hạt khi chết
+        function createExplosion(x, y) {
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    size: Math.random() * 6 + 2,
+                    color: Math.random() > 0.5 ? "#00ffcc" : "#ff0055",
+                    life: 40
+                });
+            }
+        }
+
+        function update() {
+            if (!isPlaying || isGameOver || isWon) return;
+
+            frameCount++;
+            let progress = Math.min(100, Math.floor((objects[objects.length - 1].x - (3200 - objects[objects.length - 1].x)) / 32)); 
+            // Tính phần trăm đơn giản dựa vào khoảng cách camera
+            let totalDist = 3200;
+            let currentDist = frameCount * gameSpeed;
+            let percent = Math.min(100, Math.floor((currentDist / totalDist) * 100));
+            
+            infoEl.innerText = `Tiến độ: ${percent}% | Chế độ: ${gameMode === "cube" ? "Khối Vuông" : "Phi Thuyền"}`;
+
+            // Vật lý nhân vật
+            if (gameMode === "cube") {
+                player.vy += player.gravity;
+                player.y += player.vy;
+
+                if (player.y >= 330) {
+                    player.y = 330;
+                    player.vy = 0;
+                    player.isGrounded = true;
+                    player.rotation = Math.round(player.rotation / 90) * 90;
+                } else {
+                    player.isGrounded = false;
+                    player.rotation += 8;
+                }
+            } else if (gameMode === "ship") {
+                // Chế độ phi thuyền: giữ chuột/phím để bay lên, thả ra để chìm xuống
+                if (isHolding) {
+                    player.vy -= 0.6; // Lực đẩy lên
+                } else {
+                    player.vy += 0.6; // Trọng lực kéo xuống
+                }
+                // Giới hạn tốc độ bay tối đa
+                if (player.vy > 8) player.vy = 8;
+                if (player.vy < -8) player.vy = -8;
+
+                player.y += player.vy;
+                player.rotation = player.vy * 3; // Nghiêng theo chiều bay
+
+                // Giới hạn trong khung hình
+                if (player.y < 0) { player.y = 0; player.vy = 0; }
+                if (player.y > 330) { player.y = 330; player.vy = 0; }
+            }
+
+            // Xử lý vật thể và va chạm
+            for (let i = 0; i < objects.length; i++) {
+                let obj = objects[i];
+                obj.x -= gameSpeed;
+
+                // Va chạm Spike (Gai) hoặc Block
+                if (obj.type === "spike" || obj.type === "block") {
+                    if (
+                        player.x < obj.x + obj.w - 5 &&
+                        player.x + player.size > obj.x + 5 &&
+                        player.y < obj.y + obj.h &&
+                        player.y + player.size > obj.y + 5
+                    ) {
+                        isGameOver = true;
+                        createExplosion(player.x + player.size/2, player.y + player.size/2);
+                    }
+                }
+
+                // Va chạm cổng đổi chế độ
+                if (obj.type === "portal_ship" && !obj.activated) {
+                    if (player.x < obj.x + obj.w && player.x + player.size > obj.x && player.y < obj.y + obj.h && player.y + player.size > obj.y) {
+                        gameMode = "ship";
+                        obj.activated = true;
+                    }
+                }
+                if (obj.type === "portal_cube" && !obj.activated) {
+                    if (player.x < obj.x + obj.w && player.x + player.size > obj.x && player.y < obj.y + obj.h && player.y + player.size > obj.y) {
+                        gameMode = "cube";
+                        obj.activated = true;
+                    }
+                }
+
+                // Về đích
+                if (obj.type === "goal" && player.x > obj.x) {
+                    isWon = true;
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Vẽ nền mặt đất
+            ctx.fillStyle = "#05050a";
+            ctx.fillRect(0, 365, canvas.width, 35);
+            ctx.fillStyle = "#00ffcc";
+            ctx.fillRect(0, 365, canvas.width, 4);
+
+            // Vẽ các vật thể
+            objects.forEach(obj => {
+                if (obj.type === "spike") {
+                    ctx.fillStyle = "#ff0055";
+                    ctx.beginPath();
+                    ctx.moveTo(obj.x, obj.y + obj.h);
+                    ctx.lineTo(obj.x + obj.w / 2, obj.y);
+                    ctx.lineTo(obj.x + obj.w, obj.y + obj.h);
+                    ctx.closePath();
+                    ctx.fill();
+                } else if (obj.type === "block") {
+                    ctx.fillStyle = "#333366";
+                    ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+                    ctx.strokeStyle = "#00ffcc";
+                    ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
+                } else if (obj.type === "portal_ship" && !obj.activated) {
+                    ctx.fillStyle = "rgba(0, 150, 255, 0.6)";
+                    ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+                    ctx.strokeStyle = "#00ffff";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
+                } else if (obj.type === "portal_cube" && !obj.activated) {
+                    ctx.fillStyle = "rgba(255, 150, 0, 0.6)";
+                    ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+                    ctx.strokeStyle = "#ffaa00";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
+                }
+            });
+
+            // Vẽ hiệu ứng hạt khi nổ
+            particles.forEach((p, index) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+                if (p.life <= 0) particles.splice(index, 1);
+            });
+
+            // Vẽ người chơi (nếu chưa chết)
+            if (!isGameOver) {
+                ctx.save();
+                ctx.translate(player.x + player.size / 2, player.y + player.size / 2);
+                ctx.rotate((player.rotation * Math.PI) / 180);
+
+                if (gameMode === "cube") {
+                    ctx.fillStyle = "#00ffcc";
+                    ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(-player.size / 2 + 4, -player.size / 2 + 4, player.size - 8, player.size - 8);
+                } else {
+                    // Hình vẽ phi thuyền
+                    ctx.fillStyle = "#ff0055";
+                    ctx.beginPath();
+                    ctx.moveTo(15, 0);
+                    ctx.lineTo(-15, -12);
+                    ctx.lineTo(-5, 0);
+                    ctx.lineTo(-15, 12);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            // Màn hình bắt đầu
+            if (!isPlaying) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#00ffcc";
+                ctx.font = "bold 32px 'Segoe UI'";
+                ctx.textAlign = "center";
+                ctx.fillText("GEOMETRY DASH PRO", canvas.width / 2, canvas.height / 2 - 20);
+                ctx.fillStyle = "white";
+                ctx.font = "18px 'Segoe UI'";
+                ctx.fillText("Nhấn Space hoặc Click để Bắt đầu", canvas.width / 2, canvas.height / 2 + 25);
+            }
+
+            // Màn hình Game Over
+            if (isGameOver) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#ff0055";
+                ctx.font = "bold 38px 'Segoe UI'";
+                ctx.textAlign = "center";
+                ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 20);
+                ctx.fillStyle = "white";
+                ctx.font = "18px 'Segoe UI'";
+                ctx.fillText("Nhấn Space để Thử lại", canvas.width / 2, canvas.height / 2 + 25);
+            }
+
+            // Màn hình Thắng cuộc
+            if (isWon) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#00ffcc";
+                ctx.font = "bold 38px 'Segoe UI'";
+                ctx.textAlign = "center";
+                ctx.fillText("LEVEL COMPLETE!", canvas.width / 2, canvas.height / 2 - 20);
+                ctx.fillStyle = "white";
+                ctx.font = "18px 'Segoe UI'";
+                ctx.fillText("Bạn đã qua màn xuất sắc!", canvas.width / 2, canvas.height / 2 + 25);
+            }
+        }
+
+        function loop() {
+            update();
+            draw();
+            if (isPlaying && !isWon) {
+                if (isGameOver) {
+                    setTimeout(() => {
+                        // Dừng vòng lặp khi chết để người chơi nhấn phím chơi lại
+                    }, 100);
+                } else {
+                    requestAnimationFrame(loop);
+                }
+            }
+        }
+
+        // Bắt sự kiện chơi lại khi thua/thắng
+        window.addEventListener("keydown", function(e) {
+            if ((e.code === "Space" || e.code === "ArrowUp") && (isGameOver || isWon)) {
+                startGame();
+            }
+        });
+        canvas.addEventListener("click", function() {
+            if (isGameOver || isWon) {
+                startGame();
+            }
+        });
+
+        // Vẽ trạng thái ban đầu
+        draw();
+    </script>
+</body>
+</html>
