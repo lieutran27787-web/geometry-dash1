@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Dash Game</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        canvas {
+            border: 2px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <script>
+player.isGrounded = true;
+                    player.rotation = Math.round(player.rotation / (Math.PI / 2)) * (Math.PI / 2);
+                } else {
+                    player.rotation += 0.15;
+                }
+            } else if (player.mode === "ship") {
+                // Giữ nút = Bay lên, Thả = Rơi xuống
+                if (isHolding) {
+                    player.velocityY -= 0.6;
+                } else {
+                    player.velocityY += 0.6;
+                }
+
+                // Giới hạn tốc độ bay/rơi
+                player.velocityY = Math.max(-8, Math.min(8, player.velocityY));
+                player.y += player.velocityY;
+
+                // Xoay theo góc nghiêng của máy bay
+                player.rotation = player.velocityY * 0.05;
+
+                // Giới hạn trần & sàn
+                if (player.y + player.size >= groundY) {
+                    player.y = groundY - player.size;
+                    player.velocityY = 0;
+                }
+                if (player.y <= ceilingY) {
+                    player.y = ceilingY;
+                    player.velocityY = 0;
+                }
+            }
+
+            // Sinh chướng ngại vật & Cổng
+            fr
+</script>
+</body>
+</html>
