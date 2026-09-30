@@ -1,4 +1,212 @@
-ctx.strokeStyle = "#fff";
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Dash - Tết Nhà Bà Hoan</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #gameContainer {
+            position: relative;
+        }
+        canvas {
+            border: 4px solid #fff;
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+
+<div id="gameContainer">
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+</div>
+
+<!-- Tải file nhạc -->
+<audio id="bgMusic" src="tet-nha-ba-hoan.mp3" loop></audio>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const bgMusic = document.getElementById('bgMusic');
+
+let groundY = 320;
+let ceilingY = 50;
+let score = 0;
+let highScore = localStorage.getItem('gd_highscore') || 0;
+let gameOver = false;
+let gameStarted = false;
+
+let player = {
+    x: 100,
+    y: groundY - 30,
+    size: 30,
+    velocityY: 0,
+    gravity: 0.8,
+    jumpStrength: -12,
+    isGrounded: true,
+    rotation: 0,
+    mode: "cube",
+    color: "#00ffcc"
+};
+
+let obstacles = [];
+let portals = [];
+let frameCount = 0;
+let isHolding = false;
+
+function handleJump() {
+    if (!gameStarted) {
+        gameStarted = true;
+        bgMusic.play().catch(()=>{});
+        return;
+    }
+    if (gameOver) {
+        resetGame();
+        return;
+    }
+    if (player.mode === "cube" && player.isGrounded) {
+        player.velocityY = player.jumpStrength;
+        player.isGrounded = false;
+    }
+}
+
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') {
+        isHolding = true;
+        handleJump();
+    }
+});
+window.addEventListener('keyup', (e) => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') isHolding = false;
+});
+canvas.addEventListener('mousedown', () => {
+    isHolding = true;
+    handleJump();
+});
+canvas.addEventListener('mouseup', () => isHolding = false);
+
+function resetGame() {
+    gameOver = false;
+    score = 0;
+    obstacles = [];
+    portals = [];
+    player.y = groundY - player.size;
+    player.velocityY = 0;
+    player.rotation = 0;
+    player.mode = "cube";
+    player.isGrounded = true;
+    bgMusic.currentTime = 0;
+    bgMusic.play().catch(()=>{});
+}
+
+function spawnObjects() {
+    frameCount++;
+    if (frameCount % 90 === 0) {
+        obstacles.push({
+            x: canvas.width,
+            y: groundY,
+            width: 30,
+            height: 30
+        });
+    }
+    if (frameCount % 400 === 0) {
+        portals.push({
+            x: canvas.width,
+            y: groundY - 120,
+            width: 30,
+            height: 100,
+targetMode: player.mode === "cube" ? "ship" : "cube"
+        });
+    }
+}
+
+function update() {
+    if (!gameStarted || gameOver) return;
+
+    spawnObjects();
+    score++;
+    if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('gd_highscore', highScore);
+    }
+
+    if (player.mode === "cube") {
+        player.velocityY += player.gravity;
+        player.y += player.velocityY;
+
+        if (player.y + player.size >= groundY) {
+            player.y = groundY - player.size;
+            player.velocityY = 0;
+            player.isGrounded = true;
+            player.rotation = Math.round(player.rotation / (Math.PI / 2)) * (Math.PI / 2);
+        } else {
+            player.rotation += 0.15;
+            player.isGrounded = false;
+        }
+    } else if (player.mode === "ship") {
+        if (isHolding) player.velocityY -= 0.6;
+        else player.velocityY += 0.6;
+
+        player.velocityY = Math.max(-7, Math.min(7, player.velocityY));
+        player.y += player.velocityY;
+        player.rotation = player.velocityY * 0.05;
+
+        if (player.y + player.size >= groundY) {
+            player.y = groundY - player.size;
+            player.velocityY = 0;
+        }
+        if (player.y <= ceilingY) {
+            player.y = ceilingY;
+            player.velocityY = 0;
+        }
+    }
+
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+        let obs = obstacles[i];
+        obs.x -= 6;
+
+        if (player.x < obs.x + obs.width &&
+            player.x + player.size > obs.x &&
+            player.y < obs.y &&
+            player.y + player.size > obs.y - obs.height) {
+            gameOver = true;
+            bgMusic.pause();
+        }
+
+        if (obs.x + obs.width < 0) obstacles.splice(i, 1);
+    }
+
+    for (let i = portals.length - 1; i >= 0; i--) {
+        let p = portals[i];
+        p.x -= 6;
+
+        if (player.x < p.x + p.width &&
+            player.x + player.size > p.x &&
+            player.y < p.y + p.height &&
+            player.y + player.size > p.y) {
+            player.mode = p.targetMode;
+        }
+
+        if (p.x + p.width < 0) portals.splice(i, 1);
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#222";
+    ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+    ctx.strokeStyle = "#fff";
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(0, groundY);
@@ -12,17 +220,15 @@ ctx.strokeStyle = "#fff";
         ctx.stroke();
     }
 
-    // Vẽ Nhân vật (Xoay theo góc)
     ctx.save();
     ctx.translate(player.x + player.size / 2, player.y + player.size / 2);
     ctx.rotate(player.rotation);
     ctx.fillStyle = player.mode === "ship" ? "#ff0055" : player.color;
     ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
     ctx.strokeStyle = "#fff";
-    ctx.strokeRect(-player.size / 2, -player.size / 2, player.size, player.size);
+ctx.strokeRect(-player.size / 2, -player.size / 2, player.size, player.size);
     ctx.restore();
 
-    // Vẽ Chướng ngại vật (Gai)
     ctx.fillStyle = "#ff3333";
     obstacles.forEach(obs => {
         ctx.beginPath();
@@ -34,14 +240,12 @@ ctx.strokeStyle = "#fff";
         ctx.stroke();
     });
 
-    // Vẽ Cổng đổi Mode (Portal)
     portals.forEach(p => {
         ctx.fillStyle = p.targetMode === "ship" ? "#ffaa00" : "#00aaff";
         ctx.fillRect(p.x, p.y, p.width, p.height);
         ctx.strokeRect(p.x, p.y, p.width, p.height);
     });
 
-    // Vẽ Điểm & Thông báo
     ctx.fillStyle = "#fff";
     ctx.font = "20px Arial";
     ctx.fillText("Score: " + score, 20, 35);
@@ -60,7 +264,6 @@ ctx.strokeStyle = "#fff";
     }
 }
 
-// Vòng lặp game
 function gameLoop() {
     update();
     draw();
