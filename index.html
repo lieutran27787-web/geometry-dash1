@@ -1,3 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Dash Web</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #050505;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Arial Black', sans-serif;
+            user-select: none;
+        }
+        #gameContainer {
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            background: #000;
+        }
+    </style>
+</head>
+<body>
+
+<div id="gameContainer">
+    <canvas id="gameCanvas" width="800" height="450"></canvas>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const GROUND_Y = 360;
+const CEILING_Y = 40;
+let gameState = "START"; 
+let score = 0;
+let highScore = localStorage.getItem('gd_highscore_v2') || 0;
+let bgHue = 260;
+
+let player = {
+    x: 120,
+    y: GROUND_Y - 30,
+    size: 30,
+    velocityY: 0,
+    gravity: 0.85,
+    jumpStrength: -12.5,
+    rotation: 0,
+    mode: "cube",
+    isGrounded: false
+};
+
+let particles = [];
+let obstacles = [];
+let portals = [];
+let bgPillars = [];
+let frameCount = 0;
+let isHolding = false;
+
+for(let i = 0; i < 10; i++) {
+    bgPillars.push({
+        x: i * 100,
+        width: 50,
+        height: Math.random() * 150 + 50
+    });
+}
+
+function jump() {
+    if (gameState === "START") {
+        gameState = "PLAYING";
+    } else if (gameState === "GAMEOVER") {
+        resetGame();
+    } else if (gameState === "PLAYING") {
+        if (player.mode === "cube" && player.isGrounded) {
+            player.velocityY = player.jumpStrength;
+            player.isGrounded = false;
+            createParticles(player.x + 15, player.y + 30, 8, "#00ffcc");
+        }
+    }
+}
+
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') {
+        if(!isHolding) jump();
+        isHolding = true;
+    }
+});
+window.addEventListener('keyup', (e) => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') isHolding = false;
+});
+canvas.addEventListener('mousedown', () => {
+    if(!isHolding) jump();
+    isHolding = true;
+});
+canvas.addEventListener('mouseup', () => isHolding = false);
+
+function createParticles(x, y, count, color) {
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x: x,
+            y: y,
+            vx: (Math.random() - 0.5) * 6,
+            vy: (Math.random() - 0.5) * 6,
+            size: Math.random() * 4 + 2,
+            life: 20,
+            color: color
+        });
+    }
+}
+
+function resetGame() {
+    gameState = "PLAYING";
+    score = 0;
+    obstacles = [];
+    portals = [];
+particles = [];
+    player.y = GROUND_Y - player.size;
+    player.velocityY = 0;
+    player.rotation = 0;
+    player.mode = "cube";
+    player.isGrounded = true;
+}
+
+function spawnLogic() {
+    frameCount++;
+    bgHue = (bgHue + 0.2) % 360;
+
+    if (frameCount % 80 === 0) {
+        let typeRand = Math.random();
+        if (typeRand < 0.6) {
+            obstacles.push({ x: canvas.width, y: GROUND_Y, w: 30, h: 32, type: "spike" });
+        } else if (typeRand < 0.85) {
+            obstacles.push({ x: canvas.width, y: GROUND_Y, w: 30, h: 32, type: "spike" });
+            obstacles.push({ x: canvas.width + 30, y: GROUND_Y, w: 30, h: 32, type: "spike" });
+        } else {
+            obstacles.push({ x: canvas.width, y: GROUND_Y - 35, w: 35, h: 35, type: "block" });
+        }
+    }
+
+    if (frameCount % 450 === 0) {
+        portals.push({
+            x: canvas.width,
+            y: GROUND_Y - 140,
+            w: 35,
+            h: 110,
+            targetMode: player.mode === "cube" ? "ship" : "cube"
+        });
+    }
+}
+
+function update() {
+    if (gameState !== "PLAYING") return;
+
+    spawnLogic();
+    score++;
+    if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('gd_highscore_v2', highScore);
+    }
+
+    bgPillars.forEach(p => {
+        p.x -= 1.5;
+        if (p.x + p.width < 0) p.x = canvas.width;
+    });
+
+    if (player.mode === "cube") {
+        player.velocityY += player.gravity;
+        player.y += player.velocityY;
+
+        if (player.y + player.size >= GROUND_Y) {
+            player.y = GROUND_Y - player.size;
+            player.velocityY = 0;
+            player.isGrounded = true;
+            player.rotation = Math.round(player.rotation / (Math.PI / 2)) * (Math.PI / 2);
+        } else {
+            player.rotation += 0.18;
+            player.isGrounded = false;
+        }
+    } else if (player.mode === "ship") {
+        if (isHolding) player.velocityY -= 0.65;
+        else player.velocityY += 0.65;
+
+        player.velocityY = Math.max(-7.5, Math.min(7.5, player.velocityY));
+        player.y += player.velocityY;
+        player.rotation = player.velocityY * 0.06;
+
+        if (frameCount % 3 === 0) {
+            createParticles(player.x, player.y + 15, 2, "#ff0055");
+        }
+
+        if (player.y + player.size >= GROUND_Y) {
+            player.y = GROUND_Y - player.size;
+            player.velocityY = 0;
+        }
+        if (player.y <= CEILING_Y) {
+            player.y = CEILING_Y;
+            player.velocityY = 0;
+        }
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+        let obs = obstacles[i];
+        obs.x -= 6.5;
+
+        let hitMargin = 5;
+        if (player.x + hitMargin < obs.x + obs.w &&
+            player.x + player.size - hitMargin > obs.x &&
+player.y + hitMargin < (obs.type === "spike" ? obs.y : obs.y + obs.h) &&
+            player.y + player.size - hitMargin > (obs.type === "spike" ? obs.y - obs.h : obs.y)) {
+            
+            createParticles(player.x + 15, player.y + 15, 30, "#ff3300");
+            gameState = "GAMEOVER";
+        }
+
+        if (obs.x + obs.w < 0) obstacles.splice(i, 1);
+    }
+
+    for (let i = portals.length - 1; i >= 0; i--) {
+        let p = portals[i];
+        p.x -= 6.5;
+
+        if (player.x < p.x + p.w &&
+            player.x + player.size > p.x &&
+            player.y < p.y + p.h &&
+            player.y + player.size > p.y) {
+            if (player.mode !== p.targetMode) {
+                player.mode = p.targetMode;
+                createParticles(player.x + 15, player.y + 15, 20, p.targetMode === "ship" ? "#ffaa00" : "#00aaff");
+            }
+        }
+
+        if (p.x + p.w < 0) portals.splice(i, 1);
+    }
+}
+
+function draw() {
+    ctx.fillStyle = `hsl(${bgHue}, 60%, 8%)`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = `hsl(${bgHue}, 50%, 12%)`;
+    bgPillars.forEach(p => {
+        ctx.fillRect(p.x, GROUND_Y - p.height, p.width, p.height);
+    });
+
+    ctx.fillStyle = `hsl(${bgHue}, 70%, 18%)`;
+    ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+    if(player.mode === "ship") ctx.fillRect(0, 0, canvas.width, CEILING_Y);
+
+    ctx.strokeStyle = `hsl(${bgHue}, 100%, 60%)`;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, GROUND_Y);
+    ctx.lineTo(canvas.width, GROUND_Y);
+    if(player.mode === "ship") {
+        ctx.moveTo(0, CEILING_Y);
+        ctx.lineTo(canvas.width, CEILING_Y);
+    }
+    ctx.stroke();
+
+    particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+    });
+
+    portals.forEach(p => {
+        ctx.fillStyle = p.targetMode === "ship" ? "#ffaa00" : "#00aaff";
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.shadowBlur = 0;
+    });
+
+    obstacles.forEach(obs => {
+        if (obs.type === "spike") {
+            ctx.fillStyle = "#ff2255";
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(obs.x, obs.y);
+            ctx.lineTo(obs.x + obs.w / 2, obs.y - obs.h);
+            ctx.lineTo(obs.x + obs.w, obs.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        } else {
+            ctx.fillStyle = "#222";
+            ctx.strokeStyle = `hsl(${bgHue}, 100%, 60%)`;
+            ctx.lineWidth = 3;
+            ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+            ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
+        }
+    });
+
+    if (gameState !== "GAMEOVER") {
+        ctx.save();
+        ctx.translate(player.x + player.size / 2, player.y + player.size / 2);
+        ctx.rotate(player.rotation);
 ctx.fillStyle = player.mode === "ship" ? "#ff0055" : "#00ffcc";
         ctx.shadowBlur = 12;
         ctx.shadowColor = ctx.fillStyle;
