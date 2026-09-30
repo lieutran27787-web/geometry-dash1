@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Pro Edition</title>
+    <title>Geometry Dash Extended Edition</title>
     <style>
         body {
-            background-color: #0c0c14;
+            background-color: #06060c;
             color: white;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -20,98 +20,259 @@
         h2 {
             margin-bottom: 5px;
             color: #00ffcc;
-            text-shadow: 0 0 10px #00ffcc;
+            text-shadow: 0 0 15px #00ffcc;
+            letter-spacing: 2px;
+        }
+        .control-panel {
+            margin-bottom: 10px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: #121222;
+            padding: 8px 18px;
+            border-radius: 8px;
+            border: 1px solid #252545;
+        }
+        .control-panel label {
+            font-size: 14px;
+            color: #ffaa00;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .control-panel input[type="file"] {
+            display: none;
+        }
+        .level-selector {
+            display: flex;
+            gap: 8px;
+        }
+        .level-btn {
+            background: #1a1a38;
+            color: white;
+            border: 1px solid #00ffcc;
+            padding: 5px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .level-btn:hover, .level-btn.active {
+            background: #00ffcc;
+            color: #06060c;
+            box-shadow: 0 0 12px #00ffcc;
         }
         canvas {
-            border: 4px solid #1f1f3a;
-            background: linear-gradient(to bottom, #111122, #1b1b3a);
-            box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
-            border-radius: 10px;
+            border: 4px solid #1a1a36;
+            background: #0d0d1a;
+            box-shadow: 0 0 40px rgba(0, 255, 204, 0.3);
+            border-radius: 12px;
         }
         #info {
-            font-size: 18px;
+            font-size: 16px;
             margin-top: 10px;
             font-weight: bold;
-            color: #ffaa00;
+            color: #ff0055;
+            text-shadow: 0 0 8px rgba(255,0,85,0.4);
         }
     </style>
 </head>
 <body>
 
-    <h2>GEOMETRY DASH PRO</h2>
+    <h2>GEOMETRY DASH: EXTENDED MAPS</h2>
+    
+    <div class="control-panel">
+        <label for="musicUpload">📁 Chọn Nhạc MP3:</label>
+        <input type="file" id="musicUpload" accept="audio/*">
+        <span id="songName" style="font-size: 13px; color: #777;">Chưa chọn nhạc</span>
+
+        <div style="border-left: 1px solid #333; height: 20px; margin: 0 5px;"></div>
+
+        <div class="level-selector">
+            <span style="color: white; font-size: 14px; align-self: center;">Màn:</span>
+            <button class="level-btn active" onclick="selectLevel(1)">1. Stereo Madness</button>
+            <button class="level-btn" onclick="selectLevel(2)">2. Back On Track</button>
+            <button class="level-btn" onclick="selectLevel(3)">3. Polargeist</button>
+        </div>
+    </div>
+
     <canvas id="gameCanvas" width="850" height="400"></canvas>
-    <div id="info">Tiến độ: 0% | Chế độ: Khối Vuông</div>
+    <div id="info">Chọn màn chơi và nhấn Space để bắt đầu</div>
+
+    <audio id="bgMusic" loop></audio>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const infoEl = document.getElementById("info");
+        const bgMusic = document.getElementById("bgMusic");
+        const musicUpload = document.getElementById("musicUpload");
+        const songNameEl = document.getElementById("songName");
 
-        // Trạng thái game
-        let gameMode = "cube"; // "cube" hoặc "ship"
+        musicUpload.addEventListener("change", function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                bgMusic.src = URL.createObjectURL(file);
+                songNameEl.innerText = "🎵 " + file.name;
+            }
+        });
+
+        let currentLevel = 1;
+        let gameMode = "cube";
         let isPlaying = false;
         let isGameOver = false;
         let isWon = false;
-        let score = 0;
-        let gameSpeed = 7;
+        let gameSpeed = 8;
         let frameCount = 0;
         let particles = [];
+        let shipTrails = [];
+        let screenShake = 0;
+        let flashAlpha = 0;
+        let bgHue = 200;
 
-        // Người chơi
         let player = {
-            x: 150,
-            y: 300,
-            size: 30,
-            vy: 0,
-            gravity: 0.8,
-            jumpPower: -13,
-            rotation: 0,
-            isGrounded: false
+            x: 150, y: 300, size: 30, vy: 0, gravity: 0.85, jumpPower: -13.5, rotation: 0, isGrounded: false,
+            scaleX: 1, scaleY: 1
         };
 
-        // Danh sách vật phẩm & chướng ngại vật trong level mẫu
         let objects = [];
+        let levelLength = 7000; // Tăng chiều dài đường đua lên rất dài (gấp đôi)
 
-        function initLevel() {
-            objects = [
-                { type: "spike", x: 600, y: 330, w: 25, h: 35 },
-                { type: "spike", x: 900, y: 330, w: 25, h: 35 },
-                { type: "spike", x: 930, y: 330, w: 25, h: 35 },
-                // Cổng đổi sang phi thuyền
-                { type: "portal_ship", x: 1300, y: 250, w: 30, h: 80, activated: false },
-                // Chướng ngại vật trên không cho phi thuyền
-                { type: "block", x: 1600, y: 0, w: 50, h: 120 },
-                { type: "block", x: 1600, y: 280, w: 50, h: 120 },
-                { type: "spike", x: 2000, y: 330, w: 25, h: 35 },
-                // Cổng đổi về khối vuông
-                { type: "portal_cube", x: 2300, y: 250, w: 30, h: 80, activated: false },
-                { type: "spike", x: 2700, y: 330, w: 25, h: 35 },
-                { type: "spike", x: 2730, y: 330, w: 25, h: 35 },
-                // Về đích
-                { type: "goal", x: 3200, y: 0, w: 20, h: 400 }
-            ];
+        function loadLevel(levelId) {
+            currentLevel = levelId;
+            objects = [];
+            
+            document.querySelectorAll('.level-btn').forEach((btn, idx) => {
+                if (idx + 1 === levelId) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            if (levelId === 1) {
+                levelLength = 7000;
+                objects = [
+                    // Đoạn đầu: Khối vuông & gai đơn/kép dưới
+                    { type: "spike", x: 600, y: 330, w: 25, h: 35 },
+                    { type: "spike", x: 900, y: 330, w: 25, h: 35 },
+                    { type: "spike", x: 930, y: 330, w: 25, h: 35 },
+                    { type: "spike", x: 1300, y: 330, w: 25, h: 35 },
+                    { type: "spike", x: 1500, y: 330, w: 25, h: 35 },
+                    { type: "spike", x: 1530, y: 330, w: 25, h: 35 },
+                    
+                    // Cổng 1: Vào Phi Thuyền
+                    { type: "portal_ship", x: 1900, y: 250, w: 30, h: 80, activated: false },
+                    
+                    // Chướng ngại vật cả trên lẫn dưới cho phi thuyền
+                    { type: "block", x: 2300, y: 0, w: 50, h: 120 },
+                    { type: "block", x: 2300, y: 280, w: 50, h: 120 },
+                    { type: "block", x: 2700, y: 50, w: 50, h: 100 },
+                    { type: "block", x: 2700, y: 270, w: 50, h: 130 },
+                    { type: "block", x: 3100, y: 0, w: 50, h: 150 },
+                    { type: "block", x: 3100, y: 250, w: 50, h: 150 },
+
+                    // Cổng 2: Trở về Khối Vuông
+                    { type: "portal_cube", x: 3600, y: 250, w: 30, h: 80, activated: false },
+                    { type: "spike", x: 4000, y: 330, w: 25, h: 35 },
+                    { type: "spike", x: 4030, y: 330, w: 25, h: 35 },
+                    { type: "spike", x: 4400, y: 330, w: 25, h: 35 },
+
+                    // Cổng 3: Vào Wave (Mũi tên)
+                    { type: "portal_wave", x: 4900, y: 250, w: 30, h: 80, activated: false },
+                    { type: "block", x: 5300, y: 0, w: 40, h: 140 },
+                    { type: "block", x: 5300, y: 240, w: 40, h: 160 },
+                    { type: "block", x: 5700, y: 80, w: 40, h: 120 },
+                    { type: "block", x: 5700, y: 280, w: 40, h: 120 },
+
+                    // Cổng cuối & Về đích
+                    { type: "portal_cube", x: 6300, y: 250, w: 30, h: 80, activated: false },
+                    { type: "spike", x: 6700, y: 330, w: 25, h: 35 },
+                    { type: "goal", x: levelLength, y: 0, w: 20, h: 400 }
+                ];
+            } else if (levelId === 2) {
+                levelLength = 8000;
+                objects = [
+                    { type: "portal_ship", x: 500, y: 250, w: 30, h: 80, activated: false },
+                    // Rừng chướng ngại vật trên dưới liên tục
+                    { type: "block", x: 900, y: 0, w: 40, h: 130 },
+                    { type: "block", x: 900, y: 270, w: 40, h: 130 },
+                    { type: "block", x: 1300, y: 80, w: 40, h: 140 },
+                    { type: "block", x: 1300, y: 260, w: 40, h: 140 },
+                    { type: "block", x: 1700, y: 0, w: 40, h: 160 },
+                    { type: "block", x: 1700, y: 280, w: 40, h: 120 },
+                    
+                    { type: "portal_wave", x: 2300, y: 250, w: 30, h: 80, activated: false },
+                    { type: "block", x: 2700, y: 50, w: 35, h: 130 },
+                    { type: "block", x: 2700, y: 250, w: 35, h: 150 },
+                    { type: "block", x: 3100, y: 120, w: 35, h: 140 },
+                    { type: "block", x: 3100, y: 300, w: 35, h: 100 },
+                    { type: "block", x: 3500, y: 0, w: 35, h: 150 },
+                    { type: "block", x: 3500, y: 270, w: 35, h: 130 },
+
+                    { type: "portal_cube", x: 4200, y: 250, w: 30, h: 80, activated: false },
+                    { type: "spike", x: 4600, y: 330, w: 25, h: 35 },
+                    { type: "spike", x: 4630, y: 330, w: 25, h: 35 },
+                    { type: "spike", x: 5000, y: 330, w: 25, h: 35 },
+
+                    { type: "portal_ship", x: 5500, y: 250, w: 30, h: 80, activated: false },
+                    { type: "block", x: 6000, y: 0, w: 40, h: 150 },
+                    { type: "block", x: 6000, y: 260, w: 40, h: 140 },
+
+                    { type: "goal", x: levelLength, y: 0, w: 20, h: 400 }
+                ];
+            } else if (levelId === 3) {
+                levelLength = 9000;
+                objects = [
+                    { type: "portal_wave", x: 500, y: 250, w: 30, h: 80, activated: false },
+                    { type: "block", x: 900, y: 0, w: 35, h: 140 },
+                    { type: "block", x: 900, y: 260, w: 35, h: 140 },
+                    { type: "block", x: 1300, y: 80, w: 35, h: 130 },
+                    { type: "block", x: 1300, y: 250, w: 35, h: 150 },
+                    { type: "block", x: 1700, y: 40, w: 35, h: 150 },
+                    { type: "block", x: 1700, y: 280, w: 35, h: 120 },
+
+                    { type: "portal_ship", x: 2300, y: 250, w: 30, h: 80, activated: false },
+                    { type: "block", x: 2800, y: 0, w: 45, h: 130 },
+                    { type: "block", x: 2800, y: 270, w: 45, h: 130 },
+                    { type: "block", x: 3300, y: 100, w: 45, h: 140 },
+                    { type: "block", x: 3300, y: 280, w: 45, h: 120 },
+
+                    { type: "portal_cube", x: 4000, y: 250, w: 30, h: 80, activated: false },
+                    { type: "spike", x: 4400, y: 330, w: 25, h: 35 },
+                    { type: "spike", x: 4430, y: 330, w: 25, h: 35 },
+
+                    { type: "portal_wave", x: 5000, y: 250, w: 30, h: 80, activated: false },
+                    { type: "block", x: 5500, y: 0, w: 35, h: 160 },
+                    { type: "block", x: 5500, y: 250, w: 35, h: 150 },
+                    { type: "block", x: 6000, y: 60, w: 35, h: 140 },
+                    { type: "block", x: 6000, y: 270, w: 35, h: 130 },
+                    { type: "block", x: 6500, y: 100, w: 35, h: 140 },
+                    { type: "block", x: 6500, y: 280, w: 35, h: 120 },
+
+                    { type: "goal", x: levelLength, y: 0, w: 20, h: 400 }
+                ];
+            }
+        }
+
+        function selectLevel(id) {
+            if (isPlaying) return;
+            loadLevel(id);
+            infoEl.innerText = `Đã chọn Màn ${id} (Đường siêu dài). Nhấn Space để chơi!`;
         }
 
         let isHolding = false;
 
-        // Xử lý phím bấm & chuột
         window.addEventListener("keydown", function(e) {
             if (e.code === "Space" || e.code === "ArrowUp") {
                 isHolding = true;
-                if (!isPlaying) {
-                    startGame();
-                } else if (gameMode === "cube" && player.isGrounded) {
+                if (!isPlaying) startGame();
+                else if (gameMode === "cube" && player.isGrounded) {
                     player.vy = player.jumpPower;
                     player.isGrounded = false;
+                    player.scaleX = 0.7; player.scaleY = 1.3;
                 }
                 e.preventDefault();
             }
         });
-
         window.addEventListener("keyup", function(e) {
-            if (e.code === "Space" || e.code === "ArrowUp") {
-                isHolding = false;
-            }
+            if (e.code === "Space" || e.code === "ArrowUp") isHolding = false;
         });
 
         canvas.addEventListener("mousedown", () => {
@@ -120,38 +281,42 @@
             else if (gameMode === "cube" && player.isGrounded) {
                 player.vy = player.jumpPower;
                 player.isGrounded = false;
+                player.scaleX = 0.7; player.scaleY = 1.3;
             }
         });
-
         canvas.addEventListener("mouseup", () => { isHolding = false; });
 
         function startGame() {
             isPlaying = true;
             isGameOver = false;
             isWon = false;
-            score = 0;
-            gameSpeed = 7;
+            gameSpeed = currentLevel === 1 ? 8 : (currentLevel === 2 ? 8.6 : 9.2);
             frameCount = 0;
             gameMode = "cube";
-            player.y = 300;
-            player.vy = 0;
-            player.rotation = 0;
+            player.y = 300; player.vy = 0; player.rotation = 0;
+            player.scaleX = 1; player.scaleY = 1;
             particles = [];
-            initLevel();
+            shipTrails = [];
+            loadLevel(currentLevel);
+
+            if (bgMusic.src) {
+                bgMusic.currentTime = 0;
+                bgMusic.play().catch(() => {});
+            }
             loop();
         }
 
-        // Tạo hiệu ứng nổ hạt khi chết
-        function createExplosion(x, y) {
-            for (let i = 0; i < 30; i++) {
+        function triggerExplosion(x, y) {
+            screenShake = 22;
+            flashAlpha = 0.8;
+            for (let i = 0; i < 50; i++) {
                 particles.push({
-                    x: x,
-                    y: y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10,
-                    size: Math.random() * 6 + 2,
-                    color: Math.random() > 0.5 ? "#00ffcc" : "#ff0055",
-                    life: 40
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 16,
+                    vy: (Math.random() - 0.5) * 16,
+                    size: Math.random() * 8 + 2,
+                    color: Math.random() > 0.4 ? "#00ffcc" : "#ff0055",
+                    life: 50
                 });
             }
         }
@@ -160,53 +325,62 @@
             if (!isPlaying || isGameOver || isWon) return;
 
             frameCount++;
-            let progress = Math.min(100, Math.floor((objects[objects.length - 1].x - (3200 - objects[objects.length - 1].x)) / 32)); 
-            // Tính phần trăm đơn giản dựa vào khoảng cách camera
-            let totalDist = 3200;
-            let currentDist = frameCount * gameSpeed;
-            let percent = Math.min(100, Math.floor((currentDist / totalDist) * 100));
-            
-            infoEl.innerText = `Tiến độ: ${percent}% | Chế độ: ${gameMode === "cube" ? "Khối Vuông" : "Phi Thuyền"}`;
+            bgHue = (bgHue + 0.35) % 360;
+            if (screenShake > 0) screenShake--;
+            if (flashAlpha > 0) flashAlpha -= 0.05;
 
-            // Vật lý nhân vật
+            player.scaleX += (1 - player.scaleX) * 0.2;
+            player.scaleY += (1 - player.scaleY) * 0.2;
+
+            let currentDist = frameCount * gameSpeed;
+            let percent = Math.min(100, Math.floor((currentDist / levelLength) * 100));
+            
+            let modeName = "Khối Vuông (Cube)";
+            if (gameMode === "ship") modeName = "Phi Thuyền (Ship)";
+            if (gameMode === "wave") modeName = "Mũi Tên (Wave)";
+            infoEl.innerText = `Màn ${currentLevel} | Tiến độ: ${percent}% | Chế độ: ${modeName}`;
+
             if (gameMode === "cube") {
                 player.vy += player.gravity;
                 player.y += player.vy;
-
                 if (player.y >= 330) {
-                    player.y = 330;
-                    player.vy = 0;
-                    player.isGrounded = true;
+                    if (!player.isGrounded) {
+                        player.scaleX = 1.3; player.scaleY = 0.7;
+                    }
+                    player.y = 330; player.vy = 0; player.isGrounded = true;
                     player.rotation = Math.round(player.rotation / 90) * 90;
                 } else {
-                    player.isGrounded = false;
-                    player.rotation += 8;
+                    player.isGrounded = false; player.rotation += 10;
                 }
             } else if (gameMode === "ship") {
-                // Chế độ phi thuyền: giữ chuột/phím để bay lên, thả ra để chìm xuống
-                if (isHolding) {
-                    player.vy -= 0.6; // Lực đẩy lên
-                } else {
-                    player.vy += 0.6; // Trọng lực kéo xuống
-                }
-                // Giới hạn tốc độ bay tối đa
-                if (player.vy > 8) player.vy = 8;
-                if (player.vy < -8) player.vy = -8;
-
-                player.y += player.vy;
-                player.rotation = player.vy * 3; // Nghiêng theo chiều bay
-
-                // Giới hạn trong khung hình
+                if (isHolding) player.vy -= 0.7; else player.vy += 0.7;
+                if (player.vy > 9) player.vy = 9;
+                if (player.vy < -9) player.vy = -9;
+                player.y += player.vy; player.rotation = player.vy * 2.5;
                 if (player.y < 0) { player.y = 0; player.vy = 0; }
                 if (player.y > 330) { player.y = 330; player.vy = 0; }
+
+                shipTrails.push({ x: player.x, y: player.y + player.size/2, alpha: 1.0 });
+            } else if (gameMode === "wave") {
+                if (isHolding) { player.vy = -8; player.rotation = -45; }
+                else { player.vy = 8; player.rotation = 45; }
+                player.y += player.vy;
+                if (player.y < 0) player.y = 0;
+                if (player.y > 330) player.y = 330;
+                
+                shipTrails.push({ x: player.x, y: player.y + player.size/2, alpha: 1.0, color: "#ffff00" });
             }
 
-            // Xử lý vật thể và va chạm
+            for (let i = shipTrails.length - 1; i >= 0; i--) {
+                shipTrails[i].x -= gameSpeed;
+                shipTrails[i].alpha -= 0.06;
+                if (shipTrails[i].alpha <= 0) shipTrails.splice(i, 1);
+            }
+
             for (let i = 0; i < objects.length; i++) {
                 let obj = objects[i];
                 obj.x -= gameSpeed;
 
-                // Va chạm Spike (Gai) hoặc Block
                 if (obj.type === "spike" || obj.type === "block") {
                     if (
                         player.x < obj.x + obj.w - 5 &&
@@ -215,175 +389,207 @@
                         player.y + player.size > obj.y + 5
                     ) {
                         isGameOver = true;
-                        createExplosion(player.x + player.size/2, player.y + player.size/2);
+                        bgMusic.pause();
+                        triggerExplosion(player.x + player.size/2, player.y + player.size/2);
                     }
                 }
 
-                // Va chạm cổng đổi chế độ
                 if (obj.type === "portal_ship" && !obj.activated) {
                     if (player.x < obj.x + obj.w && player.x + player.size > obj.x && player.y < obj.y + obj.h && player.y + player.size > obj.y) {
-                        gameMode = "ship";
-                        obj.activated = true;
+                        gameMode = "ship"; obj.activated = true; flashAlpha = 0.5; screenShake = 12;
+                    }
+                }
+                if (obj.type === "portal_wave" && !obj.activated) {
+                    if (player.x < obj.x + obj.w && player.x + player.size > obj.x && player.y < obj.y + obj.h && player.y + player.size > obj.y) {
+                        gameMode = "wave"; obj.activated = true; flashAlpha = 0.5; screenShake = 12;
                     }
                 }
                 if (obj.type === "portal_cube" && !obj.activated) {
                     if (player.x < obj.x + obj.w && player.x + player.size > obj.x && player.y < obj.y + obj.h && player.y + player.size > obj.y) {
-                        gameMode = "cube";
-                        obj.activated = true;
+                        gameMode = "cube"; obj.activated = true; flashAlpha = 0.5; screenShake = 12;
                     }
                 }
 
-                // Về đích
                 if (obj.type === "goal" && player.x > obj.x) {
                     isWon = true;
+                    bgMusic.pause();
                 }
             }
         }
 
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            if (screenShake > 0) {
+                let sx = (Math.random() - 0.5) * 9;
+                let sy = (Math.random() - 0.5) * 9;
+                ctx.translate(sx, sy);
+            }
 
-            // Vẽ nền mặt đất
-            ctx.fillStyle = "#05050a";
+            let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            bgGrad.addColorStop(0, `hsl(${bgHue}, 65%, 16%)`);
+            bgGrad.addColorStop(1, `hsl(${bgHue + 45}, 55%, 8%)`);
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#05050e";
             ctx.fillRect(0, 365, canvas.width, 35);
             ctx.fillStyle = "#00ffcc";
+            ctx.shadowColor = "#00ffcc";
+            ctx.shadowBlur = 15;
             ctx.fillRect(0, 365, canvas.width, 4);
+            ctx.shadowBlur = 0;
 
-            // Vẽ các vật thể
+            shipTrails.forEach(t => {
+                ctx.fillStyle = t.color || `rgba(0, 255, 255, ${t.alpha})`;
+                ctx.fillRect(t.x, t.y - 2, 6, 6);
+            });
+
             objects.forEach(obj => {
                 if (obj.type === "spike") {
                     ctx.fillStyle = "#ff0055";
+                    ctx.shadowColor = "#ff0055";
+                    ctx.shadowBlur = 10;
                     ctx.beginPath();
                     ctx.moveTo(obj.x, obj.y + obj.h);
                     ctx.lineTo(obj.x + obj.w / 2, obj.y);
                     ctx.lineTo(obj.x + obj.w, obj.y + obj.h);
                     ctx.closePath();
                     ctx.fill();
+                    ctx.shadowBlur = 0;
                 } else if (obj.type === "block") {
-                    ctx.fillStyle = "#333366";
+                    ctx.fillStyle = "#222244";
                     ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
                     ctx.strokeStyle = "#00ffcc";
-                    ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
-                } else if (obj.type === "portal_ship" && !obj.activated) {
-                    ctx.fillStyle = "rgba(0, 150, 255, 0.6)";
-                    ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
-                    ctx.strokeStyle = "#00ffff";
                     ctx.lineWidth = 2;
                     ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
-                } else if (obj.type === "portal_cube" && !obj.activated) {
-                    ctx.fillStyle = "rgba(255, 150, 0, 0.6)";
+                } else if (obj.type.startsWith("portal") && !obj.activated) {
+                    if (obj.type === "portal_ship") ctx.fillStyle = "rgba(0, 150, 255, 0.5)";
+                    else if (obj.type === "portal_wave") ctx.fillStyle = "rgba(255, 0, 255, 0.5)";
+                    else ctx.fillStyle = "rgba(255, 150, 0, 0.5)";
+                    
                     ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
-                    ctx.strokeStyle = "#ffaa00";
-                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
                     ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
                 }
             });
 
-            // Vẽ hiệu ứng hạt khi nổ
             particles.forEach((p, index) => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life--;
+                p.x += p.vx; p.y += p.vy; p.life--;
                 ctx.fillStyle = p.color;
                 ctx.fillRect(p.x, p.y, p.size, p.size);
                 if (p.life <= 0) particles.splice(index, 1);
             });
 
-            // Vẽ người chơi (nếu chưa chết)
             if (!isGameOver) {
                 ctx.save();
                 ctx.translate(player.x + player.size / 2, player.y + player.size / 2);
                 ctx.rotate((player.rotation * Math.PI) / 180);
+                ctx.scale(player.scaleX, player.scaleY);
 
                 if (gameMode === "cube") {
                     ctx.fillStyle = "#00ffcc";
+                    ctx.shadowColor = "#00ffcc";
+                    ctx.shadowBlur = 14;
                     ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
-                    ctx.strokeStyle = "#ffffff";
-                    ctx.lineWidth = 3;
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3;
                     ctx.strokeRect(-player.size / 2 + 4, -player.size / 2 + 4, player.size - 8, player.size - 8);
-                } else {
-                    // Hình vẽ phi thuyền
+                } else if (gameMode === "ship") {
                     ctx.fillStyle = "#ff0055";
+                    ctx.shadowColor = "#ff0055";
+                    ctx.shadowBlur = 14;
                     ctx.beginPath();
-                    ctx.moveTo(15, 0);
-                    ctx.lineTo(-15, -12);
-                    ctx.lineTo(-5, 0);
-                    ctx.lineTo(-15, 12);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.strokeStyle = "#ffffff";
-                    ctx.stroke();
+                    ctx.moveTo(16, 0); ctx.lineTo(-16, -13); ctx.lineTo(-6, 0); ctx.lineTo(-16, 13);
+                    ctx.closePath(); ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = "#ffffff"; ctx.stroke();
+                } else if (gameMode === "wave") {
+                    ctx.fillStyle = "#ffff00";
+                    ctx.shadowColor = "#ffff00";
+                    ctx.shadowBlur = 14;
+                    ctx.beginPath();
+                    ctx.moveTo(16, 0); ctx.lineTo(-16, -11); ctx.lineTo(-10, 0); ctx.lineTo(-16, 11);
+                    ctx.closePath(); ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 2; ctx.stroke();
                 }
                 ctx.restore();
             }
 
-            // Màn hình bắt đầu
-            if (!isPlaying) {
-                ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+            if (flashAlpha > 0) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "#00ffcc";
-                ctx.font = "bold 32px 'Segoe UI'";
-                ctx.textAlign = "center";
-                ctx.fillText("GEOMETRY DASH PRO", canvas.width / 2, canvas.height / 2 - 20);
-                ctx.fillStyle = "white";
-                ctx.font = "18px 'Segoe UI'";
-                ctx.fillText("Nhấn Space hoặc Click để Bắt đầu", canvas.width / 2, canvas.height / 2 + 25);
             }
 
-            // Màn hình Game Over
+            ctx.restore();
+
+            if (!isPlaying) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#00ffcc";
+                ctx.font = "bold 34px 'Segoe UI'";
+                ctx.textAlign = "center";
+                ctx.fillText(`MÀN ${currentLevel} - SẴN SÀNG`, canvas.width / 2, canvas.height / 2 - 20);
+                ctx.fillStyle = "white";
+                ctx.font = "18px 'Segoe UI'";
+                ctx.fillText("Nhấn Space hoặc Click chuột để Bắt đầu", canvas.width / 2, canvas.height / 2 + 25);
+            }
+
             if (isGameOver) {
                 ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = "#ff0055";
-                ctx.font = "bold 38px 'Segoe UI'";
+                ctx.font = "bold 40px 'Segoe UI'";
                 ctx.textAlign = "center";
-                ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 20);
+                ctx.fillText("CRASH!", canvas.width / 2, canvas.height / 2 - 20);
                 ctx.fillStyle = "white";
                 ctx.font = "18px 'Segoe UI'";
                 ctx.fillText("Nhấn Space để Thử lại", canvas.width / 2, canvas.height / 2 + 25);
             }
 
-            // Màn hình Thắng cuộc
             if (isWon) {
                 ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = "#00ffcc";
-                ctx.font = "bold 38px 'Segoe UI'";
+                ctx.font = "bold 40px 'Segoe UI'";
                 ctx.textAlign = "center";
-                ctx.fillText("LEVEL COMPLETE!", canvas.width / 2, canvas.height / 2 - 20);
+                ctx.fillText(`HOÀN THÀNH MÀN ${currentLevel}!`, canvas.width / 2, canvas.height / 2 - 20);
                 ctx.fillStyle = "white";
                 ctx.font = "18px 'Segoe UI'";
-                ctx.fillText("Bạn đã qua màn xuất sắc!", canvas.width / 2, canvas.height / 2 + 25);
+                ctx.fillText("Nhấn Space để sang Màn tiếp theo", canvas.width / 2, canvas.height / 2 + 25);
             }
         }
 
         function loop() {
             update();
             draw();
-            if (isPlaying && !isWon) {
-                if (isGameOver) {
-                    setTimeout(() => {
-                        // Dừng vòng lặp khi chết để người chơi nhấn phím chơi lại
-                    }, 100);
-                } else {
-                    requestAnimationFrame(loop);
-                }
+            if (isPlaying && !isWon && !isGameOver) {
+                requestAnimationFrame(loop);
             }
         }
 
-        // Bắt sự kiện chơi lại khi thua/thắng
         window.addEventListener("keydown", function(e) {
-            if ((e.code === "Space" || e.code === "ArrowUp") && (isGameOver || isWon)) {
-                startGame();
+            if (e.code === "Space" || e.code === "ArrowUp") {
+                if (isGameOver) {
+                    startGame();
+                } else if (isWon) {
+                    if (currentLevel < 3) selectLevel(currentLevel + 1);
+                    else selectLevel(1);
+                    startGame();
+                }
             }
         });
         canvas.addEventListener("click", function() {
-            if (isGameOver || isWon) {
+            if (isGameOver) {
+                startGame();
+            } else if (isWon) {
+                if (currentLevel < 3) selectLevel(currentLevel + 1);
+                else selectLevel(1);
                 startGame();
             }
         });
 
-        // Vẽ trạng thái ban đầu
+        loadLevel(1);
         draw();
     </script>
 </body>
