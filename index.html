@@ -1,60 +1,73 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Game</title>
-    <style>
-        body {
-            margin: 0;
-            background-color: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-        }
-        canvas {
-            border: 2px solid #fff;
-        }
-    </style>
-</head>
-<body>
-    <canvas id="gameCanvas" width="800" height="400"></canvas>
-    <script>
-player.isGrounded = true;
-                    player.rotation = Math.round(player.rotation / (Math.PI / 2)) * (Math.PI / 2);
-                } else {
-                    player.rotation += 0.15;
-                }
-            } else if (player.mode === "ship") {
-                // Giữ nút = Bay lên, Thả = Rơi xuống
-                if (isHolding) {
-                    player.velocityY -= 0.6;
-                } else {
-                    player.velocityY += 0.6;
-                }
+ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    ctx.lineTo(canvas.width, groundY);
+    ctx.stroke();
 
-                // Giới hạn tốc độ bay/rơi
-                player.velocityY = Math.max(-8, Math.min(8, player.velocityY));
-                player.y += player.velocityY;
+    if (player.mode === "ship") {
+        ctx.beginPath();
+        ctx.moveTo(0, ceilingY);
+        ctx.lineTo(canvas.width, ceilingY);
+        ctx.stroke();
+    }
 
-                // Xoay theo góc nghiêng của máy bay
-                player.rotation = player.velocityY * 0.05;
+    // Vẽ Nhân vật (Xoay theo góc)
+    ctx.save();
+    ctx.translate(player.x + player.size / 2, player.y + player.size / 2);
+    ctx.rotate(player.rotation);
+    ctx.fillStyle = player.mode === "ship" ? "#ff0055" : player.color;
+    ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
+    ctx.strokeStyle = "#fff";
+    ctx.strokeRect(-player.size / 2, -player.size / 2, player.size, player.size);
+    ctx.restore();
 
-                // Giới hạn trần & sàn
-                if (player.y + player.size >= groundY) {
-                    player.y = groundY - player.size;
-                    player.velocityY = 0;
-                }
-                if (player.y <= ceilingY) {
-                    player.y = ceilingY;
-                    player.velocityY = 0;
-                }
-            }
+    // Vẽ Chướng ngại vật (Gai)
+    ctx.fillStyle = "#ff3333";
+    obstacles.forEach(obs => {
+        ctx.beginPath();
+        ctx.moveTo(obs.x, obs.y);
+        ctx.lineTo(obs.x + obs.width / 2, obs.y - obs.height);
+        ctx.lineTo(obs.x + obs.width, obs.y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    });
 
-            // Sinh chướng ngại vật & Cổng
-            fr
+    // Vẽ Cổng đổi Mode (Portal)
+    portals.forEach(p => {
+        ctx.fillStyle = p.targetMode === "ship" ? "#ffaa00" : "#00aaff";
+        ctx.fillRect(p.x, p.y, p.width, p.height);
+        ctx.strokeRect(p.x, p.y, p.width, p.height);
+    });
+
+    // Vẽ Điểm & Thông báo
+    ctx.fillStyle = "#fff";
+    ctx.font = "20px Arial";
+    ctx.fillText("Score: " + score, 20, 35);
+    ctx.fillText("High Score: " + highScore, 620, 35);
+
+    if (!gameStarted) {
+        ctx.font = "24px Arial";
+        ctx.fillText("BẤM SPACE / CLICK ĐỂ BẮT ĐẦU CHƠI", 180, 200);
+    } else if (gameOver) {
+        ctx.fillStyle = "#ff4444";
+        ctx.font = "36px Arial";
+        ctx.fillText("GAME OVER!", 290, 180);
+        ctx.fillStyle = "#fff";
+        ctx.font = "20px Arial";
+        ctx.fillText("Bấm Space / Click để chơi lại", 270, 220);
+    }
+}
+
+// Vòng lặp game
+function gameLoop() {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
 </script>
 </body>
 </html>
