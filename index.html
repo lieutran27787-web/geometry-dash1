@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash - Attempts & Settings Edition</title>
+    <title>Geometry Dash Authentic Edition</title>
     <style>
         body {
-            background-color: #030308;
+            background-color: #0b0b14;
             color: white;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -18,93 +18,103 @@
             overflow: hidden;
             user-select: none;
         }
-        h2 {
-            margin-bottom: 5px;
+
+        /* Giao diện Menu Chọn Màn (Level Select Screen phong cách GD) */
+        #menuScreen {
+            position: absolute;
+            width: 850px;
+            height: 400px;
+            background: linear-gradient(135deg, #101026, #1c1c3c);
+            border: 4px solid #333366;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            box-shadow: 0 0 50px rgba(0, 255, 204, 0.2);
+            z-index: 20;
+        }
+
+        .menu-title {
+            font-size: 28px;
             color: #00ffcc;
             text-shadow: 0 0 15px #00ffcc;
+            font-weight: 900;
             letter-spacing: 2px;
+            margin: 0;
         }
-        .control-panel {
-            margin-bottom: 8px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            background: #0d0d1a;
-            padding: 8px 15px;
+
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        .level-card {
+            background: #181830;
+            border: 2px solid #444488;
             border-radius: 8px;
-            border: 1px solid #1f1f3a;
-            flex-wrap: wrap;
-            justify-content: center;
-            max-width: 950px;
-        }
-        .control-panel label {
-            font-size: 13px;
-            color: #ffaa00;
-            font-weight: bold;
+            padding: 10px;
+            text-align: center;
             cursor: pointer;
-        }
-        .control-panel input[type="file"] {
-            display: none;
-        }
-        .selector-group {
-            display: flex;
-            gap: 3px;
-            align-items: center;
-            flex-wrap: wrap;
-            max-width: 550px;
-        }
-        .btn {
-            background: #15152a;
-            color: white;
-            border: 1px solid #00ffcc;
-            padding: 2px 6px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 11px;
             transition: 0.2s;
         }
-        .btn:hover, .btn.active {
-            background: #00ffcc;
-            color: #030308;
-            box-shadow: 0 0 8px #00ffcc;
-        }
-        .btn-diff-easy { border-color: #00ffcc; color: #00ffcc; }
-        .btn-diff-easy.active { background: #00ffcc; color: #030308; }
-        
-        .btn-diff-med { border-color: #ffaa00; color: #ffaa00; }
-        .btn-diff-med.active { background: #ffaa00; color: #030308; }
-        
-        .btn-diff-hard { border-color: #ff0055; color: #ff0055; }
-        .btn-diff-hard.active { background: #ff0055; color: white; }
 
-        .settings-btn {
+        .level-card:hover {
+            border-color: #00ffcc;
             background: #222244;
-            border: 1px solid #ffaa00;
-            color: #ffaa00;
-            padding: 3px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 12px;
-        }
-        .settings-btn:hover {
-            background: #ffaa00;
-            color: #030308;
+            transform: scale(1.05);
         }
 
+        .level-card.selected {
+            border-color: #ffaa00;
+            background: #2a2211;
+            box-shadow: 0 0 10px #ffaa00;
+        }
+
+        .level-card h4 { margin: 0 0 5px 0; color: #fff; font-size: 14px; }
+        .level-card p { margin: 0; color: #aaa; font-size: 11px; }
+
+        .menu-footer {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .play-btn {
+            background: linear-gradient(to bottom, #00ffcc, #00aa88);
+            color: #0b0b14;
+            border: none;
+            padding: 10px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0,255,204,0.5);
+            transition: 0.2s;
+        }
+        .play-btn:hover { transform: scale(1.05); box-shadow: 0 0 25px #00ffcc; }
+
+        /* Game Container & Canvas */
         .game-container {
             position: relative;
+            display: none;
         }
 
         canvas {
-            border: 4px solid #1a1a36;
-            background: #0a0a16;
+            border: 4px solid #1c1c38;
+            background: #101020;
             box-shadow: 0 0 40px rgba(0, 255, 204, 0.3);
             border-radius: 12px;
         }
 
-        /* Khung hiển thị Attempts góc trên bên trái */
         #attemptsDisplay {
             position: absolute;
             top: 12px;
@@ -117,42 +127,59 @@
             z-index: 10;
         }
 
-        /* Modal Cài Đặt (Settings Popup) */
+        /* Top Bar trong Game */
+        .top-bar {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .action-btn {
+            background: #1a1a38;
+            color: #00ffcc;
+            border: 2px solid #00ffcc;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .action-btn:hover { background: #00ffcc; color: #0b0b14; }
+
+        /* Modal Cài Đặt chuẩn GD Style */
         #settingsModal {
             display: none;
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(13, 13, 26, 0.95);
-            border: 2px solid #ffaa00;
-            padding: 25px 35px;
+            background: #121224;
+            border: 3px solid #ffaa00;
+            padding: 25px 40px;
             border-radius: 12px;
-            box-shadow: 0 0 30px rgba(255, 170, 0, 0.4);
+            box-shadow: 0 0 40px rgba(255, 170, 0, 0.5);
             z-index: 100;
             text-align: center;
         }
-        #settingsModal h3 {
-            margin-top: 0;
-            color: #ffaa00;
-        }
+        #settingsModal h3 { margin-top: 0; color: #ffaa00; letter-spacing: 1px; }
         .setting-option {
             margin: 15px 0;
-            font-size: 15px;
+            font-size: 14px;
             display: flex;
             justify-content: space-between;
-            gap: 20px;
+            gap: 30px;
             align-items: center;
         }
-        .setting-option input {
-            transform: scale(1.3);
-            cursor: pointer;
-        }
+        .setting-option input { transform: scale(1.3); cursor: pointer; }
+
         .close-modal {
             background: #ff0055;
             color: white;
             border: none;
-            padding: 6px 15px;
-            border-radius: 5px;
+            padding: 8px 20px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
             margin-top: 10px;
@@ -161,65 +188,60 @@
 
         #info {
             font-size: 15px;
-            margin-top: 8px;
+            margin-top: 10px;
             font-weight: bold;
             color: #ff0055;
             text-shadow: 0 0 8px rgba(255,0,85,0.4);
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <h2>GEOMETRY DASH: ATTEMPTS & SETTINGS</h2>
-    
-    <div class="control-panel">
-        <label for="musicUpload">📁 Chọn MP3:</label>
-        <input type="file" id="musicUpload" accept="audio/*">
-        <span id="songName" style="font-size: 11px; color: #777;">Mặc định</span>
-
-        <div style="border-left: 1px solid #333; height: 20px; margin: 0 2px;"></div>
-
-        <div class="selector-group">
-            <span style="font-size: 12px; color: white;">Màn:</span>
-            <button class="btn level-btn active" onclick="selectLevel(1)">1</button>
-            <button class="btn level-btn" onclick="selectLevel(2)">2</button>
-            <button class="btn level-btn" onclick="selectLevel(3)">3</button>
-            <button class="btn level-btn" onclick="selectLevel(4)">4</button>
-            <button class="btn level-btn" onclick="selectLevel(5)">5</button>
-            <button class="btn level-btn" onclick="selectLevel(6)">6</button>
-            <button class="btn level-btn" onclick="selectLevel(7)">7</button>
-            <button class="btn level-btn" onclick="selectLevel(8)">8</button>
-            <button class="btn level-btn" onclick="selectLevel(9)">9</button>
-            <button class="btn level-btn" onclick="selectLevel(10)">10</button>
-            <button class="btn level-btn" onclick="selectLevel(11)">11</button>
-            <button class="btn level-btn" onclick="selectLevel(12)">12</button>
-            <button class="btn level-btn" onclick="selectLevel(13)">13</button>
-            <button class="btn level-btn" onclick="selectLevel(14)">14</button>
-            <button class="btn level-btn" onclick="selectLevel(15)">15</button>
+    <!-- MÀN HÌNH CHỌN MÀN (LEVEL SELECT MENU) -->
+    <div id="menuScreen">
+        <h2 class="menu-title">SELECT LEVEL</h2>
+        
+        <div class="level-grid" id="levelGrid">
+            <!-- Được tạo tự động bằng JS từ 1 đến 15 -->
         </div>
 
-        <div style="border-left: 1px solid #333; height: 20px; margin: 0 2px;"></div>
+        <div class="menu-footer">
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <label for="musicUpload" class="action-btn" style="cursor: pointer;">📁 Chọn Nhạc MP3</label>
+                <input type="file" id="musicUpload" accept="audio/*" style="display:none;">
+                <span id="songName" style="font-size: 12px; color: #888;">Đang dùng nhạc gốc</span>
+            </div>
+            
+            <button class="play-btn" onclick="startSelectedLevel()">PLAY</button>
 
-        <div class="selector-group">
-            <span style="font-size: 12px; color: white;">Khó:</span>
-            <button class="btn btn-diff-easy active" onclick="selectDifficulty('easy')">Dễ</button>
-            <button class="btn btn-diff-med" onclick="selectDifficulty('medium')">Thường</button>
-            <button class="btn btn-diff-hard" onclick="selectDifficulty('hard')">Khó</button>
+            <div style="display: flex; gap: 8px;">
+                <span style="font-size: 13px; color: #ffaa00; align-self: center;">Độ Khó:</span>
+                <select id="diffSelect" style="background:#1a1a38; color:white; border:1px solid #ffaa00; padding:6px; border-radius:5px;">
+                    <option value="easy">Dễ (Easy)</option>
+                    <option value="medium" selected>Thường (Normal)</option>
+                    <option value="hard">Khó (Hard / Demon)</option>
+                </select>
+            </div>
         </div>
-
-        <button class="settings-btn" onclick="toggleSettings(true)">⚙️ Cài Đặt</button>
     </div>
 
-    <!-- Khung game và Attempts -->
-    <div class="game-container">
+    <!-- KHUNG GAME CHÍNH -->
+    <div class="game-container" id="gameContainer">
         <div id="attemptsDisplay">Attempts: 1</div>
+        
+        <div class="top-bar">
+            <button class="action-btn" onclick="openSettings()">⚙️ Cài Đặt</button>
+            <button class="action-btn" onclick="returnToMenu()">🏠 Thoát</button>
+        </div>
+
         <canvas id="gameCanvas" width="850" height="400"></canvas>
 
-        <!-- Menu Cài Đặt Modal -->
+        <!-- MODAL CÀI ĐẶT -->
         <div id="settingsModal">
-            <h3>⚙️ GAME SETTINGS</h3>
+            <h3>⚙️ SETTINGS</h3>
             <div class="setting-option">
-                <span>Hiệu ứng rung màn hình (Screen Shake):</span>
+                <span>Rung màn hình (Screen Shake):</span>
                 <input type="checkbox" id="settingShake" checked>
             </div>
             <div class="setting-option">
@@ -227,14 +249,14 @@
                 <input type="checkbox" id="settingBgColor" checked>
             </div>
             <div class="setting-option">
-                <span>Bật âm thanh hiệu ứng/synth:</span>
+                <span>Âm thanh điện tử (Synth Audio):</span>
                 <input type="checkbox" id="settingAudio" checked>
             </div>
-            <button class="close-modal" onclick="toggleSettings(false)">Đóng & Lưu</button>
+            <button class="close-modal" onclick="closeSettings()">Lưu & Đóng</button>
         </div>
     </div>
 
-    <div id="info">Chọn màn, độ khó và nhấn Space để bắt đầu</div>
+    <div id="info">Nhấn Space hoặc Click chuột để nhảy / bay</div>
 
     <audio id="bgMusic" loop></audio>
 
@@ -246,37 +268,16 @@
         const musicUpload = document.getElementById("musicUpload");
         const songNameEl = document.getElementById("songName");
         const attemptsDisplay = document.getElementById("attemptsDisplay");
+        const menuScreen = document.getElementById("menuScreen");
+        const gameContainer = document.getElementById("gameContainer");
         const settingsModal = document.getElementById("settingsModal");
+        const diffSelect = document.getElementById("diffSelect");
 
-        // Biến Cài đặt (Settings)
-        let settings = {
-            shake: true,
-            bgColor: true,
-            audio: true
-        };
-
-        function toggleSettings(isOpen) {
-            settingsModal.style.display = isOpen ? "block" : "none";
-            if (!isOpen) {
-                settings.shake = document.getElementById("settingShake").checked;
-                settings.bgColor = document.getElementById("settingBgColor").checked;
-                settings.audio = document.getElementById("settingAudio").checked;
-            }
-        }
-
+        let settings = { shake: true, bgColor: true, audio: true };
         let customAudioActive = false;
-        let attemptCount = 1; // Đếm số lần thua
+        let attemptCount = 1;
+        let selectedLevel = 1;
 
-        musicUpload.addEventListener("change", function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                bgMusic.src = URL.createObjectURL(file);
-                songNameEl.innerText = "🎵 " + file.name;
-                customAudioActive = true;
-            }
-        });
-
-        // 15 Bản nhạc cho 15 màn
         const levelSongs = [
             { name: "Stereo Madness", notes: [220, 247, 261, 293, 329, 349, 392], speed: 250 },
             { name: "Back On Track", notes: [261, 293, 329, 392, 440, 523], speed: 220 },
@@ -295,212 +296,191 @@
             { name: "Deadlocked", notes: [150, 180, 210, 250, 300, 360], speed: 120 }
         ];
 
+        // Khởi tạo danh sách 15 màn hình chọn
+        const levelGrid = document.getElementById("levelGrid");
+        for (let i = 1; i <= 15; i++) {
+            let card = document.createElement("div");
+            card.className = `level-card ${i === 1 ? 'selected' : ''}`;
+            card.innerHTML = `<h4>Màn ${i}</h4><p>${levelSongs[i-1].name}</p>`;
+            card.onclick = () => {
+                document.querySelectorAll('.level-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectedLevel = i;
+            };
+            levelGrid.appendChild(card);
+        }
+
+        musicUpload.addEventListener("change", function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                bgMusic.src = URL.createObjectURL(file);
+                songNameEl.innerText = "🎵 " + file.name;
+                customAudioActive = true;
+            }
+        });
+
+        function openSettings() { settingsModal.style.display = "block"; }
+        function closeSettings() {
+            settings.shake = document.getElementById("settingShake").checked;
+            settings.bgColor = document.getElementById("settingBgColor").checked;
+            settings.audio = document.getElementById("settingAudio").checked;
+            settingsModal.style.display = "none";
+        }
+
+        function returnToMenu() {
+            isPlaying = false;
+            stopSynthMusic();
+            gameContainer.style.display = "none";
+            menuScreen.style.display = "flex";
+            infoEl.style.display = "none";
+        }
+
+        function startSelectedLevel() {
+            menuScreen.style.display = "none";
+            gameContainer.style.display = "block";
+            infoEl.style.display = "block";
+            attemptCount = 1;
+            attemptsDisplay.innerText = "Attempts: " + attemptCount;
+            startGame();
+        }
+
+        // Web Audio API Synth
         let audioCtx = null;
         let synthTimer = null;
-
         function startSynthMusic(levelId) {
             if (!settings.audio) return;
-            if (customAudioActive) {
-                bgMusic.play().catch(() => {});
-                return;
-            }
-
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-
+            if (customAudioActive) { bgMusic.play().catch(()=>{}); return; }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             stopSynthMusic();
             let songData = levelSongs[levelId - 1];
             let step = 0;
-
             synthTimer = setInterval(() => {
                 if (!isPlaying || !settings.audio) return;
                 try {
                     let osc = audioCtx.createOscillator();
                     let gain = audioCtx.createGain();
-
-                    osc.type = levelId > 10 ? 'sawtooth' : (levelId > 5 ? 'square' : 'sine');
+                    osc.type = levelId > 10 ? 'sawtooth' : 'square';
                     osc.frequency.setValueAtTime(songData.notes[step % songData.notes.length], audioCtx.currentTime);
-
-                    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.22);
-
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
                     step++;
-                } catch(e) {}
+                } catch(e){}
             }, songData.speed);
         }
-
         function stopSynthMusic() {
-            if (synthTimer) {
-                clearInterval(synthTimer);
-                synthTimer = null;
-            }
-            if (!customAudioActive) {
-                bgMusic.pause();
-            }
+            if (synthTimer) { clearInterval(synthTimer); synthTimer = null; }
+            if (!customAudioActive) bgMusic.pause();
         }
 
-        let currentLevel = 1;
-        let currentDifficulty = "easy"; 
         let gameMode = "cube";
-        let isPlaying = false;
-        let isGameOver = false;
-        let isWon = false;
-        let gameSpeed = 7;
-        let frameCount = 0;
-        let particles = [];
-        let shipTrails = [];
-        let screenShake = 0;
-        let flashAlpha = 0;
-        let bgHue = 210;
+        let isPlaying = false, isGameOver = false, isWon = false;
+        let gameSpeed = 8, frameCount = 0;
+        let particles = [], shipTrails = [], screenShake = 0, flashAlpha = 0, bgHue = 200;
 
         let player = {
             x: 150, y: 300, size: 30, vy: 0, gravity: 0.85, jumpPower: -13.5, rotation: 0, isGrounded: false,
             scaleX: 1, scaleY: 1
         };
 
-        let objects = [];
-        let levelLength = 8000;
-
-        function selectLevel(id) {
-            if (isPlaying) return;
-            currentLevel = id;
-            attemptCount = 1; // Reset số lần thua khi đổi màn mới
-            attemptsDisplay.innerText = "Attempts: " + attemptCount;
-            document.querySelectorAll('.level-btn').forEach((btn, idx) => {
-                if (idx + 1 === id) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
-            loadLevelData();
-        }
-
-        function selectDifficulty(diff) {
-            if (isPlaying) return;
-            currentDifficulty = diff;
-            attemptCount = 1;
-            attemptsDisplay.innerText = "Attempts: " + attemptCount;
-            document.querySelectorAll('.btn-diff-easy, .btn-diff-med, .btn-diff-hard').forEach(btn => btn.classList.remove('active'));
-            if (diff === 'easy') document.querySelector('.btn-diff-easy').classList.add('active');
-            if (diff === 'medium') document.querySelector('.btn-diff-med').classList.add('active');
-            if (diff === 'hard') document.querySelector('.btn-diff-hard').classList.add('active');
-            loadLevelData();
-        }
+        let objects = [], levelLength = 10000;
 
         function loadLevelData() {
             objects = [];
-            let baseSpeed = currentDifficulty === 'easy' ? 7.0 : (currentDifficulty === 'medium' ? 8.2 : 9.8);
-            gameSpeed = baseSpeed + (currentLevel - 1) * 0.15;
-            levelLength = 8000 + currentLevel * 800;
+            let diff = diffSelect.value;
+            let baseSpeed = diff === 'easy' ? 7.2 : (diff === 'medium' ? 8.5 : 10.2);
+            gameSpeed = baseSpeed + (selectedLevel - 1) * 0.12;
+            levelLength = 10000 + selectedLevel * 1000;
 
-            let cursor = 500;
-            while (cursor < levelLength - 600) {
-                if (cursor % 3000 === 1500) {
-                    let portalType = (cursor % 6000 === 1500) ? "portal_ship" : "portal_wave";
-                    objects.push({ type: portalType, x: cursor, y: 250, w: 30, h: 80, activated: false });
+            let cursor = 600;
+            while (cursor < levelLength - 800) {
+                // Đổi chế độ cổng phi thuyền/wave liên tục
+                if (cursor % 2800 === 1400) {
+                    let pType = (cursor % 5600 === 1400) ? "portal_ship" : "portal_wave";
+                    objects.push({ type: pType, x: cursor, y: 250, w: 30, h: 80, activated: false });
                     cursor += 300;
-                } else if (cursor % 6000 === 4500) {
+                } else if (cursor % 5600 === 4200) {
                     objects.push({ type: "portal_cube", x: cursor, y: 250, w: 30, h: 80, activated: false });
                     cursor += 300;
                 }
 
-                if (currentDifficulty === 'easy') {
+                // SIÊU NHIỀU VẬT CHẮN VÀ BẪY Ở CẢ TRÊN LẪN DƯỚI
+                if (diff === 'easy') {
                     objects.push({ type: "spike", x: cursor, y: 330, w: 25, h: 35 });
-                    cursor += 380;
-                } else if (currentDifficulty === 'medium') {
-                    if (cursor % 750 === 0) {
-                        objects.push({ type: "block", x: cursor, y: 0, w: 40, h: 120 });
-                        objects.push({ type: "block", x: cursor, y: 280, w: 40, h: 120 });
-                    } else {
-                        objects.push({ type: "spike", x: cursor, y: 330, w: 25, h: 35 });
+                    if (cursor % 1200 === 400) objects.push({ type: "block", x: cursor, y: 220, w: 35, h: 35 });
+                    cursor += 320;
+                } else if (diff === 'medium') {
+                    objects.push({ type: "spike", x: cursor, y: 330, w: 25, h: 35 });
+                    if (cursor % 700 === 0) {
+                        objects.push({ type: "block", x: cursor, y: 0, w: 35, h: 130 });
+                        objects.push({ type: "block", x: cursor, y: 270, w: 35, h: 130 });
                     }
-                    cursor += 300;
+                    cursor += 260;
                 } else {
-                    if (cursor % 550 === 0) {
-                        let topH = 110 + (cursor % 60);
-                        let botH = 120 + (cursor % 50);
-                        objects.push({ type: "block", x: cursor, y: 0, w: 35, h: topH });
-                        objects.push({ type: "block", x: cursor, y: 400 - botH, w: 35, h: botH });
-                    } else {
-                        objects.push({ type: "spike", x: cursor, y: 330, w: 25, h: 35 });
-                        if (cursor % 1100 === 250) {
-                            objects.push({ type: "block", x: cursor, y: 170, w: 35, h: 35 });
-                        }
+                    // Bản Khó (Demon) - Giăng kín bẫy trên dưới dày đặc
+                    let topH = 120 + (cursor % 60);
+                    let botH = 130 + (cursor % 50);
+                    objects.push({ type: "block", x: cursor, y: 0, w: 35, h: topH });
+                    objects.push({ type: "block", x: cursor, y: 400 - botH, w: 35, h: botH });
+                    objects.push({ type: "spike", x: cursor, y: 330, w: 25, h: 35 });
+                    if (cursor % 900 === 300) {
+                        objects.push({ type: "block", x: cursor, y: 180, w: 35, h: 35 });
                     }
-                    cursor += 230;
+                    cursor += 210;
                 }
             }
-
             objects.push({ type: "goal", x: levelLength, y: 0, w: 20, h: 400 });
-            infoEl.innerText = `Màn ${currentLevel}: ${levelSongs[currentLevel-1].name} [${currentDifficulty.toUpperCase()}]. Nhấn Space!`;
         }
 
         let isHolding = false;
-
-        window.addEventListener("keydown", function(e) {
+        window.addEventListener("keydown", (e) => {
             if (e.code === "Space" || e.code === "ArrowUp") {
-                if (settingsModal.style.display === "block") return;
+                if (settingsModal.style.display === "block" || menuScreen.style.display === "flex") return;
                 isHolding = true;
                 if (!isPlaying) startGame();
                 else if (gameMode === "cube" && player.isGrounded) {
-                    player.vy = player.jumpPower;
-                    player.isGrounded = false;
+                    player.vy = player.jumpPower; player.isGrounded = false;
                     player.scaleX = 0.7; player.scaleY = 1.3;
                 }
                 e.preventDefault();
             }
         });
-        window.addEventListener("keyup", function(e) {
-            if (e.code === "Space" || e.code === "ArrowUp") isHolding = false;
-        });
+        window.addEventListener("keyup", (e) => { if (e.code === "Space" || e.code === "ArrowUp") isHolding = false; });
 
         canvas.addEventListener("mousedown", () => {
             if (settingsModal.style.display === "block") return;
             isHolding = true;
             if (!isPlaying) startGame();
             else if (gameMode === "cube" && player.isGrounded) {
-                player.vy = player.jumpPower;
-                player.isGrounded = false;
+                player.vy = player.jumpPower; player.isGrounded = false;
                 player.scaleX = 0.7; player.scaleY = 1.3;
             }
         });
         canvas.addEventListener("mouseup", () => { isHolding = false; });
 
         function startGame() {
-            isPlaying = true;
-            isGameOver = false;
-            isWon = false;
-            frameCount = 0;
-            gameMode = "cube";
+            isPlaying = true; isGameOver = false; isWon = false;
+            frameCount = 0; gameMode = "cube";
             player.y = 300; player.vy = 0; player.rotation = 0;
             player.scaleX = 1; player.scaleY = 1;
-            particles = [];
-            shipTrails = [];
+            particles = []; shipTrails = [];
             loadLevelData();
-
-            startSynthMusic(currentLevel);
+            startSynthMusic(selectedLevel);
             loop();
         }
 
         function triggerExplosion(x, y) {
-            if (settings.shake) screenShake = 22;
-            flashAlpha = 0.8;
-            attemptCount++; // Tăng số lần thua khi va chạm
+            if (settings.shake) screenShake = 24;
+            flashAlpha = 0.85;
+            attemptCount++;
             attemptsDisplay.innerText = "Attempts: " + attemptCount;
             stopSynthMusic();
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 55; i++) {
                 particles.push({
                     x: x, y: y,
-                    vx: (Math.random() - 0.5) * 16,
-                    vy: (Math.random() - 0.5) * 16,
+                    vx: (Math.random() - 0.5) * 18, vy: (Math.random() - 0.5) * 18,
                     size: Math.random() * 8 + 2,
                     color: Math.random() > 0.4 ? "#00ffcc" : "#ff0055",
                     life: 50
@@ -510,57 +490,42 @@
 
         function update() {
             if (!isPlaying || isGameOver || isWon) return;
-
             frameCount++;
-            if (settings.bgColor) bgHue = (bgHue + 0.35) % 360;
+            if (settings.bgColor) bgHue = (bgHue + 0.4) % 360;
             if (screenShake > 0) screenShake--;
             if (flashAlpha > 0) flashAlpha -= 0.05;
 
             player.scaleX += (1 - player.scaleX) * 0.2;
             player.scaleY += (1 - player.scaleY) * 0.2;
 
-            let currentDist = frameCount * gameSpeed;
-            let percent = Math.min(100, Math.floor((currentDist / levelLength) * 100));
-            
-            let modeName = "Khối Vuông";
-            if (gameMode === "ship") modeName = "Phi Thuyền";
-            if (gameMode === "wave") modeName = "Mũi Tên (Wave)";
-            infoEl.innerText = `Màn ${currentLevel} (${levelSongs[currentLevel-1].name}) | ${percent}% | ${modeName}`;
+            let dist = frameCount * gameSpeed;
+            let pct = Math.min(100, Math.floor((dist / levelLength) * 100));
+            infoEl.innerText = `Màn ${selectedLevel} (${levelSongs[selectedLevel-1].name}) | ${pct}% | ${gameMode.toUpperCase()}`;
 
             if (gameMode === "cube") {
-                player.vy += player.gravity;
-                player.y += player.vy;
+                player.vy += player.gravity; player.y += player.vy;
                 if (player.y >= 330) {
-                    if (!player.isGrounded) {
-                        player.scaleX = 1.3; player.scaleY = 0.7;
-                    }
+                    if (!player.isGrounded) { player.scaleX = 1.3; player.scaleY = 0.7; }
                     player.y = 330; player.vy = 0; player.isGrounded = true;
                     player.rotation = Math.round(player.rotation / 90) * 90;
-                } else {
-                    player.isGrounded = false; player.rotation += 10;
-                }
+                } else { player.isGrounded = false; player.rotation += 11; }
             } else if (gameMode === "ship") {
                 if (isHolding) player.vy -= 0.75; else player.vy += 0.75;
-                if (player.vy > 9.5) player.vy = 9.5;
-                if (player.vy < -9.5) player.vy = -9.5;
+                if (player.vy > 9.5) player.vy = 9.5; if (player.vy < -9.5) player.vy = -9.5;
                 player.y += player.vy; player.rotation = player.vy * 2.5;
                 if (player.y < 0) { player.y = 0; player.vy = 0; }
                 if (player.y > 330) { player.y = 330; player.vy = 0; }
-
                 shipTrails.push({ x: player.x, y: player.y + player.size/2, alpha: 1.0 });
             } else if (gameMode === "wave") {
                 if (isHolding) { player.vy = -8.5; player.rotation = -45; }
                 else { player.vy = 8.5; player.rotation = 45; }
                 player.y += player.vy;
-                if (player.y < 0) player.y = 0;
-                if (player.y > 330) player.y = 330;
-                
+                if (player.y < 0) player.y = 0; if (player.y > 330) player.y = 330;
                 shipTrails.push({ x: player.x, y: player.y + player.size/2, alpha: 1.0, color: "#ffff00" });
             }
 
             for (let i = shipTrails.length - 1; i >= 0; i--) {
-                shipTrails[i].x -= gameSpeed;
-                shipTrails[i].alpha -= 0.06;
+                shipTrails[i].x -= gameSpeed; shipTrails[i].alpha -= 0.06;
                 if (shipTrails[i].alpha <= 0) shipTrails.splice(i, 1);
             }
 
@@ -570,61 +535,42 @@
 
                 if (obj.type === "spike" || obj.type === "block") {
                     if (
-                        player.x < obj.x + obj.w - 4 &&
-                        player.x + player.size > obj.x + 4 &&
-                        player.y < obj.y + obj.h - 4 &&
-                        player.y + player.size > obj.y + 4
+                        player.x < obj.x + obj.w - 4 && player.x + player.size > obj.x + 4 &&
+                        player.y < obj.y + obj.h - 4 && player.y + player.size > obj.y + 4
                     ) {
-                        isGameOver = true;
-                        stopSynthMusic();
+                        isGameOver = true; stopSynthMusic();
                         triggerExplosion(player.x + player.size/2, player.y + player.size/2);
                     }
                 }
 
-                if (obj.type === "portal_ship" && !obj.activated) {
-                    if (player.x < obj.x + obj.w && player.x + player.size > obj.x && player.y < obj.y + obj.h && player.y + player.size > obj.y) {
-                        gameMode = "ship"; obj.activated = true; flashAlpha = 0.5; if (settings.shake) screenShake = 12;
-                    }
+                if (obj.type === "portal_ship" && !obj.activated && player.x < obj.x + obj.w && player.x + player.size > obj.x && player.y < obj.y + obj.h && player.y + player.size > obj.y) {
+                    gameMode = "ship"; obj.activated = true; flashAlpha = 0.5; if (settings.shake) screenShake = 12;
                 }
-                if (obj.type === "portal_wave" && !obj.activated) {
-                    if (player.x < obj.x + obj.w && player.x + player.size > obj.x && player.y < obj.y + obj.h && player.y + player.size > obj.y) {
-                        gameMode = "wave"; obj.activated = true; flashAlpha = 0.5; if (settings.shake) screenShake = 12;
-                    }
+                if (obj.type === "portal_wave" && !obj.activated && player.x < obj.x + obj.w && player.x + player.size > obj.x && player.y < obj.y + obj.h && player.y + player.size > obj.y) {
+                    gameMode = "wave"; obj.activated = true; flashAlpha = 0.5; if (settings.shake) screenShake = 12;
                 }
-                if (obj.type === "portal_cube" && !obj.activated) {
-                    if (player.x < obj.x + obj.w && player.x + player.size > obj.x && player.y < obj.y + obj.h && player.y + player.size > obj.y) {
-                        gameMode = "cube"; obj.activated = true; flashAlpha = 0.5; if (settings.shake) screenShake = 12;
-                    }
+                if (obj.type === "portal_cube" && !obj.activated && player.x < obj.x + obj.w && player.x + player.size > obj.x && player.y < obj.y + obj.h && player.y + player.size > obj.y) {
+                    gameMode = "cube"; obj.activated = true; flashAlpha = 0.5; if (settings.shake) screenShake = 12;
                 }
-
-                if (obj.type === "goal" && player.x > obj.x) {
-                    isWon = true;
-                    stopSynthMusic();
-                }
+                if (obj.type === "goal" && player.x > obj.x) { isWon = true; stopSynthMusic(); }
             }
         }
 
         function draw() {
             ctx.save();
             if (screenShake > 0 && settings.shake) {
-                let sx = (Math.random() - 0.5) * 9;
-                let sy = (Math.random() - 0.5) * 9;
-                ctx.translate(sx, sy);
+                ctx.translate((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
             }
 
-            let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            bgGrad.addColorStop(0, `hsl(${bgHue}, 65%, 16%)`);
-            bgGrad.addColorStop(1, `hsl(${bgHue + 45}, 55%, 8%)`);
-            ctx.fillStyle = bgGrad;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            let grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            grad.addColorStop(0, `hsl(${bgHue}, 65%, 16%)`);
+            grad.addColorStop(1, `hsl(${bgHue + 45}, 55%, 8%)`);
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = "#030308";
-            ctx.fillRect(0, 365, canvas.width, 35);
-            ctx.fillStyle = currentDifficulty === 'hard' ? "#ff0055" : "#00ffcc";
-            ctx.shadowColor = ctx.fillStyle;
-            ctx.shadowBlur = 15;
-            ctx.fillRect(0, 365, canvas.width, 4);
-            ctx.shadowBlur = 0;
+            // Sàn đất
+            ctx.fillStyle = "#030308"; ctx.fillRect(0, 365, canvas.width, 35);
+            ctx.fillStyle = "#00ffcc"; ctx.shadowColor = "#00ffcc"; ctx.shadowBlur = 15;
+            ctx.fillRect(0, 365, canvas.width, 4); ctx.shadowBlur = 0;
 
             shipTrails.forEach(t => {
                 ctx.fillStyle = t.color || `rgba(0, 255, 255, ${t.alpha})`;
@@ -633,37 +579,23 @@
 
             objects.forEach(obj => {
                 if (obj.type === "spike") {
-                    ctx.fillStyle = "#ff0055";
-                    ctx.shadowColor = "#ff0055";
-                    ctx.shadowBlur = 10;
-                    ctx.beginPath();
-                    ctx.moveTo(obj.x, obj.y + obj.h);
-                    ctx.lineTo(obj.x + obj.w / 2, obj.y);
-                    ctx.lineTo(obj.x + obj.w, obj.y + obj.h);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = "#ff0055"; ctx.shadowColor = "#ff0055"; ctx.shadowBlur = 10;
+                    ctx.beginPath(); ctx.moveTo(obj.x, obj.y + obj.h);
+                    ctx.lineTo(obj.x + obj.w / 2, obj.y); ctx.lineTo(obj.x + obj.w, obj.y + obj.h);
+                    ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
                 } else if (obj.type === "block") {
-                    ctx.fillStyle = "#222244";
-                    ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
-                    ctx.strokeStyle = currentDifficulty === 'hard' ? "#ff0055" : "#00ffcc";
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
+                    ctx.fillStyle = "#222244"; ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+                    ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 2; ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
                 } else if (obj.type.startsWith("portal") && !obj.activated) {
-                    if (obj.type === "portal_ship") ctx.fillStyle = "rgba(0, 150, 255, 0.5)";
-                    else if (obj.type === "portal_wave") ctx.fillStyle = "rgba(255, 0, 255, 0.5)";
-                    else ctx.fillStyle = "rgba(255, 150, 0, 0.5)";
-                    
+                    ctx.fillStyle = obj.type === "portal_ship" ? "rgba(0, 150, 255, 0.5)" : "rgba(255, 0, 255, 0.5)";
                     ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
-                    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
-                    ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
+                    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
                 }
             });
 
             particles.forEach((p, index) => {
                 p.x += p.vx; p.y += p.vy; p.life--;
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, p.size, p.size);
+                ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size);
                 if (p.life <= 0) particles.splice(index, 1);
             });
 
@@ -674,110 +606,56 @@
                 ctx.scale(player.scaleX, player.scaleY);
 
                 if (gameMode === "cube") {
-                    ctx.fillStyle = currentDifficulty === 'hard' ? "#ff0055" : "#00ffcc";
-                    ctx.shadowColor = ctx.fillStyle;
-                    ctx.shadowBlur = 14;
+                    ctx.fillStyle = "#00ffcc"; ctx.shadowColor = "#00ffcc"; ctx.shadowBlur = 14;
                     ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
-                    ctx.shadowBlur = 0;
-                    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3;
+                    ctx.shadowBlur = 0; ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
                     ctx.strokeRect(-player.size / 2 + 4, -player.size / 2 + 4, player.size - 8, player.size - 8);
                 } else if (gameMode === "ship") {
-                    ctx.fillStyle = "#ff0055";
-                    ctx.shadowColor = "#ff0055";
-                    ctx.shadowBlur = 14;
-                    ctx.beginPath();
-                    ctx.moveTo(16, 0); ctx.lineTo(-16, -13); ctx.lineTo(-6, 0); ctx.lineTo(-16, 13);
-                    ctx.closePath(); ctx.fill();
-                    ctx.shadowBlur = 0;
-                    ctx.strokeStyle = "#ffffff"; ctx.stroke();
+                    ctx.fillStyle = "#ff0055"; ctx.shadowColor = "#ff0055"; ctx.shadowBlur = 14;
+                    ctx.beginPath(); ctx.moveTo(16, 0); ctx.lineTo(-16, -13); ctx.lineTo(-6, 0); ctx.lineTo(-16, 13);
+                    ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; ctx.strokeStyle = "#fff"; ctx.stroke();
                 } else if (gameMode === "wave") {
-                    ctx.fillStyle = "#ffff00";
-                    ctx.shadowColor = "#ffff00";
-                    ctx.shadowBlur = 14;
-                    ctx.beginPath();
-                    ctx.moveTo(16, 0); ctx.lineTo(-16, -11); ctx.lineTo(-10, 0); ctx.lineTo(-16, 11);
-                    ctx.closePath(); ctx.fill();
-                    ctx.shadowBlur = 0;
-                    ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 2; ctx.stroke();
+                    ctx.fillStyle = "#ffff00"; ctx.shadowColor = "#ffff00"; ctx.shadowBlur = 14;
+                    ctx.beginPath(); ctx.moveTo(16, 0); ctx.lineTo(-16, -11); ctx.lineTo(-10, 0); ctx.lineTo(-16, 11);
+                    ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 2; ctx.stroke();
                 }
                 ctx.restore();
             }
 
-            if (flashAlpha > 0) {
-                ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-
+            if (flashAlpha > 0) { ctx.fillStyle = `rgba(255,255,255,${flashAlpha})`; ctx.fillRect(0,0,canvas.width,canvas.height); }
             ctx.restore();
 
-            if (!isPlaying) {
-                ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "#00ffcc";
-                ctx.font = "bold 30px 'Segoe UI'";
-                ctx.textAlign = "center";
-                ctx.fillText(`MÀN ${currentLevel}: ${levelSongs[currentLevel-1].name}`, canvas.width / 2, canvas.height / 2 - 25);
-                ctx.fillStyle = "white";
-                ctx.font = "16px 'Segoe UI'";
-                ctx.fillText("Nhấn Space hoặc Click chuột để Bắt đầu", canvas.width / 2, canvas.height / 2 + 20);
-            }
-
             if (isGameOver) {
-                ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "#ff0055";
-                ctx.font = "bold 40px 'Segoe UI'";
-                ctx.textAlign = "center";
+                ctx.fillStyle = "rgba(0, 0, 0, 0.85)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#ff0055"; ctx.font = "bold 40px 'Segoe UI'"; ctx.textAlign = "center";
                 ctx.fillText("CRASH!", canvas.width / 2, canvas.height / 2 - 20);
-                ctx.fillStyle = "white";
-                ctx.font = "18px 'Segoe UI'";
+                ctx.fillStyle = "white"; ctx.font = "18px 'Segoe UI'";
                 ctx.fillText("Nhấn Space để Thử lại", canvas.width / 2, canvas.height / 2 + 25);
             }
-
             if (isWon) {
-                ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "#00ffcc";
-                ctx.font = "bold 38px 'Segoe UI'";
-                ctx.textAlign = "center";
-                ctx.fillText(`HOÀN THÀNH MÀN ${currentLevel}!`, canvas.width / 2, canvas.height / 2 - 20);
-                ctx.fillStyle = "white";
-                ctx.font = "18px 'Segoe UI'";
-                ctx.fillText("Nhấn Space để sang màn tiếp theo", canvas.width / 2, canvas.height / 2 + 25);
+                ctx.fillStyle = "rgba(0, 0, 0, 0.85)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#00ffcc"; ctx.font = "bold 38px 'Segoe UI'"; ctx.textAlign = "center";
+                ctx.fillText("VICTORY!", canvas.width / 2, canvas.height / 2 - 20);
+                ctx.fillStyle = "white"; ctx.font = "18px 'Segoe UI'";
+                ctx.fillText("Nhấn Space để về Menu", canvas.width / 2, canvas.height / 2 + 25);
             }
         }
 
         function loop() {
-            update();
-            draw();
-            if (isPlaying && !isWon && !isGameOver) {
-                requestAnimationFrame(loop);
-            }
+            update(); draw();
+            if (isPlaying && !isWon && !isGameOver) requestAnimationFrame(loop);
         }
 
-        window.addEventListener("keydown", function(e) {
+        window.addEventListener("keydown", (e) => {
             if (e.code === "Space" || e.code === "ArrowUp") {
-                if (settingsModal.style.display === "block") return;
-                if (isGameOver || isWon) {
-                    if (isWon && currentLevel < 15) {
-                        selectLevel(currentLevel + 1);
-                    }
-                    startGame();
-                }
+                if (isGameOver) startGame();
+                else if (isWon) returnToMenu();
             }
         });
-        canvas.addEventListener("click", function() {
-            if (settingsModal.style.display === "block") return;
-            if (isGameOver || isWon) {
-                if (isWon && currentLevel < 15) {
-                    selectLevel(currentLevel + 1);
-                }
-                startGame();
-            }
+        canvas.addEventListener("click", () => {
+            if (isGameOver) startGame();
+            else if (isWon) returnToMenu();
         });
-
-        loadLevelData();
-        draw();
     </script>
 </body>
 </html>
