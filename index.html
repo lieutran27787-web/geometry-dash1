@@ -3,120 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Web</title>
+    <title>Geometry Dash Deluxe - Custom Music Edition</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
         body {
-            background-color: #050505;
+            background-color: #05050d;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            font-family: 'Segoe UI', Arial, sans-serif;
             overflow: hidden;
-            font-family: 'Arial Black', sans-serif;
-            user-select: none;
         }
-        #gameContainer {
+        #game-container {
             position: relative;
-            box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
-            border-radius: 8px;
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.4);
+            border-radius: 10px;
             overflow: hidden;
+            border: 2px solid rgba(0, 240, 255, 0.3);
         }
         canvas {
             display: block;
             background: #000;
         }
-    </style>
-</head>
-<body>
-
-<div id="gameContainer">
-    <canvas id="gameCanvas" width="800" height="450"></canvas>
-</div>
-
-<script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-
-const GROUND_Y = 360;
-const CEILING_Y = 40;
-let gameState = "START"; 
-let score = 0;
-let highScore = localStorage.getItem('gd_highscore_v2') || 0;
-let bgHue = 260;
-
-let player = {
-    x: 120,
-    y: GROUND_Y - 30,
-    size: 30,
-    velocityY: 0,
-    gravity: 0.85,
-    jumpStrength: -12.5,
-    rotation: 0,
-    mode: "cube",
-    isGrounded: false
-};
-
-let particles = [];
-let obstacles = [];
-let portals = [];
-let bgPillars = [];
-let frameCount = 0;
-let isHolding = false;
-
-for(let i = 0; i < 10; i++) {
-    bgPillars.push({
-        x: i * 100,
-        width: 50,
-        height: Math.random() * 150 + 50
-    });
-}
-
-function jump() {
-    if (gameState === "START") {
-        gameState = "PLAYING";
-    } else if (gameState === "GAMEOVER") {
-        resetGame();
-    } else if (gameState === "PLAYING") {
-        if (player.mode === "cube" && player.isGrounded) {
-            player.velocityY = player.jumpStrength;
-            player.isGrounded = false;
-            createParticles(player.x + 15, player.y + 30, 8, "#00ffcc");
+        .ui-overlay {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            color: #fff;
+            font-weight: 800;
+            font-size: 18px;
+            text-shadow: 0 0 10px rgba(0,0,0,0.9);
+            pointer-events: none;
+            z-index: 10;
         }
-    }
-}
-
-window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' || e.code === 'ArrowUp') {
-        if(!isHolding) jump();
-        isHolding = true;
-    }
-});
-window.addEventListener('keyup', (e) => {
-    if (e.code === 'Space' || e.code === 'ArrowUp') isHolding = false;
-});
-canvas.addEventListener('mousedown', () => {
-    if(!isHolding) jump();
-    isHolding = true;
-});
-canvas.addEventListener('mouseup', () => isHolding = false);
-
-function createParticles(x, y, count, color) {
-    for (let i = 0; i < count; i++) {
-        particles.push({
-            x: x,
-            y: y,
-            vx: (Math.random() - 0.5) * 6,
-            vy: (Math.random() - 0.5) * 6,
-            size: Math.random() * 4 + 2,
-            life: 20,
-            color: color
-        });
-    }
-}
-
-function resetGame() {
-    gameState = "PLAYING";
-    score = 0;
-    obstacles = [];
-    portals = [];
+        #progress-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            z-index: 10;
+        }
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00f0ff, #00ff66, #ffe600);
+            box-shadow: 0 0 12px #00f0ff;
+        }
+        #start-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            z-index: 20;
+        }
+        #start-overlay h1 {
+            font-size: 40px;
+            color: #ffe600;
+            text-shadow: 0 0 20px #ffe600;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+        
+        /* Bảng chọn nhạc MP3 */
+        .audio-uploader {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px dashed #00f0ff;
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: 0.3s;
+        }
+        .audio-uploader:hover {
+            background: rgba(0, 240, 255, 0.15);
+        }
+        .custom-file-btn {
+            display: inline-block;
+            background: #00f0ff;
+            color: #000;
+            padding: 8px 18px;
+            font-weight: bold;
