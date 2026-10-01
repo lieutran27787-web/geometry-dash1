@@ -3,30 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Lite - Fixed</title>
+    <title>Geometry Dash Lite - The Tower Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
 
-        * {
-            box-sizing: border-box;
-            user-select: none;
-        }
+        * { box-sizing: border-box; user-select: none; }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background: #111;
             font-family: 'Fredoka One', cursive, sans-serif;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
             height: 100vh;
         }
 
         #game-container {
-            width: 960px;
-            height: 540px;
+            width: 960px; height: 540px;
             background: linear-gradient(135deg, #ff3300 0%, #cc0000 100%);
             position: relative;
             box-shadow: 0 20px 50px rgba(0,0,0,0.9);
@@ -35,300 +28,127 @@
         }
 
         .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-            background: transparent;
-            transition: opacity 0.3s ease;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 20px; background: transparent; transition: opacity 0.3s ease;
         }
 
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
 
-        .game-title-container {
-            text-align: center;
-            margin-top: 10px;
-        }
-
+        .game-title-container { text-align: center; margin-top: 10px; }
         .game-title {
-            font-size: 56px;
-            font-weight: bold;
-            display: inline-block;
-            letter-spacing: 2px;
+            font-size: 56px; font-weight: bold; display: inline-block; letter-spacing: 2px;
             color: #55ff00;
             text-shadow: 4px 4px 0px #000, -3px -3px 0px #000, 3px -3px 0px #000, -3px 3px 0px #000, 0px 6px 15px rgba(0,0,0,0.6);
         }
-
         .game-title-lite {
-            font-size: 46px;
-            color: #ffcc00;
-            margin-left: 15px;
+            font-size: 46px; color: #ffcc00; margin-left: 15px;
             text-shadow: 4px 4px 0px #000, -3px -3px 0px #000, 3px -3px 0px #000, -3px 3px 0px #000, 0px 6px 15px rgba(0,0,0,0.6);
         }
 
-        .center-hub {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            width: 100%;
-            padding: 0 40px;
-        }
-
-        .menu-btn-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
+        .center-hub { display: flex; justify-content: space-around; align-items: center; width: 100%; padding: 0 40px; }
+        .menu-btn-group { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s; }
         .menu-btn-group:hover { transform: scale(1.08); }
 
         .icon-circle {
-            width: 95px;
-            height: 95px;
-            background: #22aa00;
-            border: 4px solid #ffffff;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 95px; height: 95px; background: #22aa00; border: 4px solid #ffffff;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
             box-shadow: 0 8px 0 #115500, 0 10px 20px rgba(0,0,0,0.5);
         }
+        .icon-circle.yellow { background: #ffcc00; box-shadow: 0 8px 0 #aa8800, 0 10px 20px rgba(0,0,0,0.5); }
+        .menu-label { margin-top: 8px; font-size: 16px; color: #ffffff; text-shadow: 2px 2px 0px #000; text-align: center; }
 
-        .icon-circle.yellow {
-            background: #ffcc00;
-            box-shadow: 0 8px 0 #aa8800, 0 10px 20px rgba(0,0,0,0.5);
-        }
-
-        .menu-label {
-            margin-top: 8px;
-            font-size: 16px;
-            color: #ffffff;
-            text-shadow: 2px 2px 0px #000;
-            text-align: center;
-        }
-
-        .play-btn-wrapper {
-            cursor: pointer;
-            transition: transform 0.2s;
-            text-align: center;
-        }
-
+        .play-btn-wrapper { cursor: pointer; transition: transform 0.2s; text-align: center; }
         .play-btn-wrapper:hover { transform: scale(1.1); }
-
         .play-big-icon {
-            width: 140px;
-            height: 140px;
-            background: #22aa00;
-            border: 6px solid #ffffff;
-            border-radius: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 12px 0 #115500, 0 15px 30px rgba(0,0,0,0.6);
-            transform: rotate(45deg);
+            width: 140px; height: 140px; background: #22aa00; border: 6px solid #ffffff;
+            border-radius: 30px; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 12px 0 #115500, 0 15px 30px rgba(0,0,0,0.6); transform: rotate(45deg);
         }
-
         .play-triangle {
-            width: 0;
-            height: 0;
-            border-top: 35px solid transparent;
-            border-bottom: 35px solid transparent;
-            border-left: 60px solid #ffee00;
-            transform: rotate(-45deg);
-            filter: drop-shadow(2px 2px 0px #000);
+            width: 0; height: 0; border-top: 35px solid transparent; border-bottom: 35px solid transparent;
+            border-left: 60px solid #ffee00; transform: rotate(-45deg); filter: drop-shadow(2px 2px 0px #000);
         }
 
-        .bottom-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            width: 100%;
-        }
-
-        .social-icons {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
+        .bottom-toolbar { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; }
+        .social-icons { display: flex; gap: 8px; align-items: center; }
         .social-btn {
-            width: 38px;
-            height: 38px;
-            background: #0077ff;
-            border: 2px solid #ffffff;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 18px;
-            box-shadow: 0 4px 0 #0044aa;
-            cursor: pointer;
+            width: 38px; height: 38px; background: #0077ff; border: 2px solid #ffffff; border-radius: 8px;
+            display: flex; justify-content: center; align-items: center; color: white; font-size: 18px; box-shadow: 0 4px 0 #0044aa; cursor: pointer;
         }
         .social-btn.yt { background: #ff0000; box-shadow: 0 4px 0 #990000; }
         .social-btn.tw { background: #00aced; box-shadow: 0 4px 0 #006699; }
         .social-btn.dc { background: #7289da; box-shadow: 0 4px 0 #404e8a; }
 
         .robtop-logo {
-            background: #ff8800;
-            border: 2px solid #fff;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 14px;
-            color: #fff;
-            text-shadow: 1px 1px 0 #000;
-            box-shadow: 0 3px 0 #aa5500;
+            background: #ff8800; border: 2px solid #fff; padding: 4px 10px; border-radius: 6px;
+            font-size: 14px; color: #fff; text-shadow: 1px 1px 0 #000; box-shadow: 0 3px 0 #aa5500;
         }
 
         .center-tools { display: flex; gap: 12px; }
-
         .tool-circle-btn {
-            width: 50px;
-            height: 50px;
-            background: #22aa00;
-            border: 3px solid #ffffff;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            color: white;
-            box-shadow: 0 5px 0 #115500;
-            cursor: pointer;
-            transition: transform 0.2s;
+            width: 50px; height: 50px; background: #22aa00; border: 3px solid #ffffff; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; font-size: 20px; color: white; box-shadow: 0 5px 0 #115500; cursor: pointer; transition: transform 0.2s;
         }
         .tool-circle-btn:hover { transform: scale(1.1); }
 
         .free-levels-badge {
-            background: #22aa00;
-            border: 3px solid #ffffff;
-            padding: 10px 18px;
-            border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 6px 0 #115500, 0 8px 15px rgba(0,0,0,0.4);
-            cursor: pointer;
-            transition: transform 0.2s;
+            background: #22aa00; border: 3px solid #ffffff; padding: 10px 18px; border-radius: 16px;
+            text-align: center; box-shadow: 0 6px 0 #115500, 0 8px 15px rgba(0,0,0,0.4); cursor: pointer; transition: transform 0.2s;
         }
         .free-levels-badge:hover { transform: scale(1.05); }
         .free-levels-badge span { display: block; font-size: 18px; color: #fff; text-shadow: 2px 2px 0 #000; }
 
         #level-screen { background: rgba(150, 0, 0, 0.92); }
-
         .level-grid-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            max-height: 380px;
-            overflow-y: auto;
-            padding: 10px;
-            width: 100%;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+            max-height: 380px; overflow-y: auto; padding: 10px; width: 100%;
         }
-
         .level-card {
-            background: #003366;
-            border: 3px solid #00ffff;
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            box-shadow: 0 5px 0 #001133;
-            transition: 0.2s;
+            background: #003366; border: 3px solid #00ffff; border-radius: 12px; padding: 12px;
+            text-align: center; cursor: pointer; box-shadow: 0 5px 0 #001133; transition: 0.2s;
         }
         .level-card:hover { background: #0055aa; transform: scale(1.03); }
         .level-card h3 { margin: 0 0 4px 0; font-size: 16px; color: #55ff00; text-shadow: 1px 1px 0 #000; }
         .level-card p { margin: 0; font-size: 11px; color: #ddd; }
 
         .btn-custom {
-            background: #55ff00;
-            color: #000;
-            border: 3px solid #fff;
-            padding: 10px 25px;
-            font-size: 18px;
-            font-family: 'Fredoka One', cursive;
-            cursor: pointer;
-            border-radius: 14px;
-            box-shadow: 0 5px 0 #228800;
-            transition: 0.1s;
+            background: #55ff00; color: #000; border: 3px solid #fff; padding: 10px 25px;
+            font-size: 18px; font-family: 'Fredoka One', cursive; cursor: pointer; border-radius: 14px;
+            box-shadow: 0 5px 0 #228800; transition: 0.1s;
         }
         .btn-custom:hover { transform: scale(1.05); background: #77ff33; }
 
         .panel-box {
-            background: rgba(0, 0, 40, 0.95);
-            border: 4px solid #55ff00;
-            border-radius: 16px;
-            padding: 25px;
-            text-align: center;
-            width: 460px;
-            margin: auto;
+            background: rgba(0, 0, 40, 0.95); border: 4px solid #55ff00; border-radius: 16px;
+            padding: 25px; text-align: center; width: 460px; margin: auto;
         }
 
         #game-screen { background: transparent; padding: 15px 25px; }
-
         #hud {
-            position: absolute;
-            top: 15px;
-            left: 20px;
-            width: calc(100% - 40px);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            pointer-events: none;
-            z-index: 10;
+            position: absolute; top: 15px; left: 20px; width: calc(100% - 40px);
+            display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 10;
         }
-
         .hud-btn {
-            background: rgba(0,0,0,0.5);
-            border: 2px solid white;
-            color: white;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            font-size: 18px;
-            cursor: pointer;
-            pointer-events: auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: rgba(0,0,0,0.5); border: 2px solid white; color: white; width: 45px; height: 45px;
+            border-radius: 50%; font-size: 18px; cursor: pointer; pointer-events: auto; display: flex; justify-content: center; align-items: center;
         }
-
-        #progress-container {
-            width: 450px;
-            height: 14px;
-            background: rgba(0,0,0,0.6);
-            border: 2px solid white;
-            border-radius: 7px;
-            overflow: hidden;
-        }
-
+        #progress-container { width: 400px; height: 14px; background: rgba(0,0,0,0.6); border: 2px solid white; border-radius: 7px; overflow: hidden; }
         #progress-bar { width: 0%; height: 100%; background: #55ff00; }
 
         #attempt-display {
-            position: absolute;
-            top: 75px;
-            left: 30px;
-            font-size: 26px;
-            color: white;
-            text-shadow: 2px 2px 0 #000;
-            display: none;
-            z-index: 10;
+            position: absolute; top: 75px; left: 30px; font-size: 26px; color: white;
+            text-shadow: 2px 2px 0 #000; z-index: 10;
+        }
+
+        #coin-score {
+            position: absolute; top: 75px; right: 30px; font-size: 22px; color: #ffcc00;
+            text-shadow: 2px 2px 0 #000; z-index: 10;
         }
 
         canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            display: block;
-            background: linear-gradient(135deg, #002288 0%, #000822 100%);
-            z-index: 1;
+            position: absolute; top: 0; left: 0; display: block;
+            background: linear-gradient(135deg, #002288 0%, #000822 100%); z-index: 1;
         }
     </style>
 </head>
@@ -336,6 +156,7 @@
 
 <div id="game-container">
 
+    <!-- MENU CHÍNH -->
     <div id="main-menu" class="screen">
         <div class="game-title-container">
             <span class="game-title">GEOMETRY DASH</span>
@@ -345,9 +166,10 @@
         <div class="center-hub">
             <div class="menu-btn-group" onclick="openCharacterSelect()">
                 <div class="icon-circle">
-                    <div style="width: 40px; height: 40px; background: #55ff00; border: 3px solid #fff; position: relative;">
-                        <div style="position: absolute; top: 8px; left: 6px; width: 8px; height: 8px; background: #000;"></div>
-                        <div style="position: absolute; top: 8px; right: 6px; width: 8px; height: 8px; background: #000;"></div>
+                    <div style="width: 44px; height: 44px; background: #55ff00; border: 3px solid #fff; position: relative; border-radius: 6px;">
+                        <div style="position: absolute; top: 10px; left: 7px; width: 8px; height: 8px; background: #000; border-radius: 2px;"></div>
+                        <div style="position: absolute; top: 10px; right: 7px; width: 8px; height: 8px; background: #000; border-radius: 2px;"></div>
+                        <div style="position: absolute; bottom: 8px; left: 14px; width: 12px; height: 4px; background: #000;"></div>
                     </div>
                 </div>
                 <div class="menu-label">Character Select</div>
@@ -359,11 +181,11 @@
                 </div>
             </div>
 
-            <div class="menu-btn-group" onclick="alert('Online Levels đang cập nhật!')">
+            <div class="menu-btn-group" onclick="alert('The Tower & Online Levels đã sẵn sàng!')">
                 <div class="icon-circle yellow">
-                    <span style="font-size: 32px;">🛠️</span>
+                    <span style="font-size: 32px;">🏰</span>
                 </div>
-                <div class="menu-label">Online Levels</div>
+                <div class="menu-label">The Tower</div>
             </div>
         </div>
 
@@ -390,17 +212,19 @@
         </div>
     </div>
 
+    <!-- MÀN HÌNH CHỌN 16 MÀN CHƠI -->
     <div id="level-screen" class="screen hidden" style="z-index: 5;">
-        <h2 style="color: #55ff00; text-align: center; margin: 5px 0; text-shadow: 2px 2px 0 #000;">CHỌN 16 MÀN CHƠI</h2>
+        <h2 style="color: #55ff00; text-align: center; margin: 5px 0; text-shadow: 2px 2px 0 #000;">CHỌN 16 MÀN CHƠI (THE TOWER)</h2>
         <div class="level-grid-container" id="level-grid"></div>
         <div style="text-align: center; margin-top: 5px;">
             <button class="btn-custom" onclick="backToMenu()">QUAY LẠI MENU</button>
         </div>
     </div>
 
+    <!-- MÀN HÌNH CHỌN NHÂN VẬT -->
     <div id="char-screen" class="screen hidden" style="z-index: 5;">
         <div class="panel-box">
-            <h2 style="color: #55ff00; margin-top: 0;">MÀU SẮC NHÂN VẬT</h2>
+            <h2 style="color: #55ff00; margin-top: 0;">CHỌN MÀU NHÂN VẬT</h2>
             <div style="display: flex; justify-content: center; gap: 15px; margin: 20px 0;">
                 <div onclick="selectColor('#55ff00')" style="width: 45px; height: 45px; background: #55ff00; border: 3px solid #fff; cursor: pointer; border-radius: 8px;"></div>
                 <div onclick="selectColor('#ff3333')" style="width: 45px; height: 45px; background: #ff3333; border: 3px solid #fff; cursor: pointer; border-radius: 8px;"></div>
@@ -412,6 +236,7 @@
         </div>
     </div>
 
+    <!-- MÀN HÌNH TÙY CHỈNH NHẠC -->
     <div id="music-screen" class="screen hidden" style="z-index: 5;">
         <div class="panel-box">
             <h2 style="color: #00ffff; margin-top: 0;">THÊM NHẠC TÙY THÍCH</h2>
@@ -422,6 +247,7 @@
         </div>
     </div>
 
+    <!-- MÀN HÌNH CHƠI GAME -->
     <div id="game-screen" class="screen hidden" style="z-index: 5;">
         <div id="hud">
             <button class="hud-btn" onclick="pauseGame()">⏸</button>
@@ -431,9 +257,11 @@
             <button class="hud-btn" onclick="togglePractice()" id="practice-btn">🛡️</button>
         </div>
         <div id="attempt-display">ATTEMPT 1</div>
+        <div id="coin-score">🪙 XU: 0/3</div>
         <canvas id="gameCanvas" width="960" height="540"></canvas>
     </div>
 
+    <!-- BẢNG TẠM DỪNG -->
     <div id="pause-screen" class="screen hidden" style="z-index: 10; background: rgba(0,0,0,0.85);">
         <div class="panel-box">
             <h2 style="color: #ffff00; margin-top: 0;">TẠM DỪNG</h2>
@@ -455,6 +283,7 @@
     let isPaused = false;
     let attemptCount = 1;
     let practiceMode = false;
+    let coinCount = 0;
     let backgroundMusic = new Audio();
 
     function loadCustomMusic(event) {
@@ -466,17 +295,18 @@
         }
     }
 
+    // 16 Màn chơi
     const levelGrid = document.getElementById("level-grid");
     const levelConfigs = [];
     const levelNames = [
         "Stereo Madness", "Back On Track", "Polargeist", "Dry Out",
         "Base After Base", "Can't Let Go", "Jumper", "Time Machine",
         "Cycles", "xStep", "Clutterfunk", "Theory of Everything",
-        "Electroman Adventures", "Clubstep", "Electrodynamix", "Fingerdash"
+        "Electroman Adventures", "Clubstep", "Electrodynamix", "The Tower Final"
     ];
 
     for (let i = 1; i <= 16; i++) {
-        levelConfigs.push({ id: i, name: levelNames[i-1], length: 3500 + i * 350 });
+        levelConfigs.push({ id: i, name: levelNames[i-1], length: 4000 + i * 400 });
         const card = document.createElement("div");
         card.className = "level-card";
         card.innerHTML = `<h3>${i}. ${levelNames[i-1]}</h3><p>Độ khó: ${Math.min(10, Math.ceil(i/1.6))}★</p>`;
@@ -496,11 +326,19 @@
     function backToMenu() { showScreen("main-menu"); backgroundMusic.pause(); }
     function selectColor(color) { playerColor = color; }
 
+    // Thông số nhân vật
     let player = {
-        x: 180, y: 450, size: 36, vy: 0, gravity: 2200, jumpForce: -620,
-        rotation: 0, grounded: false
+        x: 180, y: 440, size: 36, vy: 0, gravity: 2400, jumpForce: -680,
+        rotation: 0, grounded: false, mode: "cube" // "cube" hoặc "ship"
     };
+
     let obstacles = [];
+    let platforms = [];
+    let jumpPads = [];
+    let halfBlocks = [];
+    let portals = [];
+    let coins = [];
+
     let gameProgress = 0;
     let currentConfig = null;
     let lastTime = 0;
@@ -510,6 +348,7 @@
         currentConfig = levelConfigs[levelId - 1];
         showScreen("game-screen");
         attemptCount = 1;
+        coinCount = 0;
         resetGameSession();
         if (backgroundMusic.src) {
             backgroundMusic.currentTime = 0;
@@ -521,23 +360,58 @@
 
     function resetGameSession() {
         player.x = 180;
-        player.y = 450;
+        player.y = 440;
         player.vy = 0;
         player.rotation = 0;
         player.grounded = true;
+        player.mode = "cube";
         gameProgress = 0;
         isPaused = false;
         document.getElementById("pause-screen").classList.add("hidden");
         document.getElementById("attempt-display").innerText = "ATTEMPT " + attemptCount;
-        document.getElementById("attempt-display").style.display = "block";
-        setTimeout(() => { document.getElementById("attempt-display").style.display = "none"; }, 1400);
+        document.getElementById("coin-score").innerText = `🪙 XU: ${coinCount}/3`;
 
+        // Sinh màn chơi gồm: Khối dài, bậc thang cao 2-3 block, lò xo, khối nửa hình vuông treo lơ lửng, cổng đổi dạng bay, và đồng xu
         obstacles = [];
-        let genX = 700;
-        while (genX < currentConfig.length) {
-            let isSpike = Math.random() > 0.35;
-            obstacles.push({ x: genX, y: 480, width: 36, height: 36, type: isSpike ? "spike" : "block" });
-            genX += Math.floor(Math.random() * 250) + 180;
+        platforms = [];
+        jumpPads = [];
+        halfBlocks = [];
+        portals = [];
+        coins = [];
+
+        let genX = 600;
+        while (genX < currentConfig.length - 300) {
+            let choice = Math.random();
+
+            if (choice < 0.25) {
+                // Khối hộp vuông dài & Bậc thang cao 2-3 block
+                let pHeight = Math.random() > 0.5 ? 80 : 120; // Cao 2-3 block
+                platforms.push({ x: genX, y: 480 - pHeight, width: 140, height: pHeight });
+                // Đặt chướng ngại vật gai trên khối hoặc trước khối
+                obstacles.push({ x: genX + 50, y: 480 - pHeight, width: 36, height: 36, type: "spike" });
+                // Thêm xu trên khối cao
+                if (Math.random() > 0.5) {
+                    coins.push({ x: genX + 70, y: 480 - pHeight - 50, collected: false });
+                }
+                genX += 220;
+            } else if (choice < 0.5) {
+                // Khối nửa hình vuông treo lơ lửng
+                halfBlocks.push({ x: genX, y: 340, width: 90, height: 25 });
+                jumpPads.push({ x: genX + 30, y: 470, width: 30, height: 12 }); // Bậc lò xo để bật lên khối lơ lửng
+                coins.push({ x: genX + 40, y: 280, collected: false });
+                genX += 200;
+            } else if (choice < 0.7) {
+                // Cổng biến đổi sang dạng bay (Ship) và trở lại bình thường
+                portals.push({ x: genX, y: 380, width: 40, height: 70, targetMode: "ship" });
+                genX += 300;
+                portals.push({ x: genX, y: 380, width: 40, height: 70, targetMode: "cube" });
+                genX += 200;
+            } else {
+                // Gai thường kết hợp lò xo
+                obstacles.push({ x: genX, y: 480, width: 36, height: 36, type: "spike" });
+                jumpPads.push({ x: genX - 50, y: 468, width: 32, height: 12 });
+                genX += 180;
+            }
         }
     }
 
@@ -577,57 +451,74 @@
         document.getElementById("practice-btn").style.borderColor = practiceMode ? "#55ff00" : "white";
     }
 
+    // Điều khiển nhảy & điều khiển dạng bay
     window.addEventListener("keydown", (e) => {
         if ((e.code === "Space" || e.code === "ArrowUp") && currentScreen === "game-screen" && !isPaused) {
-            if (player.grounded) {
+            if (player.mode === "cube" && player.grounded) {
                 player.vy = player.jumpForce;
                 player.grounded = false;
             }
         }
     });
 
+    let isMouseDown = false;
     canvas.addEventListener("mousedown", () => {
-        if (currentScreen === "game-screen" && !isPaused && player.grounded) {
+        isMouseDown = true;
+        if (currentScreen === "game-screen" && !isPaused && player.mode === "cube" && player.grounded) {
             player.vy = player.jumpForce;
             player.grounded = false;
         }
     });
+    canvas.addEventListener("mouseup", () => { isMouseDown = false; });
 
     function gameLoop(timestamp) {
         if (currentScreen !== "game-screen" || isPaused) return;
 
         let deltaTime = (timestamp - lastTime) / 1000;
-        if (deltaTime > 0.1) deltaTime = 0.016; // Chống giật khung hình
+        if (deltaTime > 0.1) deltaTime = 0.016;
         lastTime = timestamp;
 
-        // Chuẩn hóa vật lý độc lập tần số quét màn hình
-        player.vy += player.gravity * deltaTime;
-        player.y += player.vy * deltaTime;
+        // Xử lý vật lý theo chế độ (Cube hoặc Ship)
+        if (player.mode === "cube") {
+            player.vy += player.gravity * deltaTime;
+            player.y += player.vy * deltaTime;
 
-        if (player.y >= 480) {
-            player.y = 480;
-            player.vy = 0;
-            player.grounded = true;
-            player.rotation = Math.round(player.rotation / 90) * 90;
+            if (player.y >= 480) {
+                player.y = 480;
+                player.vy = 0;
+                player.grounded = true;
+                player.rotation = Math.round(player.rotation / 90) * 90;
+            } else {
+                player.grounded = false;
+                player.rotation += 450 * deltaTime;
+            }
         } else {
-            player.grounded = false;
-            player.rotation += 450 * deltaTime;
+            // Chế độ Bay (Ship Mode): Giữ chuột/phím để bay lên, thả ra để rơi xuống
+            if (isMouseDown || window.isSpacePressed) {
+                player.vy -= 1800 * deltaTime;
+            } else {
+                player.vy += 1400 * deltaTime;
+            }
+            player.y += player.vy * deltaTime;
+            player.rotation = player.vy * 0.05;
+            if (player.y < 40) player.y = 40;
+            if (player.y > 480) { player.y = 480; player.vy = 0; }
         }
 
-        let gameSpeed = 380; // Tốc độ di chuyển chuẩn xác
+        let gameSpeed = 360;
         gameProgress += gameSpeed * deltaTime;
         let percent = Math.min(100, Math.floor((gameProgress / currentConfig.length) * 100));
         document.getElementById("progress-bar").style.width = percent + "%";
 
         if (gameProgress >= currentConfig.length) {
-            alert("CHIẾN THẮNG! HOÀN THÀNH MÀN " + selectedLevel);
+            alert(`CHIẾN THẮNG! BẠN ĐÃ HOÀN THÀNH MÀN ${selectedLevel} VỚI ${coinCount} XU!`);
             backToMenu();
             return;
         }
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Vẽ lưới
+        // Vẽ nền lưới
         ctx.strokeStyle = "rgba(0, 255, 255, 0.08)";
         ctx.lineWidth = 1;
         for (let x = 0; x < canvas.width; x += 45) {
@@ -637,36 +528,125 @@
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
         }
 
-        // Sàn nhà
+        // Sàn nhà chuẩn
         ctx.fillStyle = "#001133";
         ctx.fillRect(0, 480, canvas.width, 60);
         ctx.fillStyle = "#00ffff";
         ctx.fillRect(0, 480, canvas.width, 5);
 
-        // Chướng ngại vật & Va chạm
-        obstacles.forEach(obs => {
-            let screenX = obs.x - gameProgress;
-            if (obs.type === "spike") {
-                ctx.fillStyle = "#ff2222";
+        // Kiểm tra va chạm với Khối hộp dài (Platforms)
+        platforms.forEach(plat => {
+            let sx = plat.x - gameProgress;
+            ctx.fillStyle = "#ff6600";
+            ctx.fillRect(sx, plat.y, plat.width, plat.height);
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(sx, plat.y, plat.width, plat.height);
+
+            // Va chạm đứng trên khối
+            if (player.mode === "cube" && player.x + player.size > sx && player.x < sx + plat.width) {
+                if (player.y >= plat.y && player.y <= plat.y + 15 && player.vy >= 0) {
+                    player.y = plat.y;
+                    player.vy = 0;
+                    player.grounded = true;
+                    player.rotation = Math.round(player.rotation / 90) * 90;
+                }
+            }
+        });
+
+        // Khối nửa hình vuông treo lơ lửng
+        halfBlocks.forEach(hb => {
+            let sx = hb.x - gameProgress;
+            ctx.fillStyle = "#0088ff";
+            ctx.fillRect(sx, hb.y, hb.width, hb.height);
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(sx, hb.y, hb.width, hb.height);
+
+            if (player.mode === "cube" && player.x + player.size > sx && player.x < sx + hb.width) {
+                if (player.y >= hb.y && player.y <= hb.y + 12 && player.vy >= 0) {
+                    player.y = hb.y;
+                    player.vy = 0;
+                    player.grounded = true;
+                }
+            }
+        });
+
+        // Bậc lò xo (Jump Pads)
+        jumpPads.push(...[]);
+        jumpPads.forEach(pad => {
+            let sx = pad.x - gameProgress;
+            ctx.fillStyle = "#ffcc00";
+            ctx.fillRect(sx, pad.y, pad.width, pad.height);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(sx, pad.y, pad.width, pad.height);
+
+            // Khi chạm lò xo -> Bật nhảy cực cao
+            let pBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
+            let padBox = { x: sx, y: pad.y, w: pad.width, h: pad.height };
+            if (pBox.x < padBox.x + padBox.w && pBox.x + pBox.w > padBox.x &&
+                pBox.y < padBox.y + padBox.h && pBox.y + pBox.h > padBox.y) {
+                player.vy = player.jumpForce * 1.35;
+                player.grounded = false;
+            }
+        });
+
+        // Cổng biến đổi (Portals)
+        portals.forEach(portal => {
+            let sx = portal.x - gameProgress;
+            ctx.fillStyle = portal.targetMode === "ship" ? "rgba(0, 255, 255, 0.6)" : "rgba(255, 0, 255, 0.6)";
+            ctx.fillRect(sx, portal.y, portal.width, portal.height);
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(sx, portal.y, portal.width, portal.height);
+
+            // Kiểm tra đi qua cổng
+            let pBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
+            let ptBox = { x: sx, y: portal.y, w: portal.width, h: portal.height };
+            if (pBox.x < ptBox.x + ptBox.w && pBox.x + pBox.w > ptBox.x &&
+                pBox.y < ptBox.y + ptBox.h && pBox.y + pBox.h > ptBox.y) {
+                player.mode = portal.targetMode;
+            }
+        });
+
+        // Thu thập Xu (Coins)
+        coins.forEach(coin => {
+            if (!coin.collected) {
+                let sx = coin.x - gameProgress;
+                ctx.fillStyle = "#ffcc00";
                 ctx.beginPath();
-                ctx.moveTo(screenX, 480);
-                ctx.lineTo(screenX + obs.width / 2, 480 - obs.height);
-                ctx.lineTo(screenX + obs.width, 480);
-                ctx.closePath();
+                ctx.arc(sx + 12, coin.y + 12, 12, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.strokeStyle = "#fff";
                 ctx.lineWidth = 2;
                 ctx.stroke();
-            } else {
-                ctx.fillStyle = "#ff6600";
-                ctx.fillRect(screenX, 480 - obs.height, obs.width, obs.height);
-                ctx.strokeStyle = "#fff";
-                ctx.lineWidth = 2;
-                ctx.strokeRect(screenX, 480 - obs.height, obs.width, obs.height);
-            }
 
-            let pBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
-            let oBox = { x: screenX, y: 480 - obs.height, w: obs.width, h: obs.height };
+                let dist = Math.hypot((player.x + player.size/2) - (sx + 12), (player.y - player.size/2) - (coin.y + 12));
+                if (dist < 30) {
+                    coin.collected = true;
+                    coinCount++;
+                    document.getElementById("coin-score").innerText = `🪙 XU: ${coinCount}/3`;
+                }
+            }
+        });
+
+        // Chướng ngại vật (Gai tam giác)
+        obstacles.forEach(obs => {
+            let sx = obs.x - gameProgress;
+            ctx.fillStyle = "#ff2222";
+            ctx.beginPath();
+            ctx.moveTo(sx, 480);
+            ctx.lineTo(sx + obs.width / 2, 480 - obs.height);
+            ctx.lineTo(sx + obs.width, 480);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Va chạm gai -> Thua & Chơi lại
+            let pBox = { x: player.x + 4, y: player.y - player.size + 4, w: player.size - 8, h: player.size - 8 };
+            let oBox = { x: sx + 4, y: 480 - obs.height + 4, w: obs.width - 8, h: obs.height - 8 };
 
             if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x &&
                 pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
@@ -675,17 +655,36 @@
             }
         });
 
-        // Vẽ nhân vật
+        // Vẽ Nhân vật chuẩn hình mẫu Geometry Dash (Khối vuông viền trắng + Mắt đen + Miệng)
         ctx.save();
         ctx.translate(player.x + player.size/2, player.y - player.size/2);
         ctx.rotate((player.rotation * Math.PI) / 180);
-        ctx.fillStyle = playerColor;
-        ctx.fillRect(-player.size/2, -player.size/2, player.size, player.size);
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 3;
-        ctx.strokeRect(-player.size/2, -player.size/2, player.size, player.size);
-        ctx.fillStyle = "#000";
-        ctx.fillRect(2, -8, 8, 8);
+
+        if (player.mode === "cube") {
+            // Vẽ thân hộp vuông
+            ctx.fillStyle = playerColor;
+            ctx.fillRect(-player.size/2, -player.size/2, player.size, player.size);
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(-player.size/2, -player.size/2, player.size, player.size);
+            // Mắt nhân vật
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(-6, -8, 8, 8);
+            ctx.fillRect(4, -8, 8, 8);
+            // Miệng biểu cảm
+            ctx.fillRect(-3, 4, 8, 4);
+        } else {
+            // Dạng Tàu vũ trụ (Ship mode)
+            ctx.fillStyle = playerColor;
+            ctx.beginPath();
+            ctx.moveTo(-20, 0); ctx.lineTo(20, -12); ctx.lineTo(20, 12);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
         ctx.restore();
 
         requestAnimationFrame(gameLoop);
