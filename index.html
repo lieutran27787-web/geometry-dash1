@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Lite - Authentic Edition</title>
+    <title>Geometry Dash Lite - Towers & Orbs Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
 
@@ -20,10 +20,10 @@
 
         #game-container {
             width: 960px; height: 540px;
-            background: linear-gradient(135deg, #ff3300 0%, #cc0000 100%);
+            background: linear-gradient(135deg, #7700ff 0%, #aa00aa 100%);
             position: relative;
             box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-            border: 6px solid #880000;
+            border: 6px solid #440088;
             overflow: hidden;
         }
 
@@ -99,16 +99,16 @@
         .free-levels-badge:hover { transform: scale(1.05); }
         .free-levels-badge span { display: block; font-size: 18px; color: #fff; text-shadow: 2px 2px 0 #000; }
 
-        #level-screen { background: rgba(150, 0, 0, 0.92); }
+        #level-screen { background: rgba(100, 0, 100, 0.95); }
         .level-grid-container {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
             max-height: 380px; overflow-y: auto; padding: 10px; width: 100%;
         }
         .level-card {
-            background: #003366; border: 3px solid #00ffff; border-radius: 12px; padding: 12px;
-            text-align: center; cursor: pointer; box-shadow: 0 5px 0 #001133; transition: 0.2s; position: relative;
+            background: #330066; border: 3px solid #00ffff; border-radius: 12px; padding: 12px;
+            text-align: center; cursor: pointer; box-shadow: 0 5px 0 #110033; transition: 0.2s; position: relative;
         }
-        .level-card:hover { background: #0055aa; transform: scale(1.03); }
+        .level-card:hover { background: #5500aa; transform: scale(1.03); }
         .level-card h3 { margin: 0 0 4px 0; font-size: 16px; color: #55ff00; text-shadow: 1px 1px 0 #000; }
         .level-card p { margin: 0; font-size: 11px; color: #ddd; }
         .level-card.locked { opacity: 0.6; background: #440000; border-color: #ff3333; }
@@ -121,7 +121,7 @@
         .btn-custom:hover { transform: scale(1.05); background: #77ff33; }
 
         .panel-box {
-            background: rgba(0, 0, 40, 0.95); border: 4px solid #55ff00; border-radius: 16px;
+            background: rgba(20, 0, 50, 0.95); border: 4px solid #55ff00; border-radius: 16px;
             padding: 25px; text-align: center; width: 500px; margin: auto;
         }
 
@@ -129,10 +129,10 @@
             display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0;
         }
         .skin-option {
-            background: #002266; border: 3px solid #00ffff; border-radius: 10px; padding: 12px;
+            background: #220055; border: 3px solid #00ffff; border-radius: 10px; padding: 12px;
             cursor: pointer; transition: 0.2s; text-align: center; color: #fff;
         }
-        .skin-option:hover { background: #0044aa; transform: scale(1.05); }
+        .skin-option:hover { background: #4400aa; transform: scale(1.05); }
         .skin-option.selected { border-color: #55ff00; background: #005522; }
 
         #in-game-modal {
@@ -141,7 +141,7 @@
             z-index: 20;
         }
         .modal-content {
-            background: linear-gradient(135deg, #002266 0%, #001133 100%);
+            background: linear-gradient(135deg, #330066 0%, #110033 100%);
             border: 4px solid #55ff00; border-radius: 20px; padding: 30px; text-align: center;
             width: 480px; box-shadow: 0 10px 30px rgba(0,0,0,0.9);
         }
@@ -177,7 +177,7 @@
 
         canvas {
             position: absolute; top: 0; left: 0; display: block;
-            background: linear-gradient(135deg, #002288 0%, #000822 100%); z-index: 1;
+            background: linear-gradient(135deg, #440088 0%, #110033 100%); z-index: 1;
         }
     </style>
 </head>
@@ -517,12 +517,11 @@
         rotation: 0, grounded: false, mode: "cube"
     };
 
-    let obstacles = [];
     let platforms = [];
-    let jumpPads = [];
+    let orbs = []; // Quả cầu xanh trên đỉnh cột
     let portals = [];
     let coins = [];
-    let advancedSections = [];
+    let obstacles = []; // Chỉ xuất hiện tam giác chắn khi tới màn phi thuyền
     let monster = { x: -150, speed: 335 };
 
     let gameProgress = 0;
@@ -559,47 +558,32 @@
         document.getElementById("attempt-display").innerText = "ATTEMPT " + attemptCount;
         document.getElementById("coin-score").innerText = `🪙 XU: ${levelCoins[selectedLevel]}/3`;
 
-        obstacles = [];
         platforms = [];
-        jumpPads = [];
+        orbs = [];
         portals = [];
         coins = [];
-        advancedSections = [];
+        obstacles = [];
 
-        // BẢN ĐỒ AUTHENTIC GEOMETRY DASH LITE: CÁC GAI CÁCH XA NHAU VÀ CÁC CỤM KHỐI BẬC THANG
-        obstacles.push({ x: 600, y: 480, width: 28, height: 28, type: "spike" });
-        obstacles.push({ x: 1200, y: 480, width: 40, height: 42, type: "spike" });
-        
-        let seed = selectedLevel * 123.45;
-        function pseudoRandom() {
-            seed = (seed * 9301 + 49297) % 233280;
-            return seed / 233280;
+        // GIAI ĐOẠN ĐẦU: CÁC TRỤ CỘT CAO KÈM QUẢ CẦU XANH GIỐNG Y HỆT ẢNH MẪU
+        let towerX = 500;
+        let towerHeights = [220, 280, 340, 260];
+        for (let h of towerHeights) {
+            platforms.push({ x: towerX, y: 480 - h, width: 70, height: h });
+            orbs.push({ x: towerX + 35, y: 480 - h - 15, radius: 12 });
+            coins.push({ x: towerX + 35, y: 480 - h - 70, collected: false });
+            towerX += 280;
         }
 
-        let genX = 1800;
-        let portalCount = 0;
-        while (genX < currentConfig.length - 800) {
-            let r = pseudoRandom();
+        // ĐẶT CỔNG CHUYỂN ĐỔI SANG PHI THUYỀN (SHIP MODE) Ở GIỮA MÀN
+        let shipPortalX = towerX + 200;
+        portals.push({ x: shipPortalX, y: 320, width: 40, height: 75, targetMode: "ship" });
 
-            if (r < 0.3) {
-                advancedSections.push({ x: genX, type: "zigzag", width: 450 });
-                coins.push({ x: genX + 220, y: 250, collected: false });
-                genX += 600;
-            } else if (r < 0.6 && portalCount < 3) {
-                portals.push({ x: genX, y: 320, width: 40, height: 75, targetMode: "ship" });
-                advancedSections.push({ x: genX + 50, type: "corridor", width: 650 });
-                coins.push({ x: genX + 300, y: 150, collected: false });
-                genX += 850;
-                portals.push({ x: genX, y: 320, width: 40, height: 75, targetMode: "cube" });
-                portalCount++;
-                genX += 400;
-            } else {
-                let baseHeight = 120 + Math.floor(pseudoRandom() * 3) * 50;
-                platforms.push({ x: genX, y: 480 - baseHeight, width: 140, height: baseHeight });
-                jumpPads.push({ x: genX - 60, y: 468, width: 32, height: 12 });
-                obstacles.push({ x: genX + 180, y: 480, width: 36, height: 36, type: "spike" });
-                genX += 500;
-            }
+        // GIAI ĐOẠN SAU (Từ cổng phi thuyền trở đi): CÁC TAM GIÁC XUẤT HIỆN LÀM VẬT CHẮN
+        let genX = shipPortalX + 300;
+        while (genX < currentConfig.length - 800) {
+            obstacles.push({ x: genX, y: 250, width: 40, height: 40, type: "triangleObstacle" });
+            coins.push({ x: genX + 20, y: 120, collected: false });
+            genX += 350;
         }
 
         vortexX = currentConfig.length - 200;
@@ -694,8 +678,14 @@
                 }
                 player.y += player.vy * deltaTime;
                 player.rotation = player.vy * 0.035;
-                if (player.y < 35) player.y = 35;
                 if (player.y > 480) { player.y = 480; player.vy = 0; }
+            }
+
+            // CHẠM RÌA TRÊN CÙNG (TRẦN Y = 0) -> CHẾT
+            let pTopBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
+            if (pTopBox.y <= 10) {
+                restartLevel();
+                return;
             }
 
             let gameSpeed = 360;
@@ -709,7 +699,7 @@
                 }
             }
 
-            // HỆ THỐNG VA CHẠM KHỐI (CHÍNH XÁC: ĐỤNG CẠNH BÊN HOẶC MẶT DƯỚI SẼ CHẾT)
+            // KIỂM TRA VA CHẠM KHỐI TRỤ CỘT
             let pBox = { x: player.x + 4, y: player.y - player.size + 4, w: player.size - 8, h: player.size - 8 };
 
             platforms.forEach(plat => {
@@ -719,7 +709,6 @@
                 if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x &&
                     pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
                     
-                    // Kiểm tra xem có đang rơi xuống đạp đúng mặt trên của khối không
                     let prevY = player.y - (player.vy * deltaTime) - player.size;
                     if (prevY <= oBox.y && player.vy >= 0) {
                         player.y = oBox.y;
@@ -727,10 +716,30 @@
                         player.grounded = true;
                         player.rotation = Math.round(player.rotation / 90) * 90;
                     } else {
-                        // Đụng cạnh bên hoặc đụng đầu từ dưới lên -> Chết
                         restartLevel();
                         return;
                     }
+                }
+            });
+
+            // TƯƠNG TÁC QUẢ CẦU XANH (ORBS)
+            orbs.forEach(orb => {
+                let sx = orb.x - gameProgress;
+                let dist = Math.hypot((player.x + player.size/2) - sx, (player.y - player.size/2) - orb.y);
+                if (dist < 30 && (isMouseDown || window.isSpacePressed)) {
+                    player.vy = player.jumpForce * 1.15;
+                    player.grounded = false;
+                }
+            });
+
+            // KIỂM TRA VA CHẠM VẬT CHẮN TAM GIÁC (SAU KHI BIẾN THÀNH PHI THUYỀN)
+            obstacles.forEach(obs => {
+                let sx = obs.x - gameProgress;
+                let oBox = { x: sx, y: obs.y, w: obs.width, h: obs.height };
+                if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x &&
+                    pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
+                    restartLevel();
+                    return;
                 }
             });
 
@@ -768,7 +777,7 @@
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
         }
 
-        ctx.fillStyle = "#001133";
+        ctx.fillStyle = "#220055";
         ctx.fillRect(0, 480, canvas.width, 60);
         ctx.fillStyle = "#00ffff";
         ctx.fillRect(0, 480, canvas.width, 5);
@@ -786,66 +795,61 @@
             ctx.fill();
         }
 
-        advancedSections.forEach(sec => {
-            let sx = sec.x - gameProgress;
-            if (sec.type === "zigzag") {
-                ctx.fillStyle = "#ffaa00";
-                ctx.beginPath();
-                ctx.moveTo(sx, 480);
-                ctx.lineTo(sx + sec.width/2, 120);
-                ctx.lineTo(sx + sec.width, 480);
-                ctx.closePath();
-                ctx.fill();
-                ctx.strokeStyle = "#ffff00"; ctx.lineWidth = 3; ctx.stroke();
-            } else if (sec.type === "corridor") {
-                ctx.fillStyle = "rgba(0, 255, 255, 0.15)";
-                ctx.fillRect(sx, 80, sec.width, 80);
-                ctx.fillRect(sx, 360, sec.width, 80);
-                ctx.strokeStyle = "#00ffff"; ctx.lineWidth = 2;
-                ctx.strokeRect(sx, 80, sec.width, 80);
-                ctx.strokeRect(sx, 360, sec.width, 80);
-            }
-        });
-
+        // Vẽ các trụ cột (Platforms)
         platforms.forEach(plat => {
             let sx = plat.x - gameProgress;
-            ctx.fillStyle = "#ff6600";
+            ctx.fillStyle = "#440088";
             ctx.fillRect(sx, plat.y, plat.width, plat.height);
-            ctx.strokeStyle = "#ffffff";
+            ctx.strokeStyle = "#00ffff";
             ctx.lineWidth = 2;
             ctx.strokeRect(sx, plat.y, plat.width, plat.height);
+
+            // Vẽ lưới kẻ ô vuông phong cách tháp
+            ctx.strokeStyle = "rgba(0, 255, 255, 0.2)";
+            for (let gx = sx + 10; gx < sx + plat.width; gx += 15) {
+                ctx.beginPath(); ctx.moveTo(gx, plat.y); ctx.lineTo(gx, plat.y + plat.height); ctx.stroke();
+            }
         });
 
-        jumpPads.forEach(pad => {
-            let sx = pad.x - gameProgress;
-            ctx.fillStyle = "#ffcc00";
-            ctx.fillRect(sx, pad.y, pad.width, pad.height);
-            ctx.strokeStyle = "#fff";
-            ctx.strokeRect(sx, pad.y, pad.width, pad.height);
-
-            let pBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
-            let padBox = { x: sx, y: pad.y, w: pad.width, h: pad.height };
-            if (pBox.x < padBox.x + padBox.w && pBox.x + pBox.w > padBox.x &&
-                pBox.y < padBox.y + padBox.h && pBox.y + pBox.h > padBox.y) {
-                player.vy = player.jumpForce * 1.35;
-                player.grounded = false;
-            }
+        // Vẽ quả cầu xanh trên đỉnh cột (Orbs)
+        orbs.forEach(orb => {
+            let sx = orb.x - gameProgress;
+            ctx.fillStyle = "#00ffff";
+            ctx.beginPath();
+            ctx.arc(sx, orb.y, orb.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
+            // Cần cắm quả cầu
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(sx, orb.y + orb.radius); ctx.lineTo(sx, orb.y + 25); ctx.stroke();
         });
 
         portals.forEach(portal => {
             let sx = portal.x - gameProgress;
-            ctx.fillStyle = portal.targetMode === "ship" ? "rgba(0, 255, 255, 0.6)" : "rgba(255, 0, 255, 0.6)";
+            ctx.fillStyle = "rgba(0, 255, 255, 0.6)";
             ctx.fillRect(sx, portal.y, portal.width, portal.height);
-            ctx.strokeStyle = "#fff";
-            ctx.lineWidth = 3;
+            ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
             ctx.strokeRect(sx, portal.y, portal.width, portal.height);
 
             let pBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
             let ptBox = { x: sx, y: portal.y, w: portal.width, h: portal.height };
             if (pBox.x < ptBox.x + ptBox.w && pBox.x + pBox.w > ptBox.x &&
-                pBox.y < ptBox.y + ptBox.h && pBox.y + ptBox.h > ptBox.y) {
+                pBox.y < ptBox.y + ptBox.h && pBox.y + pBox.h > ptBox.y) {
                 player.mode = portal.targetMode;
             }
+        });
+
+        // Vẽ vật cản tam giác (Chỉ xuất hiện khi ở khu vực phi thuyền)
+        obstacles.forEach(obs => {
+            let sx = obs.x - gameProgress;
+            ctx.fillStyle = "#ff2266";
+            ctx.beginPath();
+            ctx.moveTo(sx, obs.y + obs.height);
+            ctx.lineTo(sx + obs.width/2, obs.y);
+            ctx.lineTo(sx + obs.width, obs.y + obs.height);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
         });
 
         coins.forEach(coin => {
@@ -855,9 +859,7 @@
                 ctx.beginPath();
                 ctx.arc(sx + 12, coin.y + 12, 12, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.strokeStyle = "#fff";
-                ctx.lineWidth = 2;
-                ctx.stroke();
+                ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
 
                 let dist = Math.hypot((player.x + player.size/2) - (sx + 12), (player.y - player.size/2) - (coin.y + 12));
                 if (dist < 32) {
@@ -876,44 +878,16 @@
         ctx.beginPath();
         ctx.arc(vSx + 30, 420, 50, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = "#0055ff";
-        ctx.lineWidth = 5;
-        ctx.stroke();
+        ctx.strokeStyle = "#0055ff"; ctx.lineWidth = 5; ctx.stroke();
 
         if (levelCompleted) {
             ctx.fillStyle = "#55ff00";
             ctx.font = "bold 64px 'Fredoka One'";
             ctx.textAlign = "center";
-            ctx.shadowColor = "#000";
-            ctx.shadowBlur = 10;
+            ctx.shadowColor = "#000"; ctx.shadowBlur = 10;
             ctx.fillText("WINNER", canvas.width / 2, 200);
             ctx.shadowBlur = 0;
         }
-
-        obstacles.forEach(obs => {
-            let sx = obs.x - gameProgress;
-            ctx.fillStyle = "#ff2222";
-            ctx.beginPath();
-            ctx.moveTo(sx, 480);
-            ctx.lineTo(sx + obs.width / 2, 480 - obs.height);
-            ctx.lineTo(sx + obs.width, 480);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = "#fff";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            if (!levelCompleted) {
-                let pBox = { x: player.x + 5, y: player.y - player.size + 5, w: player.size - 10, h: player.size - 10 };
-                let oBox = { x: sx + 5, y: 480 - obs.height + 5, w: obs.width - 10, h: obs.height - 10 };
-
-                if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x &&
-                    pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
-                    restartLevel();
-                    return;
-                }
-            }
-        });
 
         ctx.save();
         ctx.translate(player.x + player.size/2, player.y - player.size/2);
@@ -923,8 +897,7 @@
             if (playerSkin === "cube") {
                 ctx.fillStyle = playerColor;
                 ctx.fillRect(-player.size/2, -player.size/2, player.size, player.size);
-                ctx.strokeStyle = "#ffffff";
-                ctx.lineWidth = 3;
+                ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3;
                 ctx.strokeRect(-player.size/2, -player.size/2, player.size, player.size);
                 ctx.fillStyle = "#000000";
                 ctx.fillRect(-6, -8, 8, 8);
@@ -975,17 +948,13 @@
             ctx.lineTo(-16, 0);
             ctx.closePath();
             ctx.fill();
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 2.5;
-            ctx.stroke();
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2.5; ctx.stroke();
 
             ctx.fillStyle = "#00ffff";
             ctx.beginPath();
             ctx.arc(2, 0, 6, 0, Math.PI * 2);
             ctx.fill();
-            ctx.strokeStyle = "#000";
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
+            ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
         }
 
         ctx.restore();
