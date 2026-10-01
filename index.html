@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Lite - Advanced Levels Edition</title>
+    <title>Geometry Dash Lite - Authentic Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
 
@@ -74,7 +74,7 @@
         .social-icons { display: flex; gap: 8px; align-items: center; }
         .social-btn {
             width: 38px; height: 38px; background: #0077ff; border: 2px solid #ffffff; border-radius: 8px;
-            display: flex; justify-content: center; align-items: center; color: white; font-size: 18px; box-shadow: 0 4px 0 #0044aa; cursor: pointer;
+            display: flex; justify-content: center; align-items: center; color: white; font-size: 18px; box-shadow: 0 4px 0 #0044aa; cursor: pointer; text-decoration: none;
         }
         .social-btn.yt { background: #ff0000; box-shadow: 0 4px 0 #990000; }
         .social-btn.tw { background: #00aced; box-shadow: 0 4px 0 #006699; }
@@ -82,7 +82,7 @@
 
         .robtop-logo {
             background: #ff8800; border: 2px solid #fff; padding: 4px 10px; border-radius: 6px;
-            font-size: 14px; color: #fff; text-shadow: 1px 1px 0 #000; box-shadow: 0 3px 0 #aa5500;
+            font-size: 14px; color: #fff; text-shadow: 1px 1px 0 #000; box-shadow: 0 3px 0 #aa5500; cursor: pointer; display: inline-block;
         }
 
         .center-tools { display: flex; gap: 12px; }
@@ -210,27 +210,27 @@
                 </div>
             </div>
 
-            <div class="menu-btn-group" onclick="openLevelSelect()">
+            <div class="menu-btn-group" onclick="openOnlineLevels()">
                 <div class="icon-circle yellow">
-                    <span style="font-size: 32px;">🏰</span>
+                    <span style="font-size: 32px;">🛠️</span>
                 </div>
-                <div class="menu-label">The Tower</div>
+                <div class="menu-label">Online Levels</div>
             </div>
         </div>
 
         <div class="bottom-toolbar">
             <div class="social-icons">
-                <div class="social-btn">f</div>
-                <div class="social-btn tw">t</div>
-                <div class="social-btn yt">▶</div>
-                <div class="social-btn dc">💬</div>
-                <div><div class="robtop-logo">ROBTOP</div></div>
+                <a class="social-btn" href="https://www.facebook.com/RobTopGames" target="_blank">f</a>
+                <a class="social-btn tw" href="https://twitter.com/robtopgames" target="_blank">t</a>
+                <a class="social-btn yt" href="https://www.youtube.com/user/RobTopGames" target="_blank">▶</a>
+                <a class="social-btn dc" href="https://discord.gg/geometrydash" target="_blank">💬</a>
+                <div><div class="robtop-logo" onclick="openRobTopInfo()">ROBTOP</div></div>
             </div>
 
             <div class="center-tools">
-                <div class="tool-circle-btn" title="Thành tích">🏆</div>
-                <div class="tool-circle-btn" title="Cài đặt">⚙️</div>
-                <div class="tool-circle-btn" title="Thống kê">📊</div>
+                <div class="tool-circle-btn" title="Thành tích" onclick="openAchievements()">🏆</div>
+                <div class="tool-circle-btn" title="Cài đặt" onclick="openSettings()">⚙️</div>
+                <div class="tool-circle-btn" title="Thống kê" onclick="openStats()">📊</div>
                 <div class="tool-circle-btn" title="Tùy chỉnh Nhạc" onclick="openMusicPanel()">🎵</div>
             </div>
 
@@ -343,6 +343,7 @@
     let practiceMode = false;
     let totalCoinsCollected = 0;
     let levelCoins = {};
+    let totalLevelsCompleted = 0;
     
     let customAudio = null;
     let isCustomMusic = false;
@@ -350,6 +351,26 @@
 
     let audioCtx = null;
     let musicInterval = null;
+
+    function openOnlineLevels() {
+        showInGameModal("ONLINE LEVELS", "🛠️ Tính năng kết nối Online Levels đang được phát triển trực tuyến trên nền tảng RobTop Server!");
+    }
+
+    function openRobTopInfo() {
+        showInGameModal("ROBTOP GAMES", "🎮 Geometry Dash Lite được phát triển bởi Robert Topala (RobTop Games). Phiên bản web tùy chỉnh hoàn hảo!");
+    }
+
+    function openAchievements() {
+        showInGameModal("THÀNH TÍCH (ACHIEVEMENTS)", `🏆 Tổng số Xu đã thu thập: ${totalCoinsCollected}\n🏆 Tổng số màn đã hoàn thành: ${totalLevelsCompleted}/16`);
+    }
+
+    function openSettings() {
+        showInGameModal("CÀI ĐẶT (SETTINGS)", "⚙️ Cài đặt âm thanh và đồ họa đang ở chế độ tối ưu hóa cao nhất (60 FPS / Web Audio API Enabled).");
+    }
+
+    function openStats() {
+        showInGameModal("THỐNG KÊ (STATS)", `📊 Tổng số lần thử (Attempts): ${attemptCount}\n📊 Tổng số Xu tích lũy: ${totalCoinsCollected}/48\n📊 Trạng thái mở khóa The Tower: ${totalCoinsCollected >= 3 ? 'ĐÃ MỞ KHÓA ✅' : 'CHƯA MỞ KHÓA (Cần 3 Xu) 🔒'}`);
+    }
 
     function setSkin(skinName) {
         playerSkin = skinName;
@@ -417,9 +438,11 @@
             window.modalCallback = null;
         } else {
             isPaused = false;
-            startLevelSynthesizer(selectedLevel);
-            lastTime = performance.now();
-            animationFrameId = requestAnimationFrame(gameLoop);
+            if (currentScreen === "game-screen") {
+                startLevelSynthesizer(selectedLevel);
+                lastTime = performance.now();
+                animationFrameId = requestAnimationFrame(gameLoop);
+            }
         }
     }
 
@@ -468,7 +491,7 @@
     }
 
     for (let i = 1; i <= 16; i++) {
-        levelConfigs.push({ id: i, name: levelNames[i-1], length: 5000 + i * 300 });
+        levelConfigs.push({ id: i, name: levelNames[i-1], length: 5500 + i * 300 });
         levelCoins[i] = 0;
     }
 
@@ -499,8 +522,7 @@
     let jumpPads = [];
     let portals = [];
     let coins = [];
-    let ceilingSpikes = [];
-    let advancedSections = []; // Các phân đoạn nâng cao giống hình mẫu ở nửa sau màn chơi
+    let advancedSections = [];
     let monster = { x: -150, speed: 335 };
 
     let gameProgress = 0;
@@ -542,50 +564,41 @@
         jumpPads = [];
         portals = [];
         coins = [];
-        ceilingSpikes = [];
         advancedSections = [];
 
-        for (let cx = 0; cx < currentConfig.length + 1000; cx += 100) {
-            ceilingSpikes.push({ x: cx, width: 40, height: 25 });
-        }
-
-        // GIAI ĐOẠN ĐẦU: CÁC GAI ĐƯỢC ĐẶT CÁCH XA NHAU KHOẢNG 100M (TƯƠNG ĐƯƠNG 350-400PX) ĐỂ DỄ THỞ
-        obstacles.push({ x: 500, y: 480, width: 28, height: 28, type: "spike" });
-        obstacles.push({ x: 900, y: 480, width: 40, height: 42, type: "spike" });
-        obstacles.push({ x: 1300, y: 480, width: 34, height: 34, type: "spike" });
-
+        // BẢN ĐỒ AUTHENTIC GEOMETRY DASH LITE: CÁC GAI CÁCH XA NHAU VÀ CÁC CỤM KHỐI BẬC THANG
+        obstacles.push({ x: 600, y: 480, width: 28, height: 28, type: "spike" });
+        obstacles.push({ x: 1200, y: 480, width: 40, height: 42, type: "spike" });
+        
         let seed = selectedLevel * 123.45;
         function pseudoRandom() {
             seed = (seed * 9301 + 49297) % 233280;
             return seed / 233280;
         }
 
-        // GIAI ĐOẠN SAU (Từ 1700px trở đi): TÍCH HỢP CÁC MẪU ĐỊA HÌNH NÂNG CAO GIỐNG ẢNH MẪU (Zic-zắc, đường ray, khối viền phát sáng tùy theo độ khó)
-        let genX = 1700;
+        let genX = 1800;
         let portalCount = 0;
         while (genX < currentConfig.length - 800) {
             let r = pseudoRandom();
 
             if (r < 0.3) {
-                // Mẫu đường zic-zắc / bậc thang nâng cao
                 advancedSections.push({ x: genX, type: "zigzag", width: 450 });
                 coins.push({ x: genX + 220, y: 250, collected: false });
-                genX += 500;
+                genX += 600;
             } else if (r < 0.6 && portalCount < 3) {
-                // Cổng biến hình máy bay (Ship) kèm hành lang hẹp nâng cao
                 portals.push({ x: genX, y: 320, width: 40, height: 75, targetMode: "ship" });
-                advancedSections.push({ x: genX + 50, type: "corridor", width: 600 });
+                advancedSections.push({ x: genX + 50, type: "corridor", width: 650 });
                 coins.push({ x: genX + 300, y: 150, collected: false });
-                genX += 750;
+                genX += 850;
                 portals.push({ x: genX, y: 320, width: 40, height: 75, targetMode: "cube" });
                 portalCount++;
-                genX += 300;
+                genX += 400;
             } else {
                 let baseHeight = 120 + Math.floor(pseudoRandom() * 3) * 50;
                 platforms.push({ x: genX, y: 480 - baseHeight, width: 140, height: baseHeight });
                 jumpPads.push({ x: genX - 60, y: 468, width: 32, height: 12 });
                 obstacles.push({ x: genX + 180, y: 480, width: 36, height: 36, type: "spike" });
-                genX += 400;
+                genX += 500;
             }
         }
 
@@ -685,15 +698,6 @@
                 if (player.y > 480) { player.y = 480; player.vy = 0; }
             }
 
-            let pBox = { x: player.x + 4, y: player.y - player.size + 4, w: player.size - 8, h: player.size - 8 };
-            for (let cs of ceilingSpikes) {
-                let csSx = cs.x - gameProgress;
-                if (pBox.x < csSx + cs.width && pBox.x + pBox.w > csSx && pBox.y < cs.height) {
-                    restartLevel();
-                    return;
-                }
-            }
-
             let gameSpeed = 360;
             gameProgress += gameSpeed * deltaTime;
 
@@ -705,12 +709,38 @@
                 }
             }
 
+            // HỆ THỐNG VA CHẠM KHỐI (CHÍNH XÁC: ĐỤNG CẠNH BÊN HOẶC MẶT DƯỚI SẼ CHẾT)
+            let pBox = { x: player.x + 4, y: player.y - player.size + 4, w: player.size - 8, h: player.size - 8 };
+
+            platforms.forEach(plat => {
+                let sx = plat.x - gameProgress;
+                let oBox = { x: sx, y: plat.y, w: plat.width, h: plat.height };
+
+                if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x &&
+                    pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
+                    
+                    // Kiểm tra xem có đang rơi xuống đạp đúng mặt trên của khối không
+                    let prevY = player.y - (player.vy * deltaTime) - player.size;
+                    if (prevY <= oBox.y && player.vy >= 0) {
+                        player.y = oBox.y;
+                        player.vy = 0;
+                        player.grounded = true;
+                        player.rotation = Math.round(player.rotation / 90) * 90;
+                    } else {
+                        // Đụng cạnh bên hoặc đụng đầu từ dưới lên -> Chết
+                        restartLevel();
+                        return;
+                    }
+                }
+            });
+
             let percent = Math.min(100, Math.floor((gameProgress / currentConfig.length) * 100));
             document.getElementById("progress-bar").style.width = percent + "%";
             document.getElementById("progress-text").innerText = percent + "%";
 
             if (gameProgress >= currentConfig.length - 100) {
                 levelCompleted = true;
+                totalLevelsCompleted++;
             }
         } else {
             player.x += 4;
@@ -743,20 +773,6 @@
         ctx.fillStyle = "#00ffff";
         ctx.fillRect(0, 480, canvas.width, 5);
 
-        ceilingSpikes.forEach(cs => {
-            let csSx = cs.x - gameProgress;
-            ctx.fillStyle = "#ff2222";
-            ctx.beginPath();
-            ctx.moveTo(csSx, 0);
-            ctx.lineTo(csSx + cs.width/2, cs.height);
-            ctx.lineTo(csSx + cs.width, 0);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = "#fff";
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-        });
-
         if (selectedLevel === 16) {
             let mSx = monster.x;
             ctx.fillStyle = "#ff0055";
@@ -770,7 +786,6 @@
             ctx.fill();
         }
 
-        // Vẽ các phân đoạn nâng cao giống ảnh mẫu (Đường zic-zắc / hành lang phát sáng)
         advancedSections.forEach(sec => {
             let sx = sec.x - gameProgress;
             if (sec.type === "zigzag") {
@@ -799,15 +814,6 @@
             ctx.strokeStyle = "#ffffff";
             ctx.lineWidth = 2;
             ctx.strokeRect(sx, plat.y, plat.width, plat.height);
-
-            if (player.mode === "cube" && player.x + player.size > sx && player.x < sx + plat.width) {
-                if (player.y >= plat.y && player.y <= plat.y + 16 && player.vy >= 0) {
-                    player.y = plat.y;
-                    player.vy = 0;
-                    player.grounded = true;
-                    player.rotation = Math.round(player.rotation / 90) * 90;
-                }
-            }
         });
 
         jumpPads.forEach(pad => {
@@ -837,7 +843,7 @@
             let pBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
             let ptBox = { x: sx, y: portal.y, w: portal.width, h: portal.height };
             if (pBox.x < ptBox.x + ptBox.w && pBox.x + pBox.w > ptBox.x &&
-                pBox.y < ptBox.y + ptBox.h && pBox.y + pBox.h > ptBox.y) {
+                pBox.y < ptBox.y + ptBox.h && pBox.y + ptBox.h > ptBox.y) {
                 player.mode = portal.targetMode;
             }
         });
