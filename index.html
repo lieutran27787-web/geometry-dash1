@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Lite - Towers & Orbs Edition</title>
+    <title>Geometry Dash Lite - Staircase & Tower Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
 
@@ -518,10 +518,11 @@
     };
 
     let platforms = [];
-    let orbs = []; // Quả cầu xanh trên đỉnh cột
+    let staircases = []; // Bậc thang leo lên cột
+    let jumpPads = [];   // Lò xo bậc lên
+    let orbs = [];
     let portals = [];
     let coins = [];
-    let obstacles = []; // Chỉ xuất hiện tam giác chắn khi tới màn phi thuyền
     let monster = { x: -150, speed: 335 };
 
     let gameProgress = 0;
@@ -559,29 +560,36 @@
         document.getElementById("coin-score").innerText = `🪙 XU: ${levelCoins[selectedLevel]}/3`;
 
         platforms = [];
+        staircases = [];
+        jumpPads = [];
         orbs = [];
         portals = [];
         coins = [];
-        obstacles = [];
 
-        // GIAI ĐOẠN ĐẦU: CÁC TRỤ CỘT CAO KÈM QUẢ CẦU XANH GIỐNG Y HỆT ẢNH MẪU
-        let towerX = 500;
-        let towerHeights = [220, 280, 340, 260];
+        // HỆ THỐNG TRỤ CỘT, BẬC THANG & LÒ XO BẬC LÊN
+        let towerX = 450;
+        let towerHeights = [200, 260, 330, 250];
         for (let h of towerHeights) {
             platforms.push({ x: towerX, y: 480 - h, width: 70, height: h });
+            
+            // Bậc thang leo lên chân cột
+            staircases.push({ x: towerX - 70, y: 480 - 45, width: 70, height: 45 });
+            staircases.push({ x: towerX - 120, y: 480 - 90, width: 60, height: 45 });
+
+            // Lò xo bậc lên ngay trước cột
+            jumpPads.push({ x: towerX - 170, y: 468, width: 32, height: 12 });
+
             orbs.push({ x: towerX + 35, y: 480 - h - 15, radius: 12 });
             coins.push({ x: towerX + 35, y: 480 - h - 70, collected: false });
-            towerX += 280;
+            towerX += 320;
         }
 
-        // ĐẶT CỔNG CHUYỂN ĐỔI SANG PHI THUYỀN (SHIP MODE) Ở GIỮA MÀN
-        let shipPortalX = towerX + 200;
+        let shipPortalX = towerX + 150;
         portals.push({ x: shipPortalX, y: 320, width: 40, height: 75, targetMode: "ship" });
 
-        // GIAI ĐOẠN SAU (Từ cổng phi thuyền trở đi): CÁC TAM GIÁC XUẤT HIỆN LÀM VẬT CHẮN
         let genX = shipPortalX + 300;
         while (genX < currentConfig.length - 800) {
-            obstacles.push({ x: genX, y: 250, width: 40, height: 40, type: "triangleObstacle" });
+            platforms.push({ x: genX, y: 250, width: 40, height: 40, type: "triangleObstacle" });
             coins.push({ x: genX + 20, y: 120, collected: false });
             genX += 350;
         }
@@ -681,7 +689,6 @@
                 if (player.y > 480) { player.y = 480; player.vy = 0; }
             }
 
-            // CHẠM RÌA TRÊN CÙNG (TRẦN Y = 0) -> CHẾT
             let pTopBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
             if (pTopBox.y <= 10) {
                 restartLevel();
@@ -699,10 +706,11 @@
                 }
             }
 
-            // KIỂM TRA VA CHẠM KHỐI TRỤ CỘT
             let pBox = { x: player.x + 4, y: player.y - player.size + 4, w: player.size - 8, h: player.size - 8 };
 
-            platforms.forEach(plat => {
+            // KIỂM TRA VA CHẠM BẬC THANG & TRỤ CỘT
+            let allBlocks = [...platforms, ...staircases];
+            allBlocks.forEach(plat => {
                 let sx = plat.x - gameProgress;
                 let oBox = { x: sx, y: plat.y, w: plat.width, h: plat.height };
 
@@ -722,24 +730,23 @@
                 }
             });
 
-            // TƯƠNG TÁC QUẢ CẦU XANH (ORBS)
+            // LÒ XO BẬC LÊN
+            jumpPads.forEach(pad => {
+                let sx = pad.x - gameProgress;
+                let padBox = { x: sx, y: pad.y, w: pad.width, h: pad.height };
+                if (pBox.x < padBox.x + padBox.w && pBox.x + pBox.w > padBox.x &&
+                    pBox.y < padBox.y + padBox.h && pBox.y + pBox.h > padBox.y) {
+                    player.vy = player.jumpForce * 1.4;
+                    player.grounded = false;
+                }
+            });
+
             orbs.forEach(orb => {
                 let sx = orb.x - gameProgress;
                 let dist = Math.hypot((player.x + player.size/2) - sx, (player.y - player.size/2) - orb.y);
                 if (dist < 30 && (isMouseDown || window.isSpacePressed)) {
                     player.vy = player.jumpForce * 1.15;
                     player.grounded = false;
-                }
-            });
-
-            // KIỂM TRA VA CHẠM VẬT CHẮN TAM GIÁC (SAU KHI BIẾN THÀNH PHI THUYỀN)
-            obstacles.forEach(obs => {
-                let sx = obs.x - gameProgress;
-                let oBox = { x: sx, y: obs.y, w: obs.width, h: obs.height };
-                if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x &&
-                    pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
-                    restartLevel();
-                    return;
                 }
             });
 
@@ -795,23 +802,32 @@
             ctx.fill();
         }
 
-        // Vẽ các trụ cột (Platforms)
+        // Vẽ Trụ cột & Bậc thang leo lên
         platforms.forEach(plat => {
             let sx = plat.x - gameProgress;
             ctx.fillStyle = "#440088";
             ctx.fillRect(sx, plat.y, plat.width, plat.height);
-            ctx.strokeStyle = "#00ffff";
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#00ffff"; ctx.lineWidth = 2;
             ctx.strokeRect(sx, plat.y, plat.width, plat.height);
-
-            // Vẽ lưới kẻ ô vuông phong cách tháp
-            ctx.strokeStyle = "rgba(0, 255, 255, 0.2)";
-            for (let gx = sx + 10; gx < sx + plat.width; gx += 15) {
-                ctx.beginPath(); ctx.moveTo(gx, plat.y); ctx.lineTo(gx, plat.y + plat.height); ctx.stroke();
-            }
         });
 
-        // Vẽ quả cầu xanh trên đỉnh cột (Orbs)
+        staircases.forEach(st => {
+            let sx = st.x - gameProgress;
+            ctx.fillStyle = "#5500aa";
+            ctx.fillRect(sx, st.y, st.width, st.height);
+            ctx.strokeStyle = "#00ffff"; ctx.lineWidth = 2;
+            ctx.strokeRect(sx, st.y, st.width, st.height);
+        });
+
+        // Vẽ Lò xo bậc lên (Jump Pads)
+        jumpPads.forEach(pad => {
+            let sx = pad.x - gameProgress;
+            ctx.fillStyle = "#ffcc00";
+            ctx.fillRect(sx, pad.y, pad.width, pad.height);
+            ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
+            ctx.strokeRect(sx, pad.y, pad.width, pad.height);
+        });
+
         orbs.forEach(orb => {
             let sx = orb.x - gameProgress;
             ctx.fillStyle = "#00ffff";
@@ -819,7 +835,6 @@
             ctx.arc(sx, orb.y, orb.radius, 0, Math.PI * 2);
             ctx.fill();
             ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
-            // Cần cắm quả cầu
             ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(sx, orb.y + orb.radius); ctx.lineTo(sx, orb.y + 25); ctx.stroke();
         });
@@ -837,19 +852,6 @@
                 pBox.y < ptBox.y + ptBox.h && pBox.y + pBox.h > ptBox.y) {
                 player.mode = portal.targetMode;
             }
-        });
-
-        // Vẽ vật cản tam giác (Chỉ xuất hiện khi ở khu vực phi thuyền)
-        obstacles.forEach(obs => {
-            let sx = obs.x - gameProgress;
-            ctx.fillStyle = "#ff2266";
-            ctx.beginPath();
-            ctx.moveTo(sx, obs.y + obs.height);
-            ctx.lineTo(sx + obs.width/2, obs.y);
-            ctx.lineTo(sx + obs.width, obs.y + obs.height);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
         });
 
         coins.forEach(coin => {
