@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Lite - Full Deluxe with Music</title>
+    <title>Geometry Dash Lite - Final Fixed Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -23,6 +23,7 @@
             overflow: hidden;
         }
 
+        /* Quản lý màn hình chung */
         .screen {
             position: absolute;
             width: 850px;
@@ -35,7 +36,7 @@
             justify-content: space-between;
             padding: 20px;
             box-shadow: 0 0 60px rgba(255, 68, 0, 0.4);
-            z-index: 20;
+            z-index: 10;
             background: linear-gradient(135deg, #cc2900, #991400);
         }
         .active-screen {
@@ -46,7 +47,6 @@
         #mainMenu {
             background: linear-gradient(135deg, #ff3300, #b31200);
             justify-content: space-between;
-            position: relative;
             padding: 25px 30px;
         }
         .top-banner {
@@ -114,8 +114,9 @@
         }
         .bottom-menu-bar {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-width;
             width: 100%;
+            justify-content: space-between;
             align-items: flex-end;
         }
         .social-icons { display: flex; gap: 6px; align-items: center; }
@@ -140,7 +141,7 @@
         }
         .free-levels-btn:hover { transform: scale(1.05); }
 
-        /* 2. CHỌN MÀN (LEVEL SELECT) */
+        /* 2. CHỌN MÀN */
         .menu-header { display: flex; align-items: center; gap: 20px; width: 100%; justify-content: center; }
         .menu-title { font-size: 24px; color: #73e600; text-shadow: 2px 2px 0px #000; font-weight: 900; margin: 0; }
         .arrow-btn {
@@ -166,7 +167,7 @@
             border-color: #ff66ff;
         }
 
-        /* 3. CÁC PANEL PHỤ */
+        /* 3. PANEL PHỤ */
         .panel-content { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; }
         .skin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
         .skin-option { width: 50px; height: 50px; border-radius: 8px; border: 2px solid #fff; cursor: pointer; transition: 0.2s; }
@@ -175,31 +176,25 @@
         .back-btn { background: #cc0000; color: white; border: 2px solid #fff; padding: 6px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .back-btn:hover { background: #ff1a1a; }
 
-        /* 4. KHUNG TRÒ CHƠI CANVAS (FIX MÀN HÌNH ĐEN) */
-        .game-wrapper {
-            position: absolute;
-            width: 850px;
-            height: 420px;
-            display: none;
-            flex-direction: column;
-            box-shadow: 0 0 40px rgba(0, 255, 204, 0.3);
-            border-radius: 14px;
-            overflow: hidden;
+        /* 4. KHUNG TRÒ CHƠI CANVAS (ĐẢM BẢO KHÔNG BỊ ĐEN MÀN HÌNH) */
+        #gameScreen {
+            background: #000033;
             border: 4px solid #4d0000;
-            z-index: 30;
+        }
+        canvas {
+            display: block;
             background: #000033;
         }
-        canvas { display: block; background: #000033; }
         #attemptsDisplay {
             position: absolute; top: 15px; left: 20px; font-size: 24px; font-weight: 900; color: #ffffff;
-            text-shadow: 2px 2px 0px #000, 0 0 10px rgba(255,255,255,0.6); z-index: 40; pointer-events: none; letter-spacing: 1px;
+            text-shadow: 2px 2px 0px #000, 0 0 10px rgba(255,255,255,0.6); z-index: 20; pointer-events: none; letter-spacing: 1px;
         }
-        .top-bar { position: absolute; top: 12px; right: 20px; display: flex; gap: 10px; z-index: 40; }
+        .top-bar { position: absolute; top: 12px; right: 20px; display: flex; gap: 10px; z-index: 20; }
         .action-btn {
             background: #397300; color: #fff; border: 2px solid #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
         .action-btn:hover { background: #73e600; color: #000; }
-        #info { position: absolute; bottom: 10px; font-size: 14px; font-weight: bold; color: #73e600; text-shadow: 0 0 8px rgba(115,230,0,0.5); display: none; z-index: 40; left: 20px; }
+        #info { position: absolute; bottom: 10px; font-size: 14px; font-weight: bold; color: #73e600; text-shadow: 0 0 8px rgba(115,230,0,0.5); z-index: 20; left: 20px; }
     </style>
 </head>
 <body>
@@ -216,18 +211,18 @@
                 <div class="soc-btn" style="background:#5865f2;">🎮</div>
             </div>
             <div class="game-title-img">GEOMETRY<br><span style="font-size: 32px; padding-left: 45px;">DASH LITE</span></div>
-            <div class="daily-chest" onclick="openScreen('achievementsScreen')">
+            <div class="daily-chest" onclick="switchScreen('achievementsScreen')">
                 🎁 DAILY<br>CHEST
             </div>
         </div>
 
         <div class="center-menu-content">
-            <div class="menu-action-card" onclick="openScreen('skinScreen')">
+            <div class="menu-action-card" onclick="switchScreen('skinScreen')">
                 <canvas id="menuSkinCanvas" width="70" height="70" style="background: rgba(0,0,0,0.3); border: 2px solid #fff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);"></canvas>
                 <span>Character Select</span>
             </div>
 
-            <div class="play-btn-huge" onclick="openScreen('levelScreen')"></div>
+            <div class="play-btn-huge" onclick="switchScreen('levelScreen')"></div>
 
             <div class="menu-action-card" onclick="alert('Online Levels đang cập nhật!')">
                 <div style="width: 70px; height: 70px; background: linear-gradient(to bottom, #73e600, #264d00); border: 2px solid #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">🛠️</div>
@@ -237,12 +232,12 @@
 
         <div class="bottom-menu-bar">
             <div class="circular-nav-group">
-                <button class="circ-btn" onclick="openScreen('achievementsScreen')" title="Thành tựu">🏆</button>
-                <button class="circ-btn" onclick="openScreen('settingsScreen')" title="Cài đặt">⚙️</button>
-                <button class="circ-btn" onclick="openScreen('statsScreen')" title="Thống kê">📊</button>
-                <button class="circ-btn" onclick="openScreen('settingsScreen')" title="Nhạc">🎵</button>
+                <button class="circ-btn" onclick="switchScreen('achievementsScreen')" title="Thành tựu">🏆</button>
+                <button class="circ-btn" onclick="switchScreen('settingsScreen')" title="Cài đặt">⚙️</button>
+                <button class="circ-btn" onclick="switchScreen('statsScreen')" title="Thống kê">📊</button>
+                <button class="circ-btn" onclick="switchScreen('settingsScreen')" title="Nhạc">🎵</button>
             </div>
-            <button class="free-levels-btn" onclick="openScreen('levelScreen')">FREE LEVELS</button>
+            <button class="free-levels-btn" onclick="switchScreen('levelScreen')">FREE LEVELS</button>
         </div>
     </div>
 
@@ -255,7 +250,7 @@
         </div>
         <div class="level-grid" id="levelGridContainer"></div>
         <div style="display: flex; justify-content: space-width; width: 100%; justify-content: space-between; align-items: center;">
-            <button class="back-btn" onclick="openScreen('mainMenu')">QUAY LẠI</button>
+            <button class="back-btn" onclick="switchScreen('mainMenu')">QUAY LẠI</button>
             <div style="display: flex; gap: 6px; align-items: center;">
                 <span style="font-size: 12px; color: #ffcc00; font-weight: bold;">Độ khó:</span>
                 <select id="diffSelect" style="background:#800000; color:white; border:1px solid #ff9999; padding:4px; border-radius:5px; font-weight: bold;">
@@ -280,22 +275,22 @@
                 <div class="skin-option" style="background: #ff0055;" onclick="setSkin('#ff0055', this)"></div>
             </div>
         </div>
-        <button class="back-btn" onclick="openScreen('mainMenu')">QUAY LẠI</button>
+        <button class="back-btn" onclick="switchScreen('mainMenu')">QUAY LẠI</button>
     </div>
 
     <!-- CÀI ĐẶT -->
     <div id="settingsScreen" class="screen">
         <h2 class="menu-title">SETTINGS</h2>
         <div class="panel-content" style="text-align: left; width: 70%; gap: 10px;">
-            <label style="display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 14px;">
+            <label style="display: flex; justify-content: space-width; width: 100%; justify-content: space-between; align-items: center; font-size: 14px;">
                 <span>Hiệu ứng rung màn hình:</span>
                 <input type="checkbox" id="settingShake" checked style="transform: scale(1.2);">
             </label>
-            <label style="display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 14px;">
+            <label style="display: flex; justify-content: space-width; width: 100%; justify-content: space-between; align-items: center; font-size: 14px;">
                 <span>Đổi màu nền động:</span>
                 <input type="checkbox" id="settingBgColor" checked style="transform: scale(1.2);">
             </label>
-            <label style="display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 14px;">
+            <label style="display: flex; justify-content: space-width; width: 100%; justify-content: space-between; align-items: center; font-size: 14px;">
                 <span>Âm thanh điện tử (Synth OST):</span>
                 <input type="checkbox" id="settingAudio" checked style="transform: scale(1.2);">
             </label>
@@ -305,7 +300,7 @@
                 <span id="songName" style="font-size: 11px; color: #ffcccc; display: block; text-align: center; margin-top: 4px;">Mặc định nhạc theo màn</span>
             </div>
         </div>
-        <button class="back-btn" onclick="openScreen('mainMenu')">QUAY LẠI</button>
+        <button class="back-btn" onclick="switchScreen('mainMenu')">QUAY LẠI</button>
     </div>
 
     <!-- THỐNG KÊ -->
@@ -315,7 +310,7 @@
             <p>Tổng số lần thử (Attempts): <span id="statAttempts">1</span></p>
             <p>Màn chơi đã hoàn thành: <span id="statWins">0</span></p>
         </div>
-        <button class="back-btn" onclick="openScreen('mainMenu')">QUAY LẠI</button>
+        <button class="back-btn" onclick="switchScreen('mainMenu')">QUAY LẠI</button>
     </div>
 
     <!-- THÀNH TỰU -->
@@ -326,31 +321,33 @@
             <p>🏆 Nhà leo tháp: Mở khóa The Tower</p>
             <p style="color: #ff9999;">🔒 Chinh phục toàn bộ các màn để mở khóa thành tựu ẩn!</p>
         </div>
-        <button class="back-btn" onclick="openScreen('mainMenu')">QUAY LẠI</button>
+        <button class="back-btn" onclick="switchScreen('mainMenu')">QUAY LẠI</button>
     </div>
 
-    <!-- KHUNG TRÒ CHƠI CANVAS -->
-    <div class="game-wrapper" id="gameWrapper">
+    <!-- MÀN HÌNH CHƠI GAME (CANVAS SCREEN) -->
+    <div id="gameScreen" class="screen">
         <div id="attemptsDisplay">ATTEMPT 1</div>
         <div class="top-bar">
             <button class="action-btn" onclick="returnToMenu()">Menu</button>
         </div>
-        <canvas id="gameCanvas" width="850" height="400"></canvas>
+        <canvas id="gameCanvas" width="850" height="340"></canvas>
+        <div id="info">Nhấn Space hoặc Click chuột để nhảy / bay / dùng lò xo</div>
     </div>
-    <div id="info">Nhấn Space hoặc Click chuột để nhảy / bay / dùng lò xo</div>
     <audio id="bgMusic" loop></audio>
 
     <script>
-        function openScreen(screenId) {
-            screens.forEach(s => {
-                document.getElementById(s).classList.remove('active-screen');
-            });
-            document.getElementById(screenId).classList.add('active-screen');
-            document.getElementById('gameWrapper').style.display = 'none';
-            document.getElementById('info').style.display = 'none';
-        }
+        const screens = ['mainMenu', 'levelScreen', 'skinScreen', 'settingsScreen', 'statsScreen', 'achievementsScreen', 'gameScreen'];
 
-        const screens = ['mainMenu', 'levelScreen', 'skinScreen', 'settingsScreen', 'statsScreen', 'achievementsScreen'];
+        function switchScreen(screenId) {
+            isPlaying = false;
+            stopSynthMusic();
+            screens.forEach(s => {
+                let el = document.getElementById(s);
+                if (el) el.classList.remove('active-screen');
+            });
+            let target = document.getElementById(screenId);
+            if (target) target.classList.add('active-screen');
+        }
 
         const levelDataList = [
             { id: 1, name: "Stereo Madness", diff: "Easy", notes: [261, 329, 392, 523], speed: 220 },
@@ -494,14 +491,12 @@
         let gameMode = "cube", goalPortal = null;
 
         let player = {
-            x: 150, y: 300, size: 32, vy: 0, gravity: 0.75, jumpPower: -12, rotation: 0, isGrounded: false, scaleX: 1, scaleY: 1
+            x: 150, y: 250, size: 32, vy: 0, gravity: 0.75, jumpPower: -12, rotation: 0, isGrounded: false, scaleX: 1, scaleY: 1
         };
         let levelLength = 10000;
 
         function startSelectedLevel() {
-            document.getElementById('levelScreen').classList.remove('active-screen');
-            document.getElementById('gameWrapper').style.display = 'flex';
-            document.getElementById('info').style.display = 'block';
+            switchScreen('gameScreen');
             attemptCount = 1;
             document.getElementById('attemptsDisplay').innerText = "ATTEMPT " + attemptCount;
             startGame();
@@ -509,10 +504,7 @@
         }
 
         function returnToMenu() {
-            isPlaying = false; stopSynthMusic();
-            document.getElementById('gameWrapper').style.display = 'none';
-            document.getElementById('info').style.display = 'none';
-            openScreen('mainMenu');
+            switchScreen('mainMenu');
         }
 
         function loadLevelData() {
@@ -523,36 +515,36 @@
             levelLength = 9000 + selectedLevel * 800;
 
             let cursor = 600;
+            let floorY = 273;
             while (cursor < levelLength - 700) {
                 if (cursor % 3200 === 1600) {
-                    obstacles.push({ type: "portal_ship", x: cursor, y: 250, w: 30, h: 80, activated: false });
+                    obstacles.push({ type: "portal_ship", x: cursor, y: 190, w: 30, h: 80, activated: false });
                     cursor += 350;
                 } else if (cursor % 6400 === 4800) {
-                    obstacles.push({ type: "portal_cube", x: cursor, y: 250, w: 30, h: 80, activated: false });
+                    obstacles.push({ type: "portal_cube", x: cursor, y: 190, w: 30, h: 80, activated: false });
                     cursor += 350;
                 }
 
                 let r = cursor % 4;
                 if (r === 0) {
-                    obstacles.push({ type: "platform", x: cursor, y: 275, w: 120, h: 90 });
-                    obstacles.push({ type: "spike", x: cursor + 45, y: 240, w: 25, h: 35 });
+                    obstacles.push({ type: "platform", x: cursor, y: 215, w: 120, h: 90 });
+                    obstacles.push({ type: "spike", x: cursor + 45, y: 180, w: 25, h: 35 });
                 } else if (r === 1) {
-                    obstacles.push({ type: "pad", x: cursor, y: 345, w: 40, h: 20 });
-                    obstacles.push({ type: "spike", x: cursor + 80, y: 330, w: 25, h: 35 });
+                    obstacles.push({ type: "pad", x: cursor, y: 285, w: 40, h: 20 });
+                    obstacles.push({ type: "spike", x: cursor + 80, y: 270, w: 25, h: 35 });
                 } else {
-                    obstacles.push({ type: "spike", x: cursor, y: 330, w: 25, h: 35 });
+                    obstacles.push({ type: "spike", x: cursor, y: 273, w: 25, h: 35 });
                 }
                 cursor += 420;
             }
-            goalPortal = { x: levelLength, y: 200, w: 40, h: 120, sucked: false, suckProgress: 0 };
-            obstacles.push({ type: "goal", x: levelLength, y: 0, w: 20, h: 400 });
+            goalPortal = { x: levelLength, y: 150, w: 40, h: 120, sucked: false, suckProgress: 0 };
+            obstacles.push({ type: "goal", x: levelLength, y: 0, w: 20, h: 340 });
         }
 
         let isHolding = false;
         window.addEventListener("keydown", (e) => {
             if (e.code === "Space" || e.code === "ArrowUp") {
-                let settingsModal = document.getElementById('settingsScreen');
-                if (settingsModal.classList.contains('active-screen') || document.getElementById('mainMenu').classList.contains('active-screen')) return;
+                if (!document.getElementById('gameScreen').classList.contains('active-screen')) return;
                 
                 if (isGameOver || isWon) {
                     startGame();
@@ -575,6 +567,7 @@
         window.addEventListener("keyup", (e) => { if (e.code === "Space" || e.code === "ArrowUp") isHolding = false; });
 
         canvas.addEventListener("mousedown", () => {
+            if (!document.getElementById('gameScreen').classList.contains('active-screen')) return;
             if (isGameOver || isWon) {
                 startGame();
                 gameLoop();
@@ -594,7 +587,7 @@
         function startGame() {
             isPlaying = true; isGameOver = false; isWon = false;
             frameCount = 0; gameMode = "cube";
-            player.y = 300; player.vy = 0; player.rotation = 0;
+            player.y = 240; player.vy = 0; player.rotation = 0;
             player.scaleX = 1; player.scaleY = 1;
             particles = []; shipTrails = [];
             goalPortal.suckProgress = 0;
@@ -624,6 +617,7 @@
         function update() {
             if (!isPlaying) return;
 
+            let floorY = 273;
             if (isWon) {
                 if (goalPortal) {
                     goalPortal.suckProgress += 0.04;
@@ -652,7 +646,7 @@
             if (player.isGrounded && Math.random() < 0.6) {
                 particles.push({
                     x: player.x + Math.random() * player.size,
-                    y: 333 + player.size - 2,
+                    y: floorY + player.size - 2,
                     vx: -gameSpeed * 0.5 + (Math.random() - 0.5) * 2,
                     vy: (Math.random() - 0.5) * 2,
                     size: Math.random() * 4 + 1,
@@ -666,8 +660,8 @@
                 player.y += player.vy;
                 
                 let landed = false;
-                if (player.y >= 333) {
-                    player.y = 333; landed = true;
+                if (player.y >= floorY) {
+                    player.y = floorY; landed = true;
                 } else {
                     for (let obj of obstacles) {
                         if (obj.type === "platform") {
@@ -694,7 +688,7 @@
                 if (player.vy > 8.5) player.vy = 8.5; if (player.vy < -8.5) player.vy = -8.5;
                 player.y += player.vy; player.rotation = player.vy * 2.5;
                 if (player.y < 0) { player.y = 0; player.vy = 0; }
-                if (player.y > 333) { player.y = 333; player.vy = 0; }
+                if (player.y > floorY) { player.y = floorY; player.vy = 0; }
                 shipTrails.push({ x: player.x, y: player.y + player.size/2, alpha: 1.0 });
             }
 
@@ -763,17 +757,12 @@
             ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.strokeStyle = "rgba(0, 150, 255, 0.15)";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(50, 40, 220, 180);
-            ctx.strokeRect(320, 20, 350, 250);
-            ctx.strokeRect(710, 50, 120, 220);
-
+            let floorY = 273;
             ctx.fillStyle = isTowerLevel ? "#260026" : "#000040";
-            ctx.fillRect(0, 365, canvas.width, 35);
+            ctx.fillRect(0, floorY + player.size, canvas.width, canvas.height - (floorY + player.size));
             ctx.fillStyle = isTowerLevel ? "#ff66ff" : "#00b3ff"; 
             ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 15;
-            ctx.fillRect(0, 365, canvas.width, 4); ctx.shadowBlur = 0;
+            ctx.fillRect(0, floorY + player.size, canvas.width, 4); ctx.shadowBlur = 0;
 
             shipTrails.forEach(t => {
                 ctx.fillStyle = `rgba(0, 255, 255, ${t.alpha})`;
