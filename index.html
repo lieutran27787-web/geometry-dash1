@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Lite - 16 Levels + The Tower</title>
+    <title>Geometry Dash Lite - 16 Levels Full Deluxe</title>
     <style>
         * {
             box-sizing: border-box;
@@ -47,12 +47,13 @@
             background: linear-gradient(135deg, #ff3300, #b31200);
             justify-content: space-between;
             position: relative;
-            padding: 30px;
+            padding: 25px 30px;
         }
         .top-banner {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-width;
             width: 100%;
+            justify-content: space-between;
             align-items: center;
         }
         .game-title-img {
@@ -73,7 +74,7 @@
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.4);
             font-weight: 900;
-            font-size: 13px;
+            font-size: 12px;
             color: #000;
         }
         .center-menu-content {
@@ -92,7 +93,7 @@
         }
         .menu-action-card:hover { transform: scale(1.08); }
         .menu-action-card span {
-            margin-top: 8px; font-weight: bold; font-size: 14px; color: #fff; text-shadow: 1px 1px 2px #000;
+            margin-top: 8px; font-weight: bold; font-size: 13px; color: #fff; text-shadow: 1px 1px 2px #000;
         }
         .play-btn-huge {
             width: 110px; height: 110px;
@@ -118,24 +119,24 @@
             width: 100%;
             align-items: flex-end;
         }
-        .social-icons { display: flex; gap: 8px; align-items: center; }
+        .social-icons { display: flex; gap: 6px; align-items: center; }
         .soc-btn {
-            background: #0088cc; color: #fff; border: 2px solid #fff; width: 32px; height: 32px;
-            border-radius: 6px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px;
+            background: #0088cc; color: #fff; border: 2px solid #fff; width: 30px; height: 30px;
+            border-radius: 6px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px;
         }
         .robtop-tag {
-            background: #ff9900; color: #000; font-weight: 900; font-size: 12px; padding: 3px 8px; border-radius: 4px; border: 2px solid #fff;
+            background: #ff9900; color: #000; font-weight: 900; font-size: 11px; padding: 3px 6px; border-radius: 4px; border: 2px solid #fff;
         }
-        .circular-nav-group { display: flex; gap: 12px; }
+        .circular-nav-group { display: flex; gap: 10px; }
         .circ-btn {
-            width: 48px; height: 48px; background: linear-gradient(to bottom, #73e600, #264d00);
+            width: 46px; height: 46px; background: linear-gradient(to bottom, #73e600, #264d00);
             border: 3px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.4); font-size: 18px; transition: 0.2s;
+            cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.4); font-size: 16px; transition: 0.2s;
         }
         .circ-btn:hover { transform: scale(1.1); }
         .free-levels-btn {
             background: linear-gradient(to bottom, #73e600, #264d00);
-            border: 3px solid #fff; border-radius: 12px; padding: 10px 18px; font-weight: 900; font-size: 16px;
+            border: 3px solid #fff; border-radius: 12px; padding: 9px 16px; font-weight: 900; font-size: 15px;
             cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.4); text-shadow: 1px 1px 2px #000;
         }
         .free-levels-btn:hover { transform: scale(1.05); }
@@ -161,7 +162,6 @@
         .level-card .diff-badge {
             position: absolute; top: 4px; right: 4px; font-size: 9px; padding: 2px 5px; border-radius: 4px; font-weight: bold; color: #000;
         }
-        /* Style riêng cho Màn The Tower */
         .tower-card {
             background: linear-gradient(135deg, #4d004d, #800080);
             border-color: #ff66ff;
@@ -342,7 +342,6 @@
             document.getElementById('info').style.display = 'none';
         }
 
-        // 16 Màn chơi (15 màn gốc + Màn 16: The Tower)
         const levelDataList = [
             { id: 1, name: "Stereo Madness", diff: "Easy", notes: [261, 329, 392, 523], speed: 220 },
             { id: 2, name: "Back On Track", diff: "Easy", notes: [220, 277, 330, 440], speed: 200 },
@@ -501,7 +500,6 @@
 
         function loadLevelData() {
             obstacles = [];
-            let lvlInfo = levelDataList[selectedLevel - 1];
             let diff = document.getElementById('diffSelect').value;
             let baseSpeed = diff === 'easy' ? 6.8 : (diff === 'medium' ? 7.8 : 9.0);
             gameSpeed = baseSpeed + (selectedLevel - 1) * 0.1;
