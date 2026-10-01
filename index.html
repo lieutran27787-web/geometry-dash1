@@ -106,11 +106,12 @@
         }
         .level-card {
             background: #003366; border: 3px solid #00ffff; border-radius: 12px; padding: 12px;
-            text-align: center; cursor: pointer; box-shadow: 0 5px 0 #001133; transition: 0.2s;
+            text-align: center; cursor: pointer; box-shadow: 0 5px 0 #001133; transition: 0.2s; position: relative;
         }
         .level-card:hover { background: #0055aa; transform: scale(1.03); }
         .level-card h3 { margin: 0 0 4px 0; font-size: 16px; color: #55ff00; text-shadow: 1px 1px 0 #000; }
         .level-card p { margin: 0; font-size: 11px; color: #ddd; }
+        .level-card.locked { opacity: 0.6; background: #440000; border-color: #ff3333; }
 
         .btn-custom {
             background: #55ff00; color: #000; border: 3px solid #fff; padding: 10px 25px;
@@ -133,16 +134,21 @@
             background: rgba(0,0,0,0.5); border: 2px solid white; color: white; width: 45px; height: 45px;
             border-radius: 50%; font-size: 18px; cursor: pointer; pointer-events: auto; display: flex; justify-content: center; align-items: center;
         }
-        #progress-container { width: 400px; height: 14px; background: rgba(0,0,0,0.6); border: 2px solid white; border-radius: 7px; overflow: hidden; }
+        #progress-container { width: 350px; height: 16px; background: rgba(0,0,0,0.6); border: 2px solid white; border-radius: 8px; overflow: hidden; position: relative; }
         #progress-bar { width: 0%; height: 100%; background: #55ff00; }
+        #progress-text {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 11px; color: #fff; text-shadow: 1px 1px 0 #000; font-weight: bold;
+        }
 
         #attempt-display {
-            position: absolute; top: 75px; left: 30px; font-size: 26px; color: white;
+            position: absolute; top: 75px; left: 30px; font-size: 24px; color: white;
             text-shadow: 2px 2px 0 #000; z-index: 10;
         }
 
         #coin-score {
-            position: absolute; top: 75px; right: 30px; font-size: 22px; color: #ffcc00;
+            position: absolute; top: 75px; right: 30px; font-size: 20px; color: #ffcc00;
             text-shadow: 2px 2px 0 #000; z-index: 10;
         }
 
@@ -181,7 +187,7 @@
                 </div>
             </div>
 
-            <div class="menu-btn-group" onclick="alert('The Tower & Online Levels đã sẵn sàng!')">
+            <div class="menu-btn-group" onclick="openLevelSelect()">
                 <div class="icon-circle yellow">
                     <span style="font-size: 32px;">🏰</span>
                 </div>
@@ -214,7 +220,7 @@
 
     <!-- MÀN HÌNH CHỌN 16 MÀN CHƠI -->
     <div id="level-screen" class="screen hidden" style="z-index: 5;">
-        <h2 style="color: #55ff00; text-align: center; margin: 5px 0; text-shadow: 2px 2px 0 #000;">CHỌN 16 MÀN CHƠI (THE TOWER)</h2>
+        <h2 style="color: #55ff00; text-align: center; margin: 5px 0; text-shadow: 2px 2px 0 #000;">CHỌN 16 MÀN CHƠI (MÀN 16 THE TOWER CẦN 3 XU)</h2>
         <div class="level-grid-container" id="level-grid"></div>
         <div style="text-align: center; margin-top: 5px;">
             <button class="btn-custom" onclick="backToMenu()">QUAY LẠI MENU</button>
@@ -253,6 +259,7 @@
             <button class="hud-btn" onclick="pauseGame()">⏸</button>
             <div id="progress-container">
                 <div id="progress-bar"></div>
+                <div id="progress-text">0%</div>
             </div>
             <button class="hud-btn" onclick="togglePractice()" id="practice-btn">🛡️</button>
         </div>
@@ -283,53 +290,84 @@
     let isPaused = false;
     let attemptCount = 1;
     let practiceMode = false;
-    let coinCount = 0;
-    let backgroundMusic = new Audio();
+    let totalCoinsCollected = 0;
+    let levelCoins = {};
+    
+    let customAudio = null;
+    let isCustomMusic = false;
+    let animationFrameId = null;
 
     function loadCustomMusic(event) {
         const file = event.target.files[0];
         if (file) {
-            backgroundMusic.src = URL.createObjectURL(file);
-            backgroundMusic.loop = true;
-            document.getElementById("music-msg").innerText = "Đã tải nhạc: " + file.name;
+            customAudio = new Audio(URL.createObjectURL(file));
+            customAudio.loop = true;
+            isCustomMusic = true;
+            document.getElementById("music-msg").innerText = "Đã tải nhạc tùy chỉnh: " + file.name;
         }
     }
 
-    // 16 Màn chơi
-    const levelGrid = document.getElementById("level-grid");
     const levelConfigs = [];
     const levelNames = [
         "Stereo Madness", "Back On Track", "Polargeist", "Dry Out",
         "Base After Base", "Can't Let Go", "Jumper", "Time Machine",
         "Cycles", "xStep", "Clutterfunk", "Theory of Everything",
-        "Electroman Adventures", "Clubstep", "Electrodynamix", "The Tower Final"
+        "Electroman Adventures", "Clubstep", "Electrodynamix", "THE TOWER"
     ];
 
+    function buildLevelGrid() {
+        const levelGrid = document.getElementById("level-grid");
+        levelGrid.innerHTML = "";
+        
+        for (let i = 1; i <= 16; i++) {
+            let isTower = (i === 16);
+            let isLocked = isTower && totalCoinsCollected < 3;
+
+            const card = document.createElement("div");
+            card.className = "level-card" + (isLocked ? " locked" : "");
+            card.innerHTML = `
+                <h3>${i}. ${levelNames[i-1]}</h3>
+                <p>${isTower ? '🔒 Cần 3 Xu' : 'Độ khó: ' + Math.min(10, Math.ceil(i/1.6)) + '★'}</p>
+                <p>🪙 ${levelCoins[i] || 0}/3 Xu</p>
+            `;
+            card.onclick = () => {
+                if (isLocked) {
+                    alert("🚫 Màn THE TOWER yêu cầu bạn phải sưu tầm đủ ít nhất 3 Xu từ các màn chơi khác!");
+                } else {
+                    startLevel(i);
+                }
+            };
+            levelGrid.appendChild(card);
+        }
+    }
+
     for (let i = 1; i <= 16; i++) {
-        levelConfigs.push({ id: i, name: levelNames[i-1], length: 4000 + i * 400 });
-        const card = document.createElement("div");
-        card.className = "level-card";
-        card.innerHTML = `<h3>${i}. ${levelNames[i-1]}</h3><p>Độ khó: ${Math.min(10, Math.ceil(i/1.6))}★</p>`;
-        card.onclick = () => startLevel(i);
-        levelGrid.appendChild(card);
+        levelConfigs.push({ id: i, name: levelNames[i-1], length: 4500 + i * 300 });
+        levelCoins[i] = 0;
     }
 
     function showScreen(screenId) {
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
         document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
         document.getElementById(screenId).classList.remove("hidden");
         currentScreen = screenId;
+        if (screenId === "level-screen") {
+            buildLevelGrid();
+        }
     }
 
     function openLevelSelect() { showScreen("level-screen"); }
     function openCharacterSelect() { showScreen("char-screen"); }
     function openMusicPanel() { showScreen("music-screen"); }
-    function backToMenu() { showScreen("main-menu"); backgroundMusic.pause(); }
+    function backToMenu() { 
+        showScreen("main-menu"); 
+        if (customAudio) customAudio.pause(); 
+    }
     function selectColor(color) { playerColor = color; }
 
-    // Thông số nhân vật
     let player = {
         x: 180, y: 440, size: 36, vy: 0, gravity: 2400, jumpForce: -680,
-        rotation: 0, grounded: false, mode: "cube" // "cube" hoặc "ship"
+        rotation: 0, grounded: false, mode: "cube"
     };
 
     let obstacles = [];
@@ -338,24 +376,35 @@
     let halfBlocks = [];
     let portals = [];
     let coins = [];
+    let monster = { x: -150, speed: 335 };
 
     let gameProgress = 0;
     let currentConfig = null;
     let lastTime = 0;
+    let levelCompleted = false;
+    let vortexX = 0;
+
+    function playLevelMusic() {
+        if (isCustomMusic && customAudio) {
+            customAudio.currentTime = 0;
+            customAudio.play().catch(e => console.log("Audio blocked"));
+        }
+    }
+
+    function stopLevelMusic() {
+        if (customAudio) customAudio.pause();
+    }
 
     function startLevel(levelId) {
         selectedLevel = levelId;
         currentConfig = levelConfigs[levelId - 1];
         showScreen("game-screen");
         attemptCount = 1;
-        coinCount = 0;
+        levelCompleted = false;
         resetGameSession();
-        if (backgroundMusic.src) {
-            backgroundMusic.currentTime = 0;
-            backgroundMusic.play().catch(e => console.log("Audio blocked"));
-        }
+        playLevelMusic();
         lastTime = performance.now();
-        requestAnimationFrame(gameLoop);
+        animationFrameId = requestAnimationFrame(gameLoop);
     }
 
     function resetGameSession() {
@@ -367,11 +416,13 @@
         player.mode = "cube";
         gameProgress = 0;
         isPaused = false;
+        levelCompleted = false;
+        monster.x = -180;
+
         document.getElementById("pause-screen").classList.add("hidden");
         document.getElementById("attempt-display").innerText = "ATTEMPT " + attemptCount;
-        document.getElementById("coin-score").innerText = `🪙 XU: ${coinCount}/3`;
+        document.getElementById("coin-score").innerText = `🪙 XU: ${levelCoins[selectedLevel]}/3`;
 
-        // Sinh màn chơi gồm: Khối dài, bậc thang cao 2-3 block, lò xo, khối nửa hình vuông treo lơ lửng, cổng đổi dạng bay, và đồng xu
         obstacles = [];
         platforms = [];
         jumpPads = [];
@@ -379,70 +430,73 @@
         portals = [];
         coins = [];
 
-        let genX = 600;
-        while (genX < currentConfig.length - 300) {
-            let choice = Math.random();
+        let seed = selectedLevel * 123.45;
+        function pseudoRandom() {
+            seed = (seed * 9301 + 49297) % 233280;
+            return seed / 233280;
+        }
 
-            if (choice < 0.25) {
-                // Khối hộp vuông dài & Bậc thang cao 2-3 block
-                let pHeight = Math.random() > 0.5 ? 80 : 120; // Cao 2-3 block
-                platforms.push({ x: genX, y: 480 - pHeight, width: 140, height: pHeight });
-                // Đặt chướng ngại vật gai trên khối hoặc trước khối
-                obstacles.push({ x: genX + 50, y: 480 - pHeight, width: 36, height: 36, type: "spike" });
-                // Thêm xu trên khối cao
-                if (Math.random() > 0.5) {
-                    coins.push({ x: genX + 70, y: 480 - pHeight - 50, collected: false });
-                }
+        let genX = 600;
+        while (genX < currentConfig.length - 400) {
+            let r = pseudoRandom();
+
+            if (r < 0.3) {
+                let baseHeight = 110 + Math.floor(pseudoRandom() * 3) * 50;
+                platforms.push({ x: genX, y: 480 - baseHeight, width: 130, height: baseHeight });
+                jumpPads.push({ x: genX + 40, y: 468, width: 32, height: 12 });
+                obstacles.push({ x: genX + 50, y: 480 - baseHeight, width: 36, height: 36, type: "spike" });
+                coins.push({ x: genX + 55, y: 480 - baseHeight - 45, collected: false });
+                genX += 240;
+            } else if (r < 0.6) {
+                let floatY = 240 + Math.floor(pseudoRandom() * 3) * 40;
+                halfBlocks.push({ x: genX, y: floatY, width: 100, height: 24 });
+                jumpPads.push({ x: genX + 35, y: 468, width: 32, height: 12 });
+                coins.push({ x: genX + 45, y: floatY - 45, collected: false });
                 genX += 220;
-            } else if (choice < 0.5) {
-                // Khối nửa hình vuông treo lơ lửng
-                halfBlocks.push({ x: genX, y: 340, width: 90, height: 25 });
-                jumpPads.push({ x: genX + 30, y: 470, width: 30, height: 12 }); // Bậc lò xo để bật lên khối lơ lửng
-                coins.push({ x: genX + 40, y: 280, collected: false });
-                genX += 200;
-            } else if (choice < 0.7) {
-                // Cổng biến đổi sang dạng bay (Ship) và trở lại bình thường
-                portals.push({ x: genX, y: 380, width: 40, height: 70, targetMode: "ship" });
-                genX += 300;
-                portals.push({ x: genX, y: 380, width: 40, height: 70, targetMode: "cube" });
+            } else if (r < 0.75) {
+                portals.push({ x: genX, y: 360, width: 40, height: 75, targetMode: "ship" });
+                genX += 320;
+                portals.push({ x: genX, y: 360, width: 40, height: 75, targetMode: "cube" });
                 genX += 200;
             } else {
-                // Gai thường kết hợp lò xo
                 obstacles.push({ x: genX, y: 480, width: 36, height: 36, type: "spike" });
-                jumpPads.push({ x: genX - 50, y: 468, width: 32, height: 12 });
-                genX += 180;
+                if (pseudoRandom() > 0.5) {
+                    jumpPads.push({ x: genX - 60, y: 468, width: 32, height: 12 });
+                }
+                genX += 190;
             }
         }
+
+        vortexX = currentConfig.length - 200;
     }
 
     function pauseGame() {
         isPaused = true;
         document.getElementById("pause-screen").classList.remove("hidden");
-        backgroundMusic.pause();
+        stopLevelMusic();
     }
 
     function resumeGame() {
         isPaused = false;
         document.getElementById("pause-screen").classList.add("hidden");
-        if (backgroundMusic.src) backgroundMusic.play();
+        playLevelMusic();
         lastTime = performance.now();
-        requestAnimationFrame(gameLoop);
+        animationFrameId = requestAnimationFrame(gameLoop);
     }
 
     function restartLevel() {
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
         attemptCount++;
         resetGameSession();
-        if (backgroundMusic.src) {
-            backgroundMusic.currentTime = 0;
-            backgroundMusic.play();
-        }
+        playLevelMusic();
         lastTime = performance.now();
-        requestAnimationFrame(gameLoop);
+        animationFrameId = requestAnimationFrame(gameLoop);
     }
 
     function exitToMenu() {
         isPaused = true;
-        backgroundMusic.pause();
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        stopLevelMusic();
         backToMenu();
     }
 
@@ -451,13 +505,18 @@
         document.getElementById("practice-btn").style.borderColor = practiceMode ? "#55ff00" : "white";
     }
 
-    // Điều khiển nhảy & điều khiển dạng bay
     window.addEventListener("keydown", (e) => {
         if ((e.code === "Space" || e.code === "ArrowUp") && currentScreen === "game-screen" && !isPaused) {
             if (player.mode === "cube" && player.grounded) {
                 player.vy = player.jumpForce;
                 player.grounded = false;
             }
+            window.isSpacePressed = true;
+        }
+    });
+    window.addEventListener("keyup", (e) => {
+        if (e.code === "Space" || e.code === "ArrowUp") {
+            window.isSpacePressed = false;
         }
     });
 
@@ -478,47 +537,67 @@
         if (deltaTime > 0.1) deltaTime = 0.016;
         lastTime = timestamp;
 
-        // Xử lý vật lý theo chế độ (Cube hoặc Ship)
-        if (player.mode === "cube") {
-            player.vy += player.gravity * deltaTime;
-            player.y += player.vy * deltaTime;
+        if (!levelCompleted) {
+            if (player.mode === "cube") {
+                player.vy += player.gravity * deltaTime;
+                player.y += player.vy * deltaTime;
 
-            if (player.y >= 480) {
-                player.y = 480;
-                player.vy = 0;
-                player.grounded = true;
-                player.rotation = Math.round(player.rotation / 90) * 90;
+                if (player.y >= 480) {
+                    player.y = 480;
+                    player.vy = 0;
+                    player.grounded = true;
+                    player.rotation = Math.round(player.rotation / 90) * 90;
+                } else {
+                    player.grounded = false;
+                    player.rotation += 450 * deltaTime;
+                }
             } else {
-                player.grounded = false;
-                player.rotation += 450 * deltaTime;
+                if (isMouseDown || window.isSpacePressed) {
+                    player.vy -= 1900 * deltaTime;
+                } else {
+                    player.vy += 1500 * deltaTime;
+                }
+                player.y += player.vy * deltaTime;
+                player.rotation = player.vy * 0.035;
+                if (player.y < 30) player.y = 30;
+                if (player.y > 480) { player.y = 480; player.vy = 0; }
+            }
+
+            let gameSpeed = 360;
+            gameProgress += gameSpeed * deltaTime;
+
+            if (selectedLevel === 16) {
+                monster.x += (player.x - 130 - monster.x) * 4 * deltaTime;
+                if (player.x - monster.x < 70) {
+                    restartLevel();
+                    return;
+                }
+            }
+
+            let percent = Math.min(100, Math.floor((gameProgress / currentConfig.length) * 100));
+            document.getElementById("progress-bar").style.width = percent + "%";
+            document.getElementById("progress-text").innerText = percent + "%";
+
+            if (gameProgress >= currentConfig.length - 100) {
+                levelCompleted = true;
             }
         } else {
-            // Chế độ Bay (Ship Mode): Giữ chuột/phím để bay lên, thả ra để rơi xuống
-            if (isMouseDown || window.isSpacePressed) {
-                player.vy -= 1800 * deltaTime;
-            } else {
-                player.vy += 1400 * deltaTime;
+            player.x += 3;
+            player.rotation += 20;
+            if (player.x > 960) {
+                stopLevelMusic();
+                let congratMsg = (selectedLevel === 16) 
+                    ? "🏰 TUYỆT VỜI! BẠN ĐÃ CHINH PHỤC THÀNH CÔNG THE TOWER VÀ TRỞ THÀNH HUYỀN THOẠI GEOMETRY DASH!" 
+                    : `🎉 CHÚC MỪNG BẠN ĐÃ HOÀN THÀNH MÀN ${selectedLevel}!`;
+                alert(congratMsg);
+                exitToMenu();
+                return;
             }
-            player.y += player.vy * deltaTime;
-            player.rotation = player.vy * 0.05;
-            if (player.y < 40) player.y = 40;
-            if (player.y > 480) { player.y = 480; player.vy = 0; }
-        }
-
-        let gameSpeed = 360;
-        gameProgress += gameSpeed * deltaTime;
-        let percent = Math.min(100, Math.floor((gameProgress / currentConfig.length) * 100));
-        document.getElementById("progress-bar").style.width = percent + "%";
-
-        if (gameProgress >= currentConfig.length) {
-            alert(`CHIẾN THẮNG! BẠN ĐÃ HOÀN THÀNH MÀN ${selectedLevel} VỚI ${coinCount} XU!`);
-            backToMenu();
-            return;
         }
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Vẽ nền lưới
+        // Vẽ lưới
         ctx.strokeStyle = "rgba(0, 255, 255, 0.08)";
         ctx.lineWidth = 1;
         for (let x = 0; x < canvas.width; x += 45) {
@@ -528,13 +607,26 @@
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
         }
 
-        // Sàn nhà chuẩn
+        // Sàn nhà
         ctx.fillStyle = "#001133";
         ctx.fillRect(0, 480, canvas.width, 60);
         ctx.fillStyle = "#00ffff";
         ctx.fillRect(0, 480, canvas.width, 5);
 
-        // Kiểm tra va chạm với Khối hộp dài (Platforms)
+        if (selectedLevel === 16) {
+            let mSx = monster.x;
+            ctx.fillStyle = "#ff0055";
+            ctx.beginPath();
+            ctx.arc(mSx + 25, 450, 30, Math.PI, 0, false);
+            ctx.fill();
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.moveTo(mSx + 10, 450); ctx.lineTo(mSx + 15, 435); ctx.lineTo(mSx + 20, 450);
+            ctx.lineTo(mSx + 25, 435); ctx.lineTo(mSx + 30, 450); ctx.lineTo(mSx + 35, 435); ctx.lineTo(mSx + 40, 450);
+            ctx.fill();
+        }
+
+        // Platforms
         platforms.forEach(plat => {
             let sx = plat.x - gameProgress;
             ctx.fillStyle = "#ff6600";
@@ -543,9 +635,8 @@
             ctx.lineWidth = 2;
             ctx.strokeRect(sx, plat.y, plat.width, plat.height);
 
-            // Va chạm đứng trên khối
             if (player.mode === "cube" && player.x + player.size > sx && player.x < sx + plat.width) {
-                if (player.y >= plat.y && player.y <= plat.y + 15 && player.vy >= 0) {
+                if (player.y >= plat.y && player.y <= plat.y + 16 && player.vy >= 0) {
                     player.y = plat.y;
                     player.vy = 0;
                     player.grounded = true;
@@ -554,7 +645,7 @@
             }
         });
 
-        // Khối nửa hình vuông treo lơ lửng
+        // Half Blocks
         halfBlocks.forEach(hb => {
             let sx = hb.x - gameProgress;
             ctx.fillStyle = "#0088ff";
@@ -564,7 +655,7 @@
             ctx.strokeRect(sx, hb.y, hb.width, hb.height);
 
             if (player.mode === "cube" && player.x + player.size > sx && player.x < sx + hb.width) {
-                if (player.y >= hb.y && player.y <= hb.y + 12 && player.vy >= 0) {
+                if (player.y >= hb.y && player.y <= hb.y + 14 && player.vy >= 0) {
                     player.y = hb.y;
                     player.vy = 0;
                     player.grounded = true;
@@ -572,8 +663,7 @@
             }
         });
 
-        // Bậc lò xo (Jump Pads)
-        jumpPads.push(...[]);
+        // Jump Pads
         jumpPads.forEach(pad => {
             let sx = pad.x - gameProgress;
             ctx.fillStyle = "#ffcc00";
@@ -581,7 +671,6 @@
             ctx.strokeStyle = "#fff";
             ctx.strokeRect(sx, pad.y, pad.width, pad.height);
 
-            // Khi chạm lò xo -> Bật nhảy cực cao
             let pBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
             let padBox = { x: sx, y: pad.y, w: pad.width, h: pad.height };
             if (pBox.x < padBox.x + padBox.w && pBox.x + pBox.w > padBox.x &&
@@ -591,7 +680,7 @@
             }
         });
 
-        // Cổng biến đổi (Portals)
+        // Portals
         portals.forEach(portal => {
             let sx = portal.x - gameProgress;
             ctx.fillStyle = portal.targetMode === "ship" ? "rgba(0, 255, 255, 0.6)" : "rgba(255, 0, 255, 0.6)";
@@ -600,7 +689,6 @@
             ctx.lineWidth = 3;
             ctx.strokeRect(sx, portal.y, portal.width, portal.height);
 
-            // Kiểm tra đi qua cổng
             let pBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
             let ptBox = { x: sx, y: portal.y, w: portal.width, h: portal.height };
             if (pBox.x < ptBox.x + ptBox.w && pBox.x + pBox.w > ptBox.x &&
@@ -609,7 +697,7 @@
             }
         });
 
-        // Thu thập Xu (Coins)
+        // Coins
         coins.forEach(coin => {
             if (!coin.collected) {
                 let sx = coin.x - gameProgress;
@@ -622,15 +710,28 @@
                 ctx.stroke();
 
                 let dist = Math.hypot((player.x + player.size/2) - (sx + 12), (player.y - player.size/2) - (coin.y + 12));
-                if (dist < 30) {
+                if (dist < 32) {
                     coin.collected = true;
-                    coinCount++;
-                    document.getElementById("coin-score").innerText = `🪙 XU: ${coinCount}/3`;
+                    if (levelCoins[selectedLevel] < 3) {
+                        levelCoins[selectedLevel]++;
+                        totalCoinsCollected++;
+                    }
+                    document.getElementById("coin-score").innerText = `🪙 XU: ${levelCoins[selectedLevel]}/3`;
                 }
             }
         });
 
-        // Chướng ngại vật (Gai tam giác)
+        // Cổng Hút Cuối Màn
+        let vSx = vortexX - gameProgress;
+        ctx.fillStyle = "#9900ff";
+        ctx.beginPath();
+        ctx.arc(vSx + 30, 420, 45, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#00ffff";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Obstacles
         obstacles.forEach(obs => {
             let sx = obs.x - gameProgress;
             ctx.fillStyle = "#ff2222";
@@ -644,50 +745,75 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Va chạm gai -> Thua & Chơi lại
-            let pBox = { x: player.x + 4, y: player.y - player.size + 4, w: player.size - 8, h: player.size - 8 };
-            let oBox = { x: sx + 4, y: 480 - obs.height + 4, w: obs.width - 8, h: obs.height - 8 };
+            if (!levelCompleted) {
+                let pBox = { x: player.x + 5, y: player.y - player.size + 5, w: player.size - 10, h: player.size - 10 };
+                let oBox = { x: sx + 5, y: 480 - obs.height + 5, w: obs.width - 10, h: obs.height - 10 };
 
-            if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x &&
-                pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
-                setTimeout(() => { restartLevel(); }, 250);
-                return;
+                if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x &&
+                    pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
+                    restartLevel();
+                    return;
+                }
             }
         });
 
-        // Vẽ Nhân vật chuẩn hình mẫu Geometry Dash (Khối vuông viền trắng + Mắt đen + Miệng)
+        // Vẽ Nhân vật (Khối vuông hoặc Máy bay phản lực / Ship chuẩn Geometry Dash)
         ctx.save();
         ctx.translate(player.x + player.size/2, player.y - player.size/2);
         ctx.rotate((player.rotation * Math.PI) / 180);
 
         if (player.mode === "cube") {
-            // Vẽ thân hộp vuông
             ctx.fillStyle = playerColor;
             ctx.fillRect(-player.size/2, -player.size/2, player.size, player.size);
             ctx.strokeStyle = "#ffffff";
             ctx.lineWidth = 3;
             ctx.strokeRect(-player.size/2, -player.size/2, player.size, player.size);
-            // Mắt nhân vật
             ctx.fillStyle = "#000000";
             ctx.fillRect(-6, -8, 8, 8);
             ctx.fillRect(4, -8, 8, 8);
-            // Miệng biểu cảm
             ctx.fillRect(-3, 4, 8, 4);
         } else {
-            // Dạng Tàu vũ trụ (Ship mode)
-            ctx.fillStyle = playerColor;
+            // Hiệu ứng Máy bay (Ship mode) chuẩn xác
+            // Đuôi lửa phản lực phía sau
+            ctx.fillStyle = "#ff6600";
             ctx.beginPath();
-            ctx.moveTo(-20, 0); ctx.lineTo(20, -12); ctx.lineTo(20, 12);
+            ctx.moveTo(-24, -4); ctx.lineTo(-38, 0); ctx.lineTo(-24, 4);
             ctx.closePath();
             ctx.fill();
-            ctx.strokeStyle = "#fff";
-            ctx.lineWidth = 2;
+            ctx.fillStyle = "#ffff00";
+            ctx.beginPath();
+            ctx.moveTo(-20, -2); ctx.lineTo(-30, 0); ctx.lineTo(-20, 2);
+            ctx.closePath();
+            ctx.fill();
+
+            // Thân máy bay phản lực
+            ctx.fillStyle = playerColor;
+            ctx.beginPath();
+            ctx.moveTo(-22, -10);
+            ctx.lineTo(16, -4);
+            ctx.lineTo(26, 0);
+            ctx.lineTo(16, 4);
+            ctx.lineTo(-22, 10);
+            ctx.lineTo(-16, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            // Buồng lái máy bay (Cockpit)
+            ctx.fillStyle = "#00ffff";
+            ctx.beginPath();
+            ctx.arc(2, 0, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 1.5;
             ctx.stroke();
         }
 
         ctx.restore();
 
-        requestAnimationFrame(gameLoop);
+        animationFrameId = requestAnimationFrame(gameLoop);
     }
 </script>
 
