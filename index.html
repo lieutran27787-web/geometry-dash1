@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Lite - Spikes Start Edition</title>
+    <title>Geometry Dash Lite - Advanced Levels Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
 
@@ -468,7 +468,7 @@
     }
 
     for (let i = 1; i <= 16; i++) {
-        levelConfigs.push({ id: i, name: levelNames[i-1], length: 4500 + i * 300 });
+        levelConfigs.push({ id: i, name: levelNames[i-1], length: 5000 + i * 300 });
         levelCoins[i] = 0;
     }
 
@@ -497,10 +497,10 @@
     let obstacles = [];
     let platforms = [];
     let jumpPads = [];
-    let halfBlocks = [];
     let portals = [];
     let coins = [];
     let ceilingSpikes = [];
+    let advancedSections = []; // Các phân đoạn nâng cao giống hình mẫu ở nửa sau màn chơi
     let monster = { x: -150, speed: 335 };
 
     let gameProgress = 0;
@@ -540,20 +540,19 @@
         obstacles = [];
         platforms = [];
         jumpPads = [];
-        halfBlocks = [];
         portals = [];
         coins = [];
         ceilingSpikes = [];
+        advancedSections = [];
 
         for (let cx = 0; cx < currentConfig.length + 1000; cx += 100) {
             ceilingSpikes.push({ x: cx, width: 40, height: 25 });
         }
 
-        // BẮT ĐẦU CHỈ CÓ CÁC GAI TO NHỎ TRÊN SÀN (ĐƯỢC KÉO GIÃN CÁCH XA NHAU VỪA VẶN)
-        obstacles.push({ x: 450, y: 480, width: 28, height: 28, type: "spike" }); // Gai nhỏ
-        obstacles.push({ x: 570, y: 480, width: 40, height: 42, type: "spike" }); // Gai to
-        obstacles.push({ x: 690, y: 480, width: 34, height: 34, type: "spike" }); // Gai vừa
-        obstacles.push({ x: 810, y: 480, width: 28, height: 28, type: "spike" }); // Gai nhỏ
+        // GIAI ĐOẠN ĐẦU: CÁC GAI ĐƯỢC ĐẶT CÁCH XA NHAU KHOẢNG 100M (TƯƠNG ĐƯƠNG 350-400PX) ĐỂ DỄ THỞ
+        obstacles.push({ x: 500, y: 480, width: 28, height: 28, type: "spike" });
+        obstacles.push({ x: 900, y: 480, width: 40, height: 42, type: "spike" });
+        obstacles.push({ x: 1300, y: 480, width: 34, height: 34, type: "spike" });
 
         let seed = selectedLevel * 123.45;
         function pseudoRandom() {
@@ -561,31 +560,32 @@
             return seed / 233280;
         }
 
-        let genX = 980;
+        // GIAI ĐOẠN SAU (Từ 1700px trở đi): TÍCH HỢP CÁC MẪU ĐỊA HÌNH NÂNG CAO GIỐNG ẢNH MẪU (Zic-zắc, đường ray, khối viền phát sáng tùy theo độ khó)
+        let genX = 1700;
         let portalCount = 0;
-        while (genX < currentConfig.length - 600) {
+        while (genX < currentConfig.length - 800) {
             let r = pseudoRandom();
 
-            if (r < 0.25) {
-                let baseHeight = 110 + Math.floor(pseudoRandom() * 3) * 45;
-                platforms.push({ x: genX, y: 480 - baseHeight, width: 130, height: baseHeight });
-                
-                jumpPads.push({ x: genX - 50, y: 468, width: 32, height: 12 });
-                obstacles.push({ x: genX + 160, y: 480, width: 36, height: 36, type: "spike" });
-                
-                coins.push({ x: genX + 55, y: 480 - baseHeight - 45, collected: false });
-                genX += 340;
-            } else if (r < 0.45 && portalCount < 2) {
-                portals.push({ x: genX, y: 350, width: 40, height: 75, targetMode: "ship" });
-                coins.push({ x: genX + 180, y: 160, collected: false });
-                genX += 650;
-                portals.push({ x: genX, y: 350, width: 40, height: 75, targetMode: "cube" });
+            if (r < 0.3) {
+                // Mẫu đường zic-zắc / bậc thang nâng cao
+                advancedSections.push({ x: genX, type: "zigzag", width: 450 });
+                coins.push({ x: genX + 220, y: 250, collected: false });
+                genX += 500;
+            } else if (r < 0.6 && portalCount < 3) {
+                // Cổng biến hình máy bay (Ship) kèm hành lang hẹp nâng cao
+                portals.push({ x: genX, y: 320, width: 40, height: 75, targetMode: "ship" });
+                advancedSections.push({ x: genX + 50, type: "corridor", width: 600 });
+                coins.push({ x: genX + 300, y: 150, collected: false });
+                genX += 750;
+                portals.push({ x: genX, y: 320, width: 40, height: 75, targetMode: "cube" });
                 portalCount++;
-                genX += 350;
+                genX += 300;
             } else {
-                obstacles.push({ x: genX, y: 480, width: 36, height: 36, type: "spike" });
-                jumpPads.push({ x: genX - 70, y: 468, width: 32, height: 12 });
-                genX += 280;
+                let baseHeight = 120 + Math.floor(pseudoRandom() * 3) * 50;
+                platforms.push({ x: genX, y: 480 - baseHeight, width: 140, height: baseHeight });
+                jumpPads.push({ x: genX - 60, y: 468, width: 32, height: 12 });
+                obstacles.push({ x: genX + 180, y: 480, width: 36, height: 36, type: "spike" });
+                genX += 400;
             }
         }
 
@@ -769,6 +769,28 @@
             ctx.lineTo(mSx + 25, 435); ctx.lineTo(mSx + 30, 450); ctx.lineTo(mSx + 35, 435); ctx.lineTo(mSx + 40, 450);
             ctx.fill();
         }
+
+        // Vẽ các phân đoạn nâng cao giống ảnh mẫu (Đường zic-zắc / hành lang phát sáng)
+        advancedSections.forEach(sec => {
+            let sx = sec.x - gameProgress;
+            if (sec.type === "zigzag") {
+                ctx.fillStyle = "#ffaa00";
+                ctx.beginPath();
+                ctx.moveTo(sx, 480);
+                ctx.lineTo(sx + sec.width/2, 120);
+                ctx.lineTo(sx + sec.width, 480);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = "#ffff00"; ctx.lineWidth = 3; ctx.stroke();
+            } else if (sec.type === "corridor") {
+                ctx.fillStyle = "rgba(0, 255, 255, 0.15)";
+                ctx.fillRect(sx, 80, sec.width, 80);
+                ctx.fillRect(sx, 360, sec.width, 80);
+                ctx.strokeStyle = "#00ffff"; ctx.lineWidth = 2;
+                ctx.strokeRect(sx, 80, sec.width, 80);
+                ctx.strokeRect(sx, 360, sec.width, 80);
+            }
+        });
 
         platforms.forEach(plat => {
             let sx = plat.x - gameProgress;
