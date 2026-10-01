@@ -319,7 +319,6 @@
     let isCustomMusic = false;
     let animationFrameId = null;
 
-    // Web Audio API Synthesizer cho âm nhạc riêng biệt từng màn
     let audioCtx = null;
     let musicInterval = null;
 
@@ -335,7 +334,7 @@
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
             let notes = [220, 247, 261, 293, 329, 349, 392, 440, 493, 523];
-            let tempo = 220 - levelId * 5; // Tốc độ nhịp điệu riêng cho từng màn
+            let tempo = 220 - levelId * 5;
             let step = 0;
 
             if (musicInterval) clearInterval(musicInterval);
@@ -344,7 +343,6 @@
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
                 
-                // Thay đổi âm sắc dựa theo số thứ tự màn chơi
                 osc.type = (levelId % 2 === 0) ? 'square' : 'sawtooth';
                 let freq = notes[(step + levelId * 2) % notes.length];
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
@@ -359,7 +357,7 @@
                 step++;
             }, tempo);
         } catch(e) {
-            console.log("Web Audio not supported or blocked");
+            console.log("Web Audio not supported");
         }
     }
 
@@ -516,10 +514,14 @@
             ceilingSpikes.push({ x: cx, width: 40, height: 25 });
         }
 
-        // BẬC THANG LEO LÊN VÀ CHỖ XUỐNG Ở ĐẦU MÀN CHƠI
-        platforms.push({ x: 350, y: 380, width: 100, height: 100 }); // Bậc leo lên 1
-        platforms.push({ x: 480, y: 300, width: 100, height: 180 }); // Bậc leo lên 2 (cao)
-        // Chỗ xuống (khoảng trống để đi xuống sàn)
+        // KHỞI ĐẦU MÀN CHƠI: CÓ KHỐI 1 BLOCK ĐỂ LÊN, CHỈ CÓ CÁC GAI TO NHỎ VÀ KHÔNG CÓ LÒ XO NGAY CÁC GAI ĐÓ
+        platforms.push({ x: 320, y: 444, width: 45, height: 36 }); // Khối 1 block (36px) để bước lên
+        platforms.push({ x: 420, y: 408, width: 45, height: 72 }); // Bậc 2 block
+        
+        // Các gai to nhỏ ở đoạn bắt đầu (Hoàn toàn không có lò xo ở gần các gai này)
+        obstacles.push({ x: 540, y: 480, width: 30, height: 30, type: "spike" }); // Gai nhỏ
+        obstacles.push({ x: 620, y: 480, width: 42, height: 45, type: "spike" }); // Gai to
+        obstacles.push({ x: 720, y: 480, width: 36, height: 36, type: "spike" }); // Gai vừa
 
         let seed = selectedLevel * 123.45;
         function pseudoRandom() {
@@ -527,7 +529,7 @@
             return seed / 233280;
         }
 
-        let genX = 850;
+        let genX = 900;
         let portalCount = 0;
         while (genX < currentConfig.length - 600) {
             let r = pseudoRandom();
@@ -536,18 +538,17 @@
                 let baseHeight = 110 + Math.floor(pseudoRandom() * 3) * 45;
                 platforms.push({ x: genX, y: 480 - baseHeight, width: 130, height: baseHeight });
                 
-                // LÒ XO & BẪY TÁCH BIỆT, KHÔNG NẰM TRONG CỘT
-                jumpPads.push({ x: genX - 50, y: 468, width: 32, height: 12 }); // Lò xo đặt TRƯỚC cột
-                obstacles.push({ x: genX + 160, y: 480, width: 36, height: 36, type: "spike" }); // Bẫy gai đặt SAU cột trên sàn mở
+                // Lò xo & Bẫy tách biệt, không nằm chung cột
+                jumpPads.push({ x: genX - 50, y: 468, width: 32, height: 12 });
+                obstacles.push({ x: genX + 160, y: 480, width: 36, height: 36, type: "spike" });
                 
                 coins.push({ x: genX + 55, y: 480 - baseHeight - 45, collected: false });
                 genX += 300;
             } else if (r < 0.45 && portalCount < 2) {
-                // CỔNG BIẾN HÌNH VÀ CỔNG TRỞ VỀ CÁCH XA NHAU
-                portals.push({ x: genX, y: 350, width: 40, height: 75, targetMode: "ship" }); // Cổng biến hình máy bay
-                coins.push({ x: genX + 180, y: 160, collected: false }); // Xu lơ lửng giữa vùng bay
-                genX += 600; // Khoảng cách cách xa nhau
-                portals.push({ x: genX, y: 350, width: 40, height: 75, targetMode: "cube" }); // Cổng trở về bình thường
+                portals.push({ x: genX, y: 350, width: 40, height: 75, targetMode: "ship" });
+                coins.push({ x: genX + 180, y: 160, collected: false });
+                genX += 600; // Khoảng cách cổng biến hình và cổng trở về cách xa nhau
+                portals.push({ x: genX, y: 350, width: 40, height: 75, targetMode: "cube" });
                 portalCount++;
                 genX += 300;
             } else {
