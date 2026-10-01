@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Lite - 16 Levels Full Deluxe</title>
+    <title>Geometry Dash Lite - Full Deluxe with Music</title>
     <style>
         * {
             box-sizing: border-box;
@@ -39,7 +39,7 @@
             background: linear-gradient(135deg, #cc2900, #991400);
         }
         .active-screen {
-            display: flex;
+            display: flex !important;
         }
 
         /* 1. SẢNH CHÍNH (MAIN MENU) */
@@ -51,9 +51,8 @@
         }
         .top-banner {
             display: flex;
-            justify-content: space-width;
-            width: 100%;
             justify-content: space-between;
+            width: 100%;
             align-items: center;
         }
         .game-title-img {
@@ -150,7 +149,7 @@
         }
         .arrow-btn:hover { background: #73e600; transform: scale(1.1); }
         .level-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; height: 260px; overflow-y: auto; padding: 5px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; height: 250px; overflow-y: auto; padding: 5px;
         }
         .level-card {
             background: #800000; border: 2px solid #ff9999; border-radius: 8px; padding: 8px; text-align: center; cursor: pointer; position: relative;
@@ -176,11 +175,21 @@
         .back-btn { background: #cc0000; color: white; border: 2px solid #fff; padding: 6px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .back-btn:hover { background: #ff1a1a; }
 
-        /* 4. KHUNG TRÒ CHƠI CANVAS */
+        /* 4. KHUNG TRÒ CHƠI CANVAS (FIX MÀN HÌNH ĐEN) */
         .game-wrapper {
-            position: relative; display: none; box-shadow: 0 0 40px rgba(0, 255, 204, 0.3); border-radius: 14px; overflow: hidden; border: 4px solid #4d0000; z-index: 30;
+            position: absolute;
+            width: 850px;
+            height: 420px;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 0 40px rgba(0, 255, 204, 0.3);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 4px solid #4d0000;
+            z-index: 30;
+            background: #000033;
         }
-        canvas { display: block; background: #101020; }
+        canvas { display: block; background: #000033; }
         #attemptsDisplay {
             position: absolute; top: 15px; left: 20px; font-size: 24px; font-weight: 900; color: #ffffff;
             text-shadow: 2px 2px 0px #000, 0 0 10px rgba(255,255,255,0.6); z-index: 40; pointer-events: none; letter-spacing: 1px;
@@ -190,7 +199,7 @@
             background: #397300; color: #fff; border: 2px solid #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
         .action-btn:hover { background: #73e600; color: #000; }
-        #info { font-size: 14px; margin-top: 10px; font-weight: bold; color: #73e600; text-shadow: 0 0 8px rgba(115,230,0,0.5); display: none; }
+        #info { position: absolute; bottom: 10px; font-size: 14px; font-weight: bold; color: #73e600; text-shadow: 0 0 8px rgba(115,230,0,0.5); display: none; z-index: 40; left: 20px; }
     </style>
 </head>
 <body>
@@ -231,13 +240,13 @@
                 <button class="circ-btn" onclick="openScreen('achievementsScreen')" title="Thành tựu">🏆</button>
                 <button class="circ-btn" onclick="openScreen('settingsScreen')" title="Cài đặt">⚙️</button>
                 <button class="circ-btn" onclick="openScreen('statsScreen')" title="Thống kê">📊</button>
-                <button class="circ-btn" onclick="alert('Cài đặt Nhạc!')" title="Nhạc">🎵</button>
+                <button class="circ-btn" onclick="openScreen('settingsScreen')" title="Nhạc">🎵</button>
             </div>
             <button class="free-levels-btn" onclick="openScreen('levelScreen')">FREE LEVELS</button>
         </div>
     </div>
 
-    <!-- CHỌN MÀN (16 MÀN BAO GỒM THE TOWER) -->
+    <!-- CHỌN MÀN (16 MÀN) -->
     <div id="levelScreen" class="screen">
         <div class="menu-header">
             <button class="arrow-btn" onclick="changeLevelBy(-1)">&#9664;</button>
@@ -245,7 +254,7 @@
             <button class="arrow-btn" onclick="changeLevelBy(1)">&#9654;</button>
         </div>
         <div class="level-grid" id="levelGridContainer"></div>
-        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+        <div style="display: flex; justify-content: space-width; width: 100%; justify-content: space-between; align-items: center;">
             <button class="back-btn" onclick="openScreen('mainMenu')">QUAY LẠI</button>
             <div style="display: flex; gap: 6px; align-items: center;">
                 <span style="font-size: 12px; color: #ffcc00; font-weight: bold;">Độ khó:</span>
@@ -332,7 +341,6 @@
     <audio id="bgMusic" loop></audio>
 
     <script>
-        const screens = ['mainMenu', 'levelScreen', 'skinScreen', 'settingsScreen', 'statsScreen', 'achievementsScreen'];
         function openScreen(screenId) {
             screens.forEach(s => {
                 document.getElementById(s).classList.remove('active-screen');
@@ -341,6 +349,8 @@
             document.getElementById('gameWrapper').style.display = 'none';
             document.getElementById('info').style.display = 'none';
         }
+
+        const screens = ['mainMenu', 'levelScreen', 'skinScreen', 'settingsScreen', 'statsScreen', 'achievementsScreen'];
 
         const levelDataList = [
             { id: 1, name: "Stereo Madness", diff: "Easy", notes: [261, 329, 392, 523], speed: 220 },
@@ -490,12 +500,19 @@
 
         function startSelectedLevel() {
             document.getElementById('levelScreen').classList.remove('active-screen');
-            document.getElementById('gameWrapper').style.display = 'block';
+            document.getElementById('gameWrapper').style.display = 'flex';
             document.getElementById('info').style.display = 'block';
             attemptCount = 1;
             document.getElementById('attemptsDisplay').innerText = "ATTEMPT " + attemptCount;
             startGame();
             gameLoop();
+        }
+
+        function returnToMenu() {
+            isPlaying = false; stopSynthMusic();
+            document.getElementById('gameWrapper').style.display = 'none';
+            document.getElementById('info').style.display = 'none';
+            openScreen('mainMenu');
         }
 
         function loadLevelData() {
