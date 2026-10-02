@@ -3,948 +3,429 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Lite - Bug Fixed & Optimized Edition</title>
+    <title>Geometry Dash - Stereo Madness (100% Real Style)</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
-
-        * { box-sizing: border-box; user-select: none; }
-
         body {
-            margin: 0; padding: 0;
-            background: #111;
-            font-family: 'Fredoka One', cursive, sans-serif;
-            overflow: hidden;
-            display: flex; justify-content: center; align-items: center;
+            margin: 0;
+            background-color: #0b0726;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             height: 100vh;
-        }
-
-        #game-container {
-            width: 960px; height: 540px;
-            background: linear-gradient(135deg, #7700ff 0%, #aa00aa 100%);
-            position: relative;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-            border: 6px solid #440088;
             overflow: hidden;
         }
-
-        .screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; justify-content: space-between;
-            padding: 15px 25px; background: transparent; transition: opacity 0.3s ease;
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 40px rgba(0, 150, 255, 0.4);
+            border: 4px solid #1a1540;
+            border-radius: 10px;
         }
-
-        .hidden { display: none !important; }
-
-        .game-title-container { text-align: center; margin-top: 5px; }
-        .game-title {
-            font-size: 50px; font-weight: bold; display: inline-block; letter-spacing: 2px;
-            color: #55ff00;
-            text-shadow: 4px 4px 0px #000, -3px -3px 0px #000, 3px -3px 0px #000, -3px 3px 0px #000, 0px 6px 15px rgba(0,0,0,0.6);
-        }
-        .game-title-lite {
-            font-size: 40px; color: #ffcc00; margin-left: 10px;
-            text-shadow: 4px 4px 0px #000, -3px -3px 0px #000, 3px -3px 0px #000, -3px 3px 0px #000, 0px 6px 15px rgba(0,0,0,0.6);
-        }
-
-        .center-hub { display: flex; justify-content: space-around; align-items: center; width: 100%; padding: 0 20px; margin-top: 10px; }
-        .menu-btn-group { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s; }
-        .menu-btn-group:hover { transform: scale(1.08); }
-
-        .icon-circle {
-            width: 85px; height: 85px; background: #22aa00; border: 4px solid #ffffff;
-            border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 8px 0 #115500, 0 10px 20px rgba(0,0,0,0.5);
-        }
-        .icon-circle.yellow { background: #ffcc00; box-shadow: 0 8px 0 #aa8800, 0 10px 20px rgba(0,0,0,0.5); }
-        .menu-label { margin-top: 6px; font-size: 15px; color: #ffffff; text-shadow: 2px 2px 0px #000; text-align: center; }
-
-        .play-btn-wrapper { cursor: pointer; transition: transform 0.2s; text-align: center; }
-        .play-btn-wrapper:hover { transform: scale(1.08); }
-        .play-big-icon {
-            width: 120px; height: 120px; background: #22aa00; border: 5px solid #ffffff;
-            border-radius: 25px; display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 10px 0 #115500, 0 12px 25px rgba(0,0,0,0.6); transform: rotate(45deg);
-        }
-        .play-triangle {
-            width: 0; height: 0; border-top: 30px solid transparent; border-bottom: 30px solid transparent;
-            border-left: 50px solid #ffee00; transform: rotate(-45deg); filter: drop-shadow(2px 2px 0px #000);
-        }
-
-        .bottom-toolbar { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; margin-bottom: 5px; }
-        .social-icons { display: flex; gap: 6px; align-items: center; }
-        .social-btn {
-            width: 35px; height: 35px; background: #0077ff; border: 2px solid #ffffff; border-radius: 8px;
-            display: flex; justify-content: center; align-items: center; color: white; font-size: 16px; box-shadow: 0 4px 0 #0044aa; cursor: pointer; text-decoration: none;
-        }
-        .social-btn.yt { background: #ff0000; box-shadow: 0 4px 0 #990000; }
-        .social-btn.tw { background: #00aced; box-shadow: 0 4px 0 #006699; }
-        .social-btn.dc { background: #7289da; box-shadow: 0 4px 0 #404e8a; }
-
-        .robtop-logo {
-            background: #ff8800; border: 2px solid #fff; padding: 3px 8px; border-radius: 6px;
-            font-size: 12px; color: #fff; text-shadow: 1px 1px 0 #000; box-shadow: 0 3px 0 #aa5500; cursor: pointer; display: inline-block;
-        }
-
-        .center-tools { display: flex; gap: 10px; }
-        .tool-circle-btn {
-            width: 45px; height: 45px; background: #22aa00; border: 3px solid #ffffff; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; font-size: 18px; color: white; box-shadow: 0 4px 0 #115500; cursor: pointer; transition: transform 0.2s;
-        }
-        .tool-circle-btn:hover { transform: scale(1.1); }
-
-        .free-levels-badge {
-            background: #22aa00; border: 3px solid #ffffff; padding: 8px 14px; border-radius: 14px;
-            text-align: center; box-shadow: 0 5px 0 #115500, 0 6px 12px rgba(0,0,0,0.4); cursor: pointer; transition: transform 0.2s;
-        }
-        .free-levels-badge:hover { transform: scale(1.05); }
-        .free-levels-badge span { display: block; font-size: 15px; color: #fff; text-shadow: 2px 2px 0 #000; }
-
-        #level-screen { background: rgba(100, 0, 100, 0.95); }
-        .level-grid-container {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-            max-height: 380px; overflow-y: auto; padding: 5px; width: 100%;
-        }
-        .level-card {
-            background: #330066; border: 3px solid #00ffff; border-radius: 10px; padding: 10px;
-            text-align: center; cursor: pointer; box-shadow: 0 4px 0 #110033; transition: 0.2s; position: relative;
-        }
-        .level-card:hover { background: #5500aa; transform: scale(1.03); }
-        .level-card h3 { margin: 0 0 4px 0; font-size: 15px; color: #55ff00; text-shadow: 1px 1px 0 #000; }
-        .level-card p { margin: 0; font-size: 11px; color: #ddd; }
-        .level-card.locked { opacity: 0.6; background: #440000; border-color: #ff3333; }
-
-        .btn-custom {
-            background: #55ff00; color: #000; border: 3px solid #fff; padding: 8px 22px;
-            font-size: 16px; font-family: 'Fredoka One', cursive; cursor: pointer; border-radius: 12px;
-            box-shadow: 0 4px 0 #228800; transition: 0.1s;
-        }
-        .btn-custom:hover { transform: scale(1.05); background: #77ff33; }
-
-        .panel-box {
-            background: rgba(20, 0, 50, 0.95); border: 4px solid #55ff00; border-radius: 16px;
-            padding: 20px; text-align: center; width: 480px; margin: auto;
-        }
-
-        .skin-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 15px 0;
-        }
-        .skin-option {
-            background: #220055; border: 3px solid #00ffff; border-radius: 10px; padding: 10px;
-            cursor: pointer; transition: 0.2s; text-align: center; color: #fff; font-size: 14px;
-        }
-        .skin-option:hover { background: #4400aa; transform: scale(1.05); }
-        .skin-option.selected { border-color: #55ff00; background: #005522; }
-
-        #in-game-modal {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center; align-items: center;
-            z-index: 20;
-        }
-        .modal-content {
-            background: linear-gradient(135deg, #330066 0%, #110033 100%);
-            border: 4px solid #55ff00; border-radius: 20px; padding: 25px; text-align: center;
-            width: 460px; box-shadow: 0 10px 30px rgba(0,0,0,0.9);
-        }
-        .modal-content h2 { color: #55ff00; font-size: 26px; margin-top: 0; text-shadow: 2px 2px 0 #000; }
-        .modal-content p { color: #fff; font-size: 15px; margin: 12px 0 20px 0; text-shadow: 1px 1px 0 #000; }
-
-        #game-screen { background: transparent; padding: 15px 25px; }
-        #hud {
-            position: absolute; top: 15px; left: 20px; width: calc(100% - 40px);
-            display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 10;
-        }
-        .hud-btn {
-            background: rgba(0,0,0,0.5); border: 2px solid white; color: white; width: 42px; height: 42px;
-            border-radius: 50%; font-size: 16px; cursor: pointer; pointer-events: auto; display: flex; justify-content: center; align-items: center;
-        }
-        #progress-container { width: 350px; height: 16px; background: rgba(0,0,0,0.6); border: 2px solid white; border-radius: 8px; overflow: hidden; position: relative; }
-        #progress-bar { width: 0%; height: 100%; background: #55ff00; }
-        #progress-text {
-            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 11px; color: #fff; text-shadow: 1px 1px 0 #000; font-weight: bold;
-        }
-
-        #attempt-display {
-            position: absolute; top: 70px; left: 30px; font-size: 22px; color: white;
-            text-shadow: 2px 2px 0 #000; z-index: 10;
-        }
-
-        #coin-score {
-            position: absolute; top: 70px; right: 30px; font-size: 18px; color: #ffcc00;
-            text-shadow: 2px 2px 0 #000; z-index: 10;
-        }
-
         canvas {
-            position: absolute; top: 0; left: 0; display: block;
-            background: linear-gradient(135deg, #440088 0%, #110033 100%); z-index: 1;
+            display: block;
+            background: #190b38;
+        }
+        .controls {
+            margin-top: 15px;
+            background: #161138;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #332b70;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        input[type="file"] {
+            color: #fff;
+        }
+        .info {
+            font-size: 14px;
+            color: #a0a0c0;
         }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-
-    <!-- MENU CHÍNH -->
-    <div id="main-menu" class="screen">
-        <div class="game-title-container">
-            <span class="game-title">GEOMETRY DASH</span>
-            <span class="game-title-lite">LITE</span>
-        </div>
-
-        <div class="center-hub">
-            <div class="menu-btn-group" onclick="openCharacterSelect()">
-                <div class="icon-circle">
-                    <div style="width: 40px; height: 40px; background: #55ff00; border: 3px solid #fff; position: relative; border-radius: 6px;">
-                        <div style="position: absolute; top: 8px; left: 6px; width: 7px; height: 7px; background: #000; border-radius: 2px;"></div>
-                        <div style="position: absolute; top: 8px; right: 6px; width: 7px; height: 7px; background: #000; border-radius: 2px;"></div>
-                        <div style="position: absolute; bottom: 7px; left: 12px; width: 10px; height: 3px; background: #000;"></div>
-                    </div>
-                </div>
-                <div class="menu-label">Character Select</div>
-            </div>
-
-            <div class="play-btn-wrapper" onclick="openLevelSelect()">
-                <div class="play-big-icon">
-                    <div class="play-triangle"></div>
-                </div>
-            </div>
-
-            <div class="menu-btn-group" onclick="openOnlineLevels()">
-                <div class="icon-circle yellow">
-                    <span style="font-size: 28px;">🛠️</span>
-                </div>
-                <div class="menu-label">Online Levels</div>
-            </div>
-        </div>
-
-        <div class="bottom-toolbar">
-            <div class="social-icons">
-                <a class="social-btn" href="https://www.facebook.com/RobTopGames" target="_blank">f</a>
-                <a class="social-btn tw" href="https://twitter.com/robtopgames" target="_blank">t</a>
-                <a class="social-btn yt" href="https://www.youtube.com/user/RobTopGames" target="_blank">▶</a>
-                <a class="social-btn dc" href="https://discord.gg/geometrydash" target="_blank">💬</a>
-                <div><div class="robtop-logo" onclick="openRobTopInfo()">ROBTOP</div></div>
-            </div>
-
-            <div class="center-tools">
-                <div class="tool-circle-btn" title="Thành tích" onclick="openAchievements()">🏆</div>
-                <div class="tool-circle-btn" title="Cài đặt" onclick="openSettings()">⚙️</div>
-                <div class="tool-circle-btn" title="Thống kê" onclick="openStats()">📊</div>
-                <div class="tool-circle-btn" title="Tùy chỉnh Nhạc" onclick="openMusicPanel()">🎵</div>
-            </div>
-
-            <div class="free-levels-badge" onclick="openLevelSelect()">
-                <span>FREE</span>
-                <span>LEVELS</span>
-            </div>
-        </div>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="900" height="500"></canvas>
     </div>
 
-    <!-- MÀN HÌNH CHỌN 16 MÀN CHƠI -->
-    <div id="level-screen" class="screen hidden" style="z-index: 5;">
-        <h2 style="color: #55ff00; text-align: center; margin: 5px 0; text-shadow: 2px 2px 0 #000; font-size: 20px;">CHỌN 16 MÀN CHƠI (MÀN 16 THE TOWER CẦN 3 XU)</h2>
-        <div class="level-grid-container" id="level-grid"></div>
-        <div style="text-align: center; margin-top: 5px;">
-            <button class="btn-custom" onclick="backToMenu()">QUAY LẠI MENU</button>
-        </div>
+    <div class="controls">
+        <span class="info">🎵 Nhạc nền Stereo Madness (.mp3):</span>
+        <input type="file" id="audioUpload" accept="audio/mp3, audio/*">
     </div>
 
-    <!-- MÀN HÌNH CHỌN NHÂN VẬT & SKIN -->
-    <div id="char-screen" class="screen hidden" style="z-index: 5;">
-        <div class="panel-box">
-            <h2 style="color: #55ff00; margin-top: 0; font-size: 22px;">TÙY CHỈNH SKIN & MÀU SẮC</h2>
-            
-            <p style="color: #00ffff; margin: 3px 0; font-size: 13px;">Chọn Ngoại Hình Nhân Vật:</p>
-            <div class="skin-grid">
-                <div class="skin-option selected" id="skin-cube" onclick="setSkin('cube')">
-                    <b>Khối Vuông (Cube)</b>
-                </div>
-                <div class="skin-option" id="skin-robot" onclick="setSkin('robot')">
-                    <b>Người Máy (Robot)</b>
-                </div>
-                <div class="skin-option" id="skin-ufo" onclick="setSkin('ufo')">
-                    <b>Đĩa Bay (UFO)</b>
-                </div>
-                <div class="skin-option" id="skin-wave" onclick="setSkin('wave')">
-                    <b>Sóng (Wave)</b>
-                </div>
-            </div>
-
-            <p style="color: #00ffff; margin: 3px 0; font-size: 13px;">Chọn Màu Sắc:</p>
-            <div style="display: flex; justify-content: center; gap: 12px; margin: 8px 0;">
-                <div onclick="selectColor('#55ff00')" style="width: 34px; height: 34px; background: #55ff00; border: 3px solid #fff; cursor: pointer; border-radius: 8px;"></div>
-                <div onclick="selectColor('#ff3333')" style="width: 34px; height: 34px; background: #ff3333; border: 3px solid #fff; cursor: pointer; border-radius: 8px;"></div>
-                <div onclick="selectColor('#00ffff')" style="width: 34px; height: 34px; background: #00ffff; border: 3px solid #fff; cursor: pointer; border-radius: 8px;"></div>
-                <div onclick="selectColor('#ffff00')" style="width: 34px; height: 34px; background: #ffff00; border: 3px solid #fff; cursor: pointer; border-radius: 8px;"></div>
-                <div onclick="selectColor('#ff00ff')" style="width: 34px; height: 34px; background: #ff00ff; border: 3px solid #fff; cursor: pointer; border-radius: 8px;"></div>
-            </div>
-            <button class="btn-custom" onclick="backToMenu()">XÁC NHẬN</button>
-        </div>
-    </div>
-
-    <!-- MÀN HÌNH TÙY CHỈNH NHẠC -->
-    <div id="music-screen" class="screen hidden" style="z-index: 5;">
-        <div class="panel-box">
-            <h2 style="color: #00ffff; margin-top: 0; font-size: 22px;">THÊM NHẠC TÙY THÍCH</h2>
-            <p style="font-size: 13px; color: #ccc;">Chọn file nhạc MP3/WAV từ máy tính:</p>
-            <input type="file" id="audio-file-input" accept="audio/*" onchange="loadCustomMusic(event)" style="margin: 12px 0; color: #fff;"><br>
-            <p id="music-msg" style="color: #55ff00; font-size: 13px;"></p>
-            <button class="btn-custom" onclick="backToMenu()">XONG</button>
-        </div>
-    </div>
-
-    <!-- MÀN HÌNH CHƠI GAME -->
-    <div id="game-screen" class="screen hidden" style="z-index: 5;">
-        <div id="hud">
-            <button class="hud-btn" onclick="pauseGame()">⏸</button>
-            <div id="progress-container">
-                <div id="progress-bar"></div>
-                <div id="progress-text">0%</div>
-            </div>
-            <button class="hud-btn" onclick="togglePractice()" id="practice-btn">🛡️</button>
-        </div>
-        <div id="attempt-display">ATTEMPT 1</div>
-        <div id="coin-score">🪙 XU: 0/3</div>
-        <canvas id="gameCanvas" width="960" height="540"></canvas>
-
-        <!-- BẢNG THÔNG BÁO TRONG TRÒ CHƠI -->
-        <div id="in-game-modal" class="hidden">
-            <div class="modal-content">
-                <h2 id="modal-title">THÔNG BÁO</h2>
-                <p id="modal-message">Nội dung thông báo...</p>
-                <button class="btn-custom" onclick="closeInGameModal()">OK</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- BẢNG TẠM DỪNG -->
-    <div id="pause-screen" class="screen hidden" style="z-index: 10; background: rgba(0,0,0,0.85);">
-        <div class="panel-box">
-            <h2 style="color: #ffff00; margin-top: 0; font-size: 22px;">TẠM DỪNG</h2>
-            <button class="btn-custom" onclick="resumeGame()" style="margin: 6px 0; width: 80%;">TIẾP TỤC</button><br>
-            <button class="btn-custom" onclick="restartLevel()" style="background: #00ffff; margin: 6px 0; width: 80%;">CHƠI LẠI</button><br>
-            <button class="btn-custom" onclick="exitToMenu()" style="background: #ff3333; color: white; margin: 6px 0; width: 80%;">THOÁT RA MENU</button>
-        </div>
-    </div>
-
-</div>
+    <audio id="bgMusic" loop></audio>
 
 <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    let currentScreen = "main-menu";
-    let selectedLevel = 1;
-    let playerColor = "#55ff00";
-    let playerSkin = "cube";
-    let isPaused = false;
-    let attemptCount = 1;
-    let practiceMode = false;
-    let totalCoinsCollected = 0;
-    let levelCoins = {};
-    let totalLevelsCompleted = 0;
-    
-    let customAudio = null;
-    let isCustomMusic = false;
-    let animationFrameId = null;
+    const audioUpload = document.getElementById("audioUpload");
+    const bgMusic = document.getElementById("bgMusic");
 
-    let audioCtx = null;
-    let musicInterval = null;
-
-    function openOnlineLevels() {
-        showInGameModal("ONLINE LEVELS", "🛠️ Tính năng kết nối Online Levels đang được phát triển trực tuyến trên nền tảng RobTop Server!");
-    }
-
-    function openRobTopInfo() {
-        showInGameModal("ROBTOP GAMES", "🎮 Geometry Dash Lite được phát triển bởi Robert Topala (RobTop Games). Phiên bản web tùy chỉnh hoàn hảo!");
-    }
-
-    function openAchievements() {
-        showInGameModal("THÀNH TÍCH (ACHIEVEMENTS)", `🏆 Tổng số Xu đã thu thập: ${totalCoinsCollected}\n🏆 Tổng số màn đã hoàn thành: ${totalLevelsCompleted}/16`);
-    }
-
-    function openSettings() {
-        showInGameModal("CÀI ĐẶT (SETTINGS)", "⚙️ Cài đặt âm thanh và đồ họa đang ở chế độ tối ưu hóa cao nhất (60 FPS / Web Audio API Enabled).");
-    }
-
-    function openStats() {
-        showInGameModal("THỐNG KÊ (STATS)", `📊 Tổng số lần thử (Attempts): ${attemptCount}\n📊 Tổng số Xu tích lũy: ${totalCoinsCollected}/48\n📊 Trạng thái mở khóa The Tower: ${totalCoinsCollected >= 3 ? 'ĐÃ MỞ KHÓA ✅' : 'CHƯA MỞ KHÓA (Cần 3 Xu) 🔒'}`);
-    }
-
-    function setSkin(skinName) {
-        playerSkin = skinName;
-        document.querySelectorAll(".skin-option").forEach(el => el.classList.remove("selected"));
-        document.getElementById("skin-" + skinName).classList.add("selected");
-    }
-
-    function startLevelSynthesizer(levelId) {
-        if (isCustomMusic && customAudio) {
-            customAudio.currentTime = 0;
-            customAudio.play().catch(e => console.log("Custom audio blocked"));
-            return;
-        }
-
-        try {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-
-            let notes = [220, 247, 261, 293, 329, 349, 392, 440, 493, 523];
-            let tempo = 220 - levelId * 5;
-            let step = 0;
-
-            if (musicInterval) clearInterval(musicInterval);
-            musicInterval = setInterval(() => {
-                if (isPaused || currentScreen !== "game-screen") return;
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                
-                osc.type = (levelId % 2 === 0) ? 'square' : 'sawtooth';
-                let freq = notes[(step + levelId * 2) % notes.length];
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
-                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.22);
-                step++;
-            }, tempo);
-        } catch(e) {
-            console.log("Web Audio not supported");
-        }
-    }
-
-    function stopLevelSynthesizer() {
-        if (musicInterval) clearInterval(musicInterval);
-        if (isCustomMusic && customAudio) customAudio.pause();
-    }
-
-    function showInGameModal(title, message, callback) {
-        isPaused = true;
-        stopLevelSynthesizer();
-        document.getElementById("modal-title").innerText = title;
-        document.getElementById("modal-message").innerText = message;
-        document.getElementById("in-game-modal").classList.remove("hidden");
-        window.modalCallback = callback;
-    }
-
-    function closeInGameModal() {
-        document.getElementById("in-game-modal").classList.add("hidden");
-        if (window.modalCallback) {
-            window.modalCallback();
-            window.modalCallback = null;
-        } else {
-            isPaused = false;
-            if (currentScreen === "game-screen") {
-                startLevelSynthesizer(selectedLevel);
-                lastTime = performance.now();
-                animationFrameId = requestAnimationFrame(gameLoop);
-            }
-        }
-    }
-
-    function loadCustomMusic(event) {
-        const file = event.target.files[0];
+    audioUpload.addEventListener("change", function(e) {
+        const file = e.target.files[0];
         if (file) {
-            customAudio = new Audio(URL.createObjectURL(file));
-            customAudio.loop = true;
-            isCustomMusic = true;
-            document.getElementById("music-msg").innerText = "Đã tải nhạc tùy chỉnh: " + file.name;
+            bgMusic.src = URL.createObjectURL(file);
+            bgMusic.play().catch(() => {});
         }
-    }
+    });
 
-    const levelConfigs = [];
-    const levelNames = [
-        "Stereo Madness", "Back On Track", "Polargeist", "Dry Out",
-        "Base After Base", "Can't Let Go", "Jumper", "Time Machine",
-        "Cycles", "xStep", "Clutterfunk", "Theory of Everything",
-        "Electroman Adventures", "Clubstep", "Electrodynamix", "THE TOWER"
-    ];
-
-    function buildLevelGrid() {
-        const levelGrid = document.getElementById("level-grid");
-        levelGrid.innerHTML = "";
-        
-        for (let i = 1; i <= 16; i++) {
-            let isTower = (i === 16);
-            let isLocked = isTower && totalCoinsCollected < 3;
-
-            const card = document.createElement("div");
-            card.className = "level-card" + (isLocked ? " locked" : "");
-            card.innerHTML = `
-                <h3>${i}. ${levelNames[i-1]}</h3>
-                <p>${isTower ? '🔒 Cần 3 Xu' : 'Độ khó: ' + Math.min(10, Math.ceil(i/1.6)) + '★'}</p>
-                <p>🪙 ${levelCoins[i] || 0}/3 Xu</p>
-            `;
-            card.onclick = () => {
-                if (isLocked) {
-                    showInGameModal("KHÓA MÀN CHƠI", "🚫 Màn THE TOWER yêu cầu bạn phải sưu tầm đủ ít nhất 3 Xu từ các màn chơi khác!");
-                } else {
-                    startLevel(i);
-                }
-            };
-            levelGrid.appendChild(card);
-        }
-    }
-
-    for (let i = 1; i <= 16; i++) {
-        levelConfigs.push({ id: i, name: levelNames[i-1], length: 5500 + i * 300 });
-        levelCoins[i] = 0;
-    }
-
-    function showScreen(screenId) {
-        if (animationFrameId) cancelAnimationFrame(animationFrameId);
-        stopLevelSynthesizer();
-        document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
-        document.getElementById(screenId).classList.remove("hidden");
-        currentScreen = screenId;
-        if (screenId === "level-screen") {
-            buildLevelGrid();
-        }
-    }
-
-    function openLevelSelect() { showScreen("level-screen"); }
-    function openCharacterSelect() { showScreen("char-screen"); }
-    function openMusicPanel() { showScreen("music-screen"); }
-    function backToMenu() { showScreen("main-menu"); }
-    function selectColor(color) { playerColor = color; }
+    // Thông số vật lý chuẩn Geometry Dash
+    const GRAVITY = 0.92;
+    const JUMP_FORCE = -13.5;
+    const GROUND_Y = 390;
+    const CUBE_SIZE = 40;
+    const SPEED = 6.2;
+    const LEVEL_LENGTH = 3800; // Độ dài màn chơi Stereo Madness mẫu
 
     let player = {
-        x: 180, y: 440, size: 36, vy: 0, gravity: 2400, jumpForce: -680,
-        rotation: 0, grounded: false, mode: "cube"
+        x: 100,
+        y: GROUND_Y - CUBE_SIZE,
+        size: CUBE_SIZE,
+        vy: 0,
+        angle: 0,
+        onGround: false
     };
 
-    let platforms = [];
-    let orbs = [];
-    let portals = [];
-    let coins = [];
-    let monster = { x: -150, speed: 335 };
+    let cameraX = 0;
+    let isGameOver = false;
+    let isWon = false;
+    let holdingJump = false;
+    let particles = [];
+    let stars = [];
 
-    let gameProgress = 0;
-    let currentConfig = null;
-    let lastTime = 0;
-    let levelCompleted = false;
-    let vortexX = 0;
-
-    function startLevel(levelId) {
-        selectedLevel = levelId;
-        currentConfig = levelConfigs[levelId - 1];
-        showScreen("game-screen");
-        attemptCount = 1;
-        levelCompleted = false;
-        resetGameSession();
-        startLevelSynthesizer(levelId);
-        lastTime = performance.now();
-        animationFrameId = requestAnimationFrame(gameLoop);
+    // Tạo các ngôi sao nền (Parallax background stars)
+    for (let i = 0; i < 60; i++) {
+        stars.push({
+            x: Math.random() * LEVEL_LENGTH,
+            y: Math.random() * GROUND_Y,
+            size: Math.random() * 2.5 + 1,
+            speed: Math.random() * 0.4 + 0.2
+        });
     }
 
-    function resetGameSession() {
-        player.x = 180;
-        player.y = 440;
-        player.vy = 0;
-        player.rotation = 0;
-        player.grounded = true;
-        player.mode = "cube";
-        gameProgress = 0;
-        isPaused = false;
-        levelCompleted = false;
-        monster.x = -180;
+    // Thiết kế màn chơi Stereo Madness chuẩn xác
+    let obstacles = [
+        { x: 500, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
+        { x: 750, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
+        { x: 900, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
+        { x: 940, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
+        
+        // Cụm khối vuông bậc thang
+        { x: 1250, y: GROUND_Y - CUBE_SIZE, type: 'block' },
+        { x: 1290, y: GROUND_Y - CUBE_SIZE - CUBE_SIZE, type: 'block' },
+        { x: 1330, y: GROUND_Y - CUBE_SIZE - CUBE_SIZE * 2, type: 'block' },
+        
+        { x: 1650, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
+        { x: 1690, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
+        
+        { x: 2000, y: GROUND_Y - CUBE_SIZE, type: 'block' },
+        { x: 2040, y: GROUND_Y - CUBE_SIZE, type: 'spike' }, // Gai trên bệ block
+        { x: 2040, y: GROUND_Y - CUBE_SIZE - CUBE_SIZE, type: 'block' },
+        
+        { x: 2400, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
+        { x: 2440, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
+        { x: 2480, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
+        
+        { x: 2900, y: GROUND_Y - CUBE_SIZE, type: 'block' },
+        { x: 2940, y: GROUND_Y - CUBE_SIZE, type: 'block' },
+        { x: 3100, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
+        { x: 3140, y: GROUND_Y - CUBE_SIZE, type: 'spike' }
+    ];
 
-        document.getElementById("pause-screen").classList.add("hidden");
-        document.getElementById("attempt-display").innerText = "ATTEMPT " + attemptCount;
-        document.getElementById("coin-score").innerText = `🪙 XU: ${levelCoins[selectedLevel]}/3`;
-
-        platforms = [];
-        orbs = [];
-        portals = [];
-        coins = [];
-
-        let towerX = 420;
-        let towerHeights = [180, 240, 300, 220];
-        for (let h of towerHeights) {
-            platforms.push({ x: towerX, y: 480 - h, width: 60, height: h });
-            orbs.push({ x: towerX + 30, y: 480 - h - 15, radius: 12 });
-            coins.push({ x: towerX + 30, y: 480 - h - 70, collected: false });
-            towerX += 340;
-        }
-
-        let shipPortalX = towerX + 150;
-        portals.push({ x: shipPortalX, y: 320, width: 40, height: 75, targetMode: "ship" });
-
-        let wavePortalX = shipPortalX + 800;
-        portals.push({ x: wavePortalX, y: 320, width: 40, height: 75, targetMode: "wave" });
-
-        let genX = wavePortalX + 300;
-        while (genX < currentConfig.length - 800) {
-            platforms.push({ x: genX, y: 250, width: 40, height: 40, type: "triangleObstacle" });
-            coins.push({ x: genX + 20, y: 120, collected: false });
-            genX += 350;
-        }
-
-        vortexX = currentConfig.length - 200;
-    }
-
-    function pauseGame() {
-        isPaused = true;
-        document.getElementById("pause-screen").classList.remove("hidden");
-        stopLevelSynthesizer();
-    }
-
-    function resumeGame() {
-        isPaused = false;
-        document.getElementById("pause-screen").classList.add("hidden");
-        startLevelSynthesizer(selectedLevel);
-        lastTime = performance.now();
-        animationFrameId = requestAnimationFrame(gameLoop);
-    }
-
-    function restartLevel() {
-        if (animationFrameId) cancelAnimationFrame(animationFrameId);
-        attemptCount++;
-        resetGameSession();
-        startLevelSynthesizer(selectedLevel);
-        lastTime = performance.now();
-        animationFrameId = requestAnimationFrame(gameLoop);
-    }
-
-    function exitToMenu() {
-        isPaused = true;
-        if (animationFrameId) cancelAnimationFrame(animationFrameId);
-        stopLevelSynthesizer();
-        backToMenu();
-    }
-
-    function togglePractice() {
-        practiceMode = !practiceMode;
-        document.getElementById("practice-btn").style.borderColor = practiceMode ? "#55ff00" : "white";
-    }
-
+    // Xử lý sự kiện bàn phím & chuột
     window.addEventListener("keydown", (e) => {
-        if ((e.code === "Space" || e.code === "ArrowUp") && currentScreen === "game-screen" && !isPaused) {
-            if (player.mode === "cube" && player.grounded) {
-                player.vy = player.jumpForce;
-                player.grounded = false;
+        if (e.code === "Space" || e.code === "ArrowUp") {
+            holdingJump = true;
+            if (isGameOver || isWon) {
+                resetGame();
+            } else {
+                jump();
             }
-            window.isSpacePressed = true;
         }
     });
+
     window.addEventListener("keyup", (e) => {
         if (e.code === "Space" || e.code === "ArrowUp") {
-            window.isSpacePressed = false;
+            holdingJump = false;
         }
     });
 
-    let isMouseDown = false;
     canvas.addEventListener("mousedown", () => {
-        isMouseDown = true;
-        if (currentScreen === "game-screen" && !isPaused && player.mode === "cube" && player.grounded) {
-            player.vy = player.jumpForce;
-            player.grounded = false;
+        if (isGameOver || isWon) {
+            resetGame();
+        } else {
+            holdingJump = true;
+            jump();
         }
     });
-    canvas.addEventListener("mouseup", () => { isMouseDown = false; });
 
-    function gameLoop(timestamp) {
-        if (currentScreen !== "game-screen" || isPaused) return;
+    canvas.addEventListener("mouseup", () => {
+        holdingJump = false;
+    });
 
-        let deltaTime = (timestamp - lastTime) / 1000;
-        if (deltaTime > 0.1) deltaTime = 0.016;
-        lastTime = timestamp;
-
-        if (!levelCompleted) {
-            if (player.mode === "cube") {
-                player.vy += player.gravity * deltaTime;
-                player.y += player.vy * deltaTime;
-
-                if (player.y >= 480) {
-                    player.y = 480;
-                    player.vy = 0;
-                    player.grounded = true;
-                    player.rotation = Math.round(player.rotation / 90) * 90;
-                } else {
-                    player.grounded = false;
-                    player.rotation += 450 * deltaTime;
-                }
-            } else if (player.mode === "ship") {
-                if (isMouseDown || window.isSpacePressed) {
-                    player.vy -= 1900 * deltaTime;
-                } else {
-                    player.vy += 1500 * deltaTime;
-                }
-                player.y += player.vy * deltaTime;
-                player.rotation = player.vy * 0.035;
-                if (player.y > 480) { player.y = 480; player.vy = 0; }
-            } else if (player.mode === "wave") {
-                let waveSpeed = 600;
-                if (isMouseDown || window.isSpacePressed) {
-                    player.y -= waveSpeed * deltaTime;
-                    player.rotation = -45;
-                } else {
-                    player.y += waveSpeed * deltaTime;
-                    player.rotation = 45;
-                }
-                if (player.y > 480) { player.y = 480; }
-            }
-
-            let pTopBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
-            if (pTopBox.y <= 10) {
-                restartLevel();
-                return;
-            }
-
-            let gameSpeed = 360;
-            gameProgress += gameSpeed * deltaTime;
-
-            if (selectedLevel === 16) {
-                monster.x += (player.x - 130 - monster.x) * 4 * deltaTime;
-                if (player.x - monster.x < 70) {
-                    restartLevel();
-                    return;
-                }
-            }
-
-            let pBox = { x: player.x + 4, y: player.y - player.size + 4, w: player.size - 8, h: player.size - 8 };
-
-            if (player.mode === "cube") {
-                platforms.forEach(plat => {
-                    let sx = plat.x - gameProgress;
-                    let oBox = { x: sx, y: plat.y, w: plat.width, h: plat.height };
-
-                    if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x &&
-                        pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
-                        
-                        let prevY = player.y - (player.vy * deltaTime) - player.size;
-                        if (prevY <= oBox.y && player.vy >= 0) {
-                            player.y = oBox.y;
-                            player.vy = 0;
-                            player.grounded = true;
-                            player.rotation = Math.round(player.rotation / 90) * 90;
-                        } else {
-                            restartLevel();
-                            return;
-                        }
-                    }
-                });
-            }
-
-            orbs.forEach(orb => {
-                let sx = orb.x - gameProgress;
-                let dist = Math.hypot((player.x + player.size/2) - sx, (player.y - player.size/2) - orb.y);
-                if (dist < 30 && (isMouseDown || window.isSpacePressed)) {
-                    player.vy = player.jumpForce * 1.15;
-                    player.grounded = false;
-                }
-            });
-
-            let percent = Math.min(100, Math.floor((gameProgress / currentConfig.length) * 100));
-            document.getElementById("progress-bar").style.width = percent + "%";
-            document.getElementById("progress-text").innerText = percent + "%";
-
-            if (gameProgress >= currentConfig.length - 100) {
-                levelCompleted = true;
-                totalLevelsCompleted++;
-            }
-        } else {
-            player.x += 4;
-            player.rotation += 25;
-            if (player.x > 960) {
-                stopLevelSynthesizer();
-                let congratMsg = (selectedLevel === 16) 
-                    ? "🏰 Bạn quá bá khí! Đã chinh phục thành công THE TOWER và trở thành huyền thoại Geometry Dash!" 
-                    : `🎉 Bạn quá bá khí! Đã chiến thắng màn ${selectedLevel} xuất sắc!`;
-                showInGameModal("WINNER", congratMsg, () => {
-                    exitToMenu();
-                });
-                return;
-            }
+    function jump() {
+        if (player.onGround) {
+            player.vy = JUMP_FORCE;
+            player.onGround = false;
+            createDustParticles();
         }
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        ctx.strokeStyle = "rgba(0, 255, 255, 0.08)";
-        ctx.lineWidth = 1;
-        for (let x = 0; x < canvas.width; x += 45) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-        }
-        for (let y = 0; y < canvas.height; y += 45) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-        }
-
-        ctx.fillStyle = "#220055";
-        ctx.fillRect(0, 480, canvas.width, 60);
-        ctx.fillStyle = "#00ffff";
-        ctx.fillRect(0, 480, canvas.width, 5);
-
-        if (selectedLevel === 16) {
-            let mSx = monster.x;
-            ctx.fillStyle = "#ff0055";
-            ctx.beginPath();
-            ctx.arc(mSx + 25, 450, 30, Math.PI, 0, false);
-            ctx.fill();
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.moveTo(mSx + 10, 450); ctx.lineTo(mSx + 15, 435); ctx.lineTo(mSx + 20, 450);
-            ctx.lineTo(mSx + 25, 435); ctx.lineTo(mSx + 30, 450); ctx.lineTo(mSx + 35, 435); ctx.lineTo(mSx + 40, 450);
-            ctx.fill();
-        }
-
-        platforms.forEach(plat => {
-            let sx = plat.x - gameProgress;
-            ctx.fillStyle = "#440088";
-            ctx.fillRect(sx, plat.y, plat.width, plat.height);
-            ctx.strokeStyle = "#00ffff"; ctx.lineWidth = 2;
-            ctx.strokeRect(sx, plat.y, plat.width, plat.height);
-        });
-
-        orbs.forEach(orb => {
-            let sx = orb.x - gameProgress;
-            ctx.fillStyle = "#00ffff";
-            ctx.beginPath();
-            ctx.arc(sx, orb.y, orb.radius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
-            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(sx, orb.y + orb.radius); ctx.lineTo(sx, orb.y + 25); ctx.stroke();
-        });
-
-        portals.forEach(portal => {
-            let sx = portal.x - gameProgress;
-            let portalColor = portal.targetMode === "wave" ? "rgba(255, 0, 100, 0.7)" : "rgba(0, 255, 255, 0.6)";
-            ctx.fillStyle = portalColor;
-            ctx.fillRect(sx, portal.y, portal.width, portal.height);
-            ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
-            ctx.strokeRect(sx, portal.y, portal.width, portal.height);
-
-            let pBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
-            let ptBox = { x: sx, y: portal.y, w: portal.width, h: portal.height };
-            if (pBox.x < ptBox.x + ptBox.w && pBox.x + pBox.w > ptBox.x &&
-                pBox.y < ptBox.y + ptBox.h && pBox.y + pBox.h > ptBox.y) {
-                player.mode = portal.targetMode;
-            }
-        });
-
-        coins.forEach(coin => {
-            if (!coin.collected) {
-                let sx = coin.x - gameProgress;
-                ctx.fillStyle = "#ffcc00";
-                ctx.beginPath();
-                ctx.arc(sx + 12, coin.y + 12, 12, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
-
-                let dist = Math.hypot((player.x + player.size/2) - (sx + 12), (player.y - player.size/2) - (coin.y + 12));
-                if (dist < 32) {
-                    coin.collected = true;
-                    if (levelCoins[selectedLevel] < 3) {
-                        levelCoins[selectedLevel]++;
-                        totalCoinsCollected++;
-                    }
-                    document.getElementById("coin-score").innerText = `🪙 XU: ${levelCoins[selectedLevel]}/3`;
-                }
-            }
-        });
-
-        let vSx = vortexX - gameProgress;
-        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-        ctx.beginPath();
-        ctx.arc(vSx + 30, 420, 50, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#0055ff"; ctx.lineWidth = 5; ctx.stroke();
-
-        if (levelCompleted) {
-            ctx.fillStyle = "#55ff00";
-            ctx.font = "bold 64px 'Fredoka One'";
-            ctx.textAlign = "center";
-            ctx.shadowColor = "#000"; ctx.shadowBlur = 10;
-            ctx.fillText("WINNER", canvas.width / 2, 200);
-            ctx.shadowBlur = 0;
-        }
-
-        ctx.save();
-        ctx.translate(player.x + player.size/2, player.y - player.size/2);
-        ctx.rotate((player.rotation * Math.PI) / 180);
-
-        if (player.mode === "cube") {
-            if (playerSkin === "cube") {
-                ctx.fillStyle = playerColor;
-                ctx.fillRect(-player.size/2, -player.size/2, player.size, player.size);
-                ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3;
-                ctx.strokeRect(-player.size/2, -player.size/2, player.size, player.size);
-                ctx.fillStyle = "#000000";
-                ctx.fillRect(-6, -8, 8, 8);
-                ctx.fillRect(4, -8, 8, 8);
-                ctx.fillRect(-3, 4, 8, 4);
-            } else if (playerSkin === "robot") {
-                ctx.fillStyle = playerColor;
-                ctx.fillRect(-16, -18, 32, 36);
-                ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2.5;
-                ctx.strokeRect(-16, -18, 32, 36);
-                ctx.fillStyle = "#00ffff";
-                ctx.fillRect(-10, -10, 20, 6);
-                ctx.fillStyle = "#000000";
-                ctx.fillRect(-8, 0, 16, 12);
-            } else if (playerSkin === "ufo") {
-                ctx.fillStyle = playerColor;
-                ctx.beginPath();
-                ctx.ellipse(0, 4, 22, 10, 0, 0, Math.PI * 2);
-                ctx.fill(); ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
-                ctx.fillStyle = "rgba(0, 255, 255, 0.6)";
-                ctx.beginPath();
-                ctx.arc(0, -2, 12, Math.PI, 0, false);
-                ctx.fill(); ctx.stroke();
-            } else if (playerSkin === "wave") {
-                ctx.fillStyle = playerColor;
-                ctx.beginPath();
-                ctx.moveTo(-18, -16);
-                ctx.lineTo(22, 0);
-                ctx.lineTo(-18, 16);
-                ctx.closePath();
-                ctx.fill();
-                ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.stroke();
-            }
-        } else if (player.mode === "ship") {
-            ctx.fillStyle = "#ff6600";
-            ctx.beginPath();
-            ctx.moveTo(-24, -4); ctx.lineTo(-38, 0); ctx.lineTo(-24, 4);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.fillStyle = playerColor;
-            ctx.beginPath();
-            ctx.moveTo(-22, -10);
-            ctx.lineTo(16, -4);
-            ctx.lineTo(26, 0);
-            ctx.lineTo(16, 4);
-            ctx.lineTo(-22, 10);
-            ctx.lineTo(-16, 0);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2.5; ctx.stroke();
-
-            ctx.fillStyle = "#00ffff";
-            ctx.beginPath();
-            ctx.arc(2, 0, 6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
-        } else if (player.mode === "wave") {
-            ctx.fillStyle = playerColor;
-            ctx.beginPath();
-            ctx.moveTo(-16, -12);
-            ctx.lineTo(18, 0);
-            ctx.lineTo(-16, 12);
-            ctx.lineTo(-8, 0);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2.5; ctx.stroke();
-        }
-
-        ctx.restore();
-
-        animationFrameId = requestAnimationFrame(gameLoop);
     }
+
+    function createDustParticles() {
+        for (let i = 0; i < 6; i++) {
+            particles.push({
+                x: player.x + CUBE_SIZE / 2,
+                y: GROUND_Y,
+                vx: (Math.random() - 0.5) * 4,
+                vy: -Math.random() * 3 - 1,
+                size: Math.random() * 4 + 2,
+                color: "#64c8ff",
+                life: 20
+            });
+        }
+    }
+
+    function createExplosion() {
+        for (let i = 0; i < 25; i++) {
+            particles.push({
+                x: player.x + CUBE_SIZE / 2,
+                y: player.y + CUBE_SIZE / 2,
+                vx: (Math.random() - 0.5) * 10,
+                vy: (Math.random() - 0.5) * 10,
+                size: Math.random() * 6 + 3,
+                color: Math.random() > 0.5 ? "#ffe600" : "#ff3232",
+                life: 40
+            });
+        }
+    }
+
+    function resetGame() {
+        player.x = 100;
+        player.y = GROUND_Y - CUBE_SIZE;
+        player.vy = 0;
+        player.angle = 0;
+        player.onGround = false;
+        cameraX = 0;
+        isGameOver = false;
+        isWon = false;
+        particles = [];
+        if (bgMusic.src) {
+            bgMusic.currentTime = 0;
+            bgMusic.play();
+        }
+    }
+
+    function update() {
+        // Cập nhật hạt hiệu ứng (Particles)
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life--;
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        if (!isGameOver && !isWon) {
+            player.x += SPEED;
+            cameraX = player.x - 200;
+
+            player.vy += GRAVITY;
+            player.y += player.vy;
+
+            // Chạm đất
+            if (player.y + player.size >= GROUND_Y) {
+                player.y = GROUND_Y - player.size;
+                player.vy = 0;
+                player.onGround = true;
+                player.angle = Math.round(player.angle / 90) * 90;
+
+                if (holdingJump) {
+                    jump();
+                }
+            } else {
+                player.onGround = false;
+                player.angle -= 8.5;
+            }
+
+            // Kiểm tra va chạm vật thể
+            for (let obs of obstacles) {
+                let hitBoxX = obs.type === 'spike' ? obs.x + 8 : obs.x;
+                let hitBoxY = obs.type === 'spike' ? obs.y + 12 : obs.y;
+                let hitBoxW = obs.type === 'spike' ? CUBE_SIZE - 16 : CUBE_SIZE;
+                let hitBoxH = obs.type === 'spike' ? CUBE_SIZE - 12 : CUBE_SIZE;
+
+                if (
+                    player.x < hitBoxX + hitBoxW &&
+                    player.x + player.size > hitBoxX &&
+                    player.y < hitBoxY + hitBoxH &&
+                    player.y + player.size > hitBoxY
+                ) {
+                    isGameOver = true;
+                    createExplosion();
+                    bgMusic.pause();
+                }
+            }
+
+            // Kiểm tra chiến thắng
+            if (player.x > LEVEL_LENGTH) {
+                isWon = true;
+                bgMusic.pause();
+            }
+        }
+    }
+
+    function draw() {
+        // Màu nền Gradient chuẩn Geometry Dash
+        let bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        bgGradient.addColorStop(0, "#190b38");
+        bgGradient.addColorStop(1, "#3c1361");
+        ctx.fillStyle = bgGradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Vẽ các ngôi sao chuyển động Parallax
+        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+        for (let star of stars) {
+            let drawStarX = (star.x - cameraX * star.speed) % canvas.width;
+            if (drawStarX < 0) drawStarX += canvas.width;
+            ctx.fillRect(drawStarX, star.y, star.size, star.size);
+        }
+
+        // Vẽ lưới nền mờ
+        ctx.strokeStyle = "rgba(100, 50, 150, 0.15)";
+        ctx.lineWidth = 1;
+        for (let x = 0; x < canvas.width; x += 40) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+
+        // Vẽ mặt đất Stereo Madness (Xanh dương đặc trưng)
+        ctx.fillStyle = "#002080";
+        ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+        
+        // Họa tiết lưới bên trong mặt đất
+        ctx.strokeStyle = "#0040cc";
+        ctx.lineWidth = 2;
+        for (let x = ( - cameraX * 0.8) % 40; x < canvas.width; x += 40) {
+            ctx.beginPath();
+            ctx.moveTo(x, GROUND_Y);
+            ctx.lineTo(x - 50, canvas.height);
+            ctx.stroke();
+        }
+
+        // Viền sáng neon mặt đất
+        ctx.strokeStyle = "#00ffff";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(0, GROUND_Y);
+        ctx.lineTo(canvas.width, GROUND_Y);
+        ctx.stroke();
+
+        // Vẽ chướng ngại vật (Gai và Block)
+        for (let obs of obstacles) {
+            let drawX = obs.x - cameraX;
+            if (drawX > -100 && drawX < canvas.width + 100) {
+                if (obs.type === 'spike') {
+                    ctx.fillStyle = "#ff2222";
+                    ctx.beginPath();
+                    ctx.moveTo(drawX + CUBE_SIZE / 2, obs.y);
+                    ctx.lineTo(drawX, obs.y + CUBE_SIZE);
+                    ctx.lineTo(drawX + CUBE_SIZE, obs.y + CUBE_SIZE);
+                    ctx.closePath();
+                    ctx.fill();
+                    // Viền gai
+                    ctx.strokeStyle = "#ffa0a0";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else if (obs.type === 'block') {
+                    ctx.fillStyle = "#22bb22";
+                    ctx.fillRect(drawX, obs.y, CUBE_SIZE, CUBE_SIZE);
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(drawX, obs.y, CUBE_SIZE, CUBE_SIZE);
+                }
+            }
+        }
+
+        // Vẽ hiệu ứng hạt (Particles & Explosion)
+        for (let p of particles) {
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x - cameraX, p.y, p.size, p.size);
+        }
+
+        // Vẽ nhân vật (Cube) khi chưa chết
+        if (!isGameOver) {
+            ctx.save();
+            let playerDrawX = player.x - cameraX;
+            ctx.translate(playerDrawX + player.size / 2, player.y + player.size / 2);
+            ctx.rotate((player.angle * Math.PI) / 180);
+
+            // Thân khối vuông Vàng Neon
+            ctx.fillStyle = "#ffe600";
+            ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
+            
+            // Viền ngoài và ô vuông nhỏ bên trong chuẩn Game gốc
+            ctx.strokeStyle = "#c88c00";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(-player.size / 2, -player.size / 2, player.size, player.size);
+            
+            ctx.fillStyle = "#ff5000";
+            ctx.fillRect(-player.size / 4, -player.size / 4, player.size / 2, player.size / 2);
+            ctx.restore();
+        }
+
+        // --- THANH TIẾN ĐỘ & TÊN LEVEL Ở PHÍA TRÊN (HUD) ---
+        let progress = Math.min(100, Math.floor((player.x / LEVEL_LENGTH) * 100));
+        
+        ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+        ctx.fillRect(canvas.width / 2 - 150, 15, 300, 24);
+        ctx.strokeStyle = "#64c8ff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(canvas.width / 2 - 150, 15, 300, 24);
+
+        ctx.fillStyle = "#00ff66";
+        ctx.fillRect(canvas.width / 2 - 148, 17, (296 * progress) / 100, 20);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 13px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(`Stereo Madness - ${progress}%`, canvas.width / 2, 31);
+
+        // Hiển thị thông báo Thua / Thắng
+        if (isGameOver) {
+            ctx.fillStyle = "rgba(15, 10, 40, 0.8)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#ff3232";
+            ctx.font = "bold 32px Arial";
+            ctx.fillText("CRASHED!", canvas.width / 2, canvas.height / 2 - 15);
+            ctx.font = "18px Arial";
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText("Nhấn SPACE hoặc Click để chơi lại", canvas.width / 2, canvas.height / 2 + 25);
+        } else if (isWon) {
+            ctx.fillStyle = "rgba(15, 10, 40, 0.8)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#32ff32";
+            ctx.font = "bold 32px Arial";
+            ctx.fillText("VICTORY!", canvas.width / 2, canvas.height / 2 - 15);
+            ctx.font = "18px Arial";
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText("Bạn đã hoàn thành Stereo Madness!", canvas.width / 2, canvas.height / 2 + 25);
+        }
+    }
+
+    function loop() {
+        update();
+        draw();
+        requestAnimationFrame(loop);
+    }
+
+    loop();
 </script>
 
 </body>
