@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Lite - Perfect Staircase Edition</title>
+    <title>Geometry Dash Lite - Real Game 100% Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
 
@@ -518,7 +518,7 @@
     };
 
     let platforms = [];
-    let staircases = []; // Bậc thang leo lên đỉnh cột
+    let staircases = [];
     let orbs = [];
     let portals = [];
     let coins = [];
@@ -564,13 +564,11 @@
         portals = [];
         coins = [];
 
-        // HỆ THỐNG TRỤ CỘT VÀ BẬC THANG LEO LÊN ĐỈNH CỘT (KHOẢNG CÁCH VỪA VẶN ĐỂ NHẢY QUA)
         let towerX = 420;
         let towerHeights = [180, 240, 300, 220];
         for (let h of towerHeights) {
             platforms.push({ x: towerX, y: 480 - h, width: 60, height: h });
             
-            // Xây dựng các bậc thang liên tiếp dẫn trực tiếp lên tới đỉnh cột
             let steps = Math.floor(h / 36);
             for (let s = 1; s <= steps; s++) {
                 staircases.push({ x: towerX - (s * 45), y: 480 - (s * 36), width: 45, height: 36 });
@@ -578,13 +576,16 @@
 
             orbs.push({ x: towerX + 30, y: 480 - h - 15, radius: 12 });
             coins.push({ x: towerX + 30, y: 480 - h - 70, collected: false });
-            towerX += 340; // Khoảng cách đủ để nhảy qua
+            towerX += 340;
         }
 
         let shipPortalX = towerX + 150;
         portals.push({ x: shipPortalX, y: 320, width: 40, height: 75, targetMode: "ship" });
 
-        let genX = shipPortalX + 300;
+        let wavePortalX = shipPortalX + 800;
+        portals.push({ x: wavePortalX, y: 320, width: 40, height: 75, targetMode: "wave" });
+
+        let genX = wavePortalX + 300;
         while (genX < currentConfig.length - 800) {
             platforms.push({ x: genX, y: 250, width: 40, height: 40, type: "triangleObstacle" });
             coins.push({ x: genX + 20, y: 120, collected: false });
@@ -675,7 +676,7 @@
                     player.grounded = false;
                     player.rotation += 450 * deltaTime;
                 }
-            } else {
+            } else if (player.mode === "ship") {
                 if (isMouseDown || window.isSpacePressed) {
                     player.vy -= 1900 * deltaTime;
                 } else {
@@ -684,6 +685,16 @@
                 player.y += player.vy * deltaTime;
                 player.rotation = player.vy * 0.035;
                 if (player.y > 480) { player.y = 480; player.vy = 0; }
+            } else if (player.mode === "wave") {
+                let waveSpeed = 600;
+                if (isMouseDown || window.isSpacePressed) {
+                    player.y -= waveSpeed * deltaTime;
+                    player.rotation = -45;
+                } else {
+                    player.y += waveSpeed * deltaTime;
+                    player.rotation = 45;
+                }
+                if (player.y > 480) { player.y = 480; }
             }
 
             let pTopBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
@@ -705,27 +716,28 @@
 
             let pBox = { x: player.x + 4, y: player.y - player.size + 4, w: player.size - 8, h: player.size - 8 };
 
-            // KIỂM TRA VA CHẠM TRỤ CỘT VÀ BẬC THANG
-            let allBlocks = [...platforms, ...staircases];
-            allBlocks.forEach(plat => {
-                let sx = plat.x - gameProgress;
-                let oBox = { x: sx, y: plat.y, w: plat.width, h: plat.height };
+            if (player.mode === "cube") {
+                let allBlocks = [...platforms, ...staircases];
+                allBlocks.forEach(plat => {
+                    let sx = plat.x - gameProgress;
+                    let oBox = { x: sx, y: plat.y, w: plat.width, h: plat.height };
 
-                if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x &&
-                    pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
-                    
-                    let prevY = player.y - (player.vy * deltaTime) - player.size;
-                    if (prevY <= oBox.y && player.vy >= 0) {
-                        player.y = oBox.y;
-                        player.vy = 0;
-                        player.grounded = true;
-                        player.rotation = Math.round(player.rotation / 90) * 90;
-                    } else {
-                        restartLevel();
-                        return;
+                    if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x &&
+                        pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
+                        
+                        let prevY = player.y - (player.vy * deltaTime) - player.size;
+                        if (prevY <= oBox.y && player.vy >= 0) {
+                            player.y = oBox.y;
+                            player.vy = 0;
+                            player.grounded = true;
+                            player.rotation = Math.round(player.rotation / 90) * 90;
+                        } else {
+                            restartLevel();
+                            return;
+                        }
                     }
-                }
-            });
+                });
+            }
 
             orbs.forEach(orb => {
                 let sx = orb.x - gameProgress;
@@ -788,7 +800,6 @@
             ctx.fill();
         }
 
-        // Vẽ Trụ cột
         platforms.forEach(plat => {
             let sx = plat.x - gameProgress;
             ctx.fillStyle = "#440088";
@@ -797,7 +808,6 @@
             ctx.strokeRect(sx, plat.y, plat.width, plat.height);
         });
 
-        // Vẽ Bậc thang dẫn lên đỉnh cột
         staircases.forEach(st => {
             let sx = st.x - gameProgress;
             ctx.fillStyle = "#5500aa";
@@ -819,7 +829,8 @@
 
         portals.forEach(portal => {
             let sx = portal.x - gameProgress;
-            ctx.fillStyle = "rgba(0, 255, 255, 0.6)";
+            let portalColor = portal.targetMode === "wave" ? "rgba(255, 0, 100, 0.7)" : "rgba(0, 255, 255, 0.6)";
+            ctx.fillStyle = portalColor;
             ctx.fillRect(sx, portal.y, portal.width, portal.height);
             ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
             ctx.strokeRect(sx, portal.y, portal.width, portal.height);
@@ -911,7 +922,7 @@
                 ctx.fill();
                 ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.stroke();
             }
-        } else {
+        } else if (player.mode === "ship") {
             ctx.fillStyle = "#ff6600";
             ctx.beginPath();
             ctx.moveTo(-24, -4); ctx.lineTo(-38, 0); ctx.lineTo(-24, 4);
@@ -935,6 +946,16 @@
             ctx.arc(2, 0, 6, 0, Math.PI * 2);
             ctx.fill();
             ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
+        } else if (player.mode === "wave") {
+            ctx.fillStyle = playerColor;
+            ctx.beginPath();
+            ctx.moveTo(-16, -12);
+            ctx.lineTo(18, 0);
+            ctx.lineTo(-16, 12);
+            ctx.lineTo(-8, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2.5; ctx.stroke();
         }
 
         ctx.restore();
