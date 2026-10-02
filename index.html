@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash - Stereo Madness (100% Real Style)</title>
+    <title>Geometry Dash - Full Menu & Game</title>
     <style>
         body {
             margin: 0;
@@ -19,29 +19,31 @@
         }
         #game-container {
             position: relative;
-            box-shadow: 0 0 40px rgba(0, 150, 255, 0.4);
+            box-shadow: 0 0 40px rgba(0, 150, 255, 0.5);
             border: 4px solid #1a1540;
             border-radius: 10px;
         }
         canvas {
             display: block;
             background: #190b38;
+            cursor: pointer;
         }
         .controls {
             margin-top: 15px;
             background: #161138;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 8px;
             border: 1px solid #332b70;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
         }
         input[type="file"] {
             color: #fff;
+            font-size: 13px;
         }
         .info {
-            font-size: 14px;
+            font-size: 13px;
             color: #a0a0c0;
         }
     </style>
@@ -53,7 +55,7 @@
     </div>
 
     <div class="controls">
-        <span class="info">🎵 Nhạc nền Stereo Madness (.mp3):</span>
+        <span class="info">🎵 Tải nhạc nền (.mp3):</span>
         <input type="file" id="audioUpload" accept="audio/mp3, audio/*">
     </div>
 
@@ -74,23 +76,25 @@
         }
     });
 
-    // Thông số vật lý chuẩn Geometry Dash
+    // Các trạng thái game: 'menu', 'level_select', 'playing'
+    let gameState = 'menu';
+
+    // Dữ liệu các màn chơi
+    const levels = [
+        { name: "Stereo Madness", diff: "Easy", color: "#00ff66", length: 3800 },
+        { name: "Back On Track", diff: "Normal", color: "#00ccff", length: 4200 },
+        { name: "Polargeist", diff: "Hard", color: "#ffcc00", length: 4500 }
+    ];
+    let selectedLevelIndex = 0;
+
+    // Vật lý & Biến game
     const GRAVITY = 0.92;
     const JUMP_FORCE = -13.5;
     const GROUND_Y = 390;
     const CUBE_SIZE = 40;
     const SPEED = 6.2;
-    const LEVEL_LENGTH = 3800; // Độ dài màn chơi Stereo Madness mẫu
 
-    let player = {
-        x: 100,
-        y: GROUND_Y - CUBE_SIZE,
-        size: CUBE_SIZE,
-        vy: 0,
-        angle: 0,
-        onGround: false
-    };
-
+    let player = { x: 100, y: GROUND_Y - CUBE_SIZE, size: CUBE_SIZE, vy: 0, angle: 0, onGround: false };
     let cameraX = 0;
     let isGameOver = false;
     let isWon = false;
@@ -98,53 +102,73 @@
     let particles = [];
     let stars = [];
 
-    // Tạo các ngôi sao nền (Parallax background stars)
-    for (let i = 0; i < 60; i++) {
-        stars.push({
-            x: Math.random() * LEVEL_LENGTH,
-            y: Math.random() * GROUND_Y,
-            size: Math.random() * 2.5 + 1,
-            speed: Math.random() * 0.4 + 0.2
-        });
+    for (let i = 0; i < 50; i++) {
+        stars.push({ x: Math.random() * 5000, y: Math.random() * GROUND_Y, size: Math.random() * 2 + 1, speed: Math.random() * 0.4 + 0.2 });
     }
 
-    // Thiết kế màn chơi Stereo Madness chuẩn xác
-    let obstacles = [
-        { x: 500, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
-        { x: 750, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
-        { x: 900, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
-        { x: 940, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
-        
-        // Cụm khối vuông bậc thang
-        { x: 1250, y: GROUND_Y - CUBE_SIZE, type: 'block' },
-        { x: 1290, y: GROUND_Y - CUBE_SIZE - CUBE_SIZE, type: 'block' },
-        { x: 1330, y: GROUND_Y - CUBE_SIZE - CUBE_SIZE * 2, type: 'block' },
-        
-        { x: 1650, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
-        { x: 1690, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
-        
-        { x: 2000, y: GROUND_Y - CUBE_SIZE, type: 'block' },
-        { x: 2040, y: GROUND_Y - CUBE_SIZE, type: 'spike' }, // Gai trên bệ block
-        { x: 2040, y: GROUND_Y - CUBE_SIZE - CUBE_SIZE, type: 'block' },
-        
-        { x: 2400, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
-        { x: 2440, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
-        { x: 2480, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
-        
-        { x: 2900, y: GROUND_Y - CUBE_SIZE, type: 'block' },
-        { x: 2940, y: GROUND_Y - CUBE_SIZE, type: 'block' },
-        { x: 3100, y: GROUND_Y - CUBE_SIZE, type: 'spike' },
-        { x: 3140, y: GROUND_Y - CUBE_SIZE, type: 'spike' }
-    ];
+    // Mẫu chướng ngại vật cho màn chơi
+    let obstacles = [];
+    function loadLevelObstacles(length) {
+        obstacles = [];
+        for (let x = 500; x < length - 300; x += 350) {
+            obstacles.push({ x: x, y: GROUND_Y - CUBE_SIZE, type: 'spike' });
+            if (Math.random() > 0.5) {
+                obstacles.push({ x: x + 40, y: GROUND_Y - CUBE_SIZE, type: 'spike' });
+            }
+            if (x % 700 === 0) {
+                obstacles.push({ x: x + 200, y: GROUND_Y - CUBE_SIZE, type: 'block' });
+                obstacles.push({ x: x + 240, y: GROUND_Y - CUBE_SIZE - CUBE_SIZE, type: 'block' });
+            }
+        }
+    }
 
-    // Xử lý sự kiện bàn phím & chuột
+    // Xử lý sự kiện click chuột / chạm màn hình
+    canvas.addEventListener("click", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        if (gameState === 'menu') {
+            // Nút Play lớn ở giữa
+            if (mouseX >= canvas.width / 2 - 55 && mouseX <= canvas.width / 2 + 55 &&
+                mouseY >= canvas.height / 2 - 55 && mouseY <= canvas.height / 2 + 55) {
+                gameState = 'level_select';
+            }
+        } else if (gameState === 'level_select') {
+            // Nút Quay lại menu (<) góc trái
+            if (mouseX >= 20 && mouseX <= 80 && mouseY >= 20 && mouseY <= 70) {
+                gameState = 'menu';
+                return;
+            }
+            // Chọn màn chơi trái / phải
+            if (mouseX >= canvas.width / 2 - 180 && mouseX <= canvas.width / 2 - 120 && mouseY >= canvas.height / 2 - 30 && mouseY <= canvas.height / 2 + 30) {
+                selectedLevelIndex = (selectedLevelIndex - 1 + levels.length) % levels.length;
+            }
+            if (mouseX >= canvas.width / 2 + 120 && mouseX <= canvas.width / 2 + 180 && mouseY >= canvas.height / 2 - 30 && mouseY <= canvas.height / 2 + 30) {
+                selectedLevelIndex = (selectedLevelIndex + 1) % levels.length;
+            }
+            // Click vào nút Play màn chơi
+            if (mouseX >= canvas.width / 2 - 70 && mouseX <= canvas.width / 2 + 70 && mouseY >= canvas.height / 2 + 50 && mouseY <= canvas.height / 2 + 110) {
+                startLevel(selectedLevelIndex);
+            }
+        } else if (gameState === 'playing') {
+            if (isGameOver || isWon) {
+                startLevel(selectedLevelIndex);
+            } else {
+                jump();
+            }
+        }
+    });
+
     window.addEventListener("keydown", (e) => {
         if (e.code === "Space" || e.code === "ArrowUp") {
             holdingJump = true;
-            if (isGameOver || isWon) {
-                resetGame();
-            } else {
-                jump();
+            if (gameState === 'playing') {
+                if (isGameOver || isWon) {
+                    startLevel(selectedLevelIndex);
+                } else {
+                    jump();
+                }
             }
         }
     });
@@ -155,37 +179,34 @@
         }
     });
 
-    canvas.addEventListener("mousedown", () => {
-        if (isGameOver || isWon) {
-            resetGame();
-        } else {
-            holdingJump = true;
-            jump();
+    function startLevel(index) {
+        gameState = 'playing';
+        isGameOver = false;
+        isWon = false;
+        player = { x: 100, y: GROUND_Y - CUBE_SIZE, size: CUBE_SIZE, vy: 0, angle: 0, onGround: false };
+        cameraX = 0;
+        particles = [];
+        loadLevelObstacles(levels[index].length);
+        if (bgMusic.src) {
+            bgMusic.currentTime = 0;
+            bgMusic.play().catch(() => {});
         }
-    });
-
-    canvas.addEventListener("mouseup", () => {
-        holdingJump = false;
-    });
+    }
 
     function jump() {
         if (player.onGround) {
             player.vy = JUMP_FORCE;
             player.onGround = false;
-            createDustParticles();
+            createDust();
         }
     }
 
-    function createDustParticles() {
-        for (let i = 0; i < 6; i++) {
+    function createDust() {
+        for (let i = 0; i < 5; i++) {
             particles.push({
-                x: player.x + CUBE_SIZE / 2,
-                y: GROUND_Y,
-                vx: (Math.random() - 0.5) * 4,
-                vy: -Math.random() * 3 - 1,
-                size: Math.random() * 4 + 2,
-                color: "#64c8ff",
-                life: 20
+                x: player.x + CUBE_SIZE / 2, y: GROUND_Y,
+                vx: (Math.random() - 0.5) * 4, vy: -Math.random() * 3 - 1,
+                size: Math.random() * 4 + 2, color: "#64c8ff", life: 20
             });
         }
     }
@@ -193,229 +214,242 @@
     function createExplosion() {
         for (let i = 0; i < 25; i++) {
             particles.push({
-                x: player.x + CUBE_SIZE / 2,
-                y: player.y + CUBE_SIZE / 2,
-                vx: (Math.random() - 0.5) * 10,
-                vy: (Math.random() - 0.5) * 10,
-                size: Math.random() * 6 + 3,
-                color: Math.random() > 0.5 ? "#ffe600" : "#ff3232",
-                life: 40
+                x: player.x + CUBE_SIZE / 2, y: player.y + CUBE_SIZE / 2,
+                vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10,
+                size: Math.random() * 6 + 3, color: Math.random() > 0.5 ? "#ffe600" : "#ff3232", life: 40
             });
         }
     }
 
-    function resetGame() {
-        player.x = 100;
-        player.y = GROUND_Y - CUBE_SIZE;
-        player.vy = 0;
-        player.angle = 0;
-        player.onGround = false;
-        cameraX = 0;
-        isGameOver = false;
-        isWon = false;
-        particles = [];
-        if (bgMusic.src) {
-            bgMusic.currentTime = 0;
-            bgMusic.play();
-        }
-    }
-
+    // --- VÒNG LẶP CẬP NHẬT GAME ---
     function update() {
-        // Cập nhật hạt hiệu ứng (Particles)
         for (let i = particles.length - 1; i >= 0; i--) {
             let p = particles[i];
-            p.x += p.vx;
-            p.y += p.vy;
-            p.life--;
+            p.x += p.vx; p.y += p.vy; p.life--;
             if (p.life <= 0) particles.splice(i, 1);
         }
 
-        if (!isGameOver && !isWon) {
+        if (gameState === 'playing' && !isGameOver && !isWon) {
             player.x += SPEED;
             cameraX = player.x - 200;
 
             player.vy += GRAVITY;
             player.y += player.vy;
 
-            // Chạm đất
             if (player.y + player.size >= GROUND_Y) {
                 player.y = GROUND_Y - player.size;
                 player.vy = 0;
                 player.onGround = true;
                 player.angle = Math.round(player.angle / 90) * 90;
-
-                if (holdingJump) {
-                    jump();
-                }
+                if (holdingJump) jump();
             } else {
                 player.onGround = false;
                 player.angle -= 8.5;
             }
 
-            // Kiểm tra va chạm vật thể
+            // Kiểm tra va chạm
             for (let obs of obstacles) {
-                let hitBoxX = obs.type === 'spike' ? obs.x + 8 : obs.x;
-                let hitBoxY = obs.type === 'spike' ? obs.y + 12 : obs.y;
-                let hitBoxW = obs.type === 'spike' ? CUBE_SIZE - 16 : CUBE_SIZE;
-                let hitBoxH = obs.type === 'spike' ? CUBE_SIZE - 12 : CUBE_SIZE;
+                let hx = obs.type === 'spike' ? obs.x + 8 : obs.x;
+                let hy = obs.type === 'spike' ? obs.y + 12 : obs.y;
+                let hw = obs.type === 'spike' ? CUBE_SIZE - 16 : CUBE_SIZE;
+                let hh = obs.type === 'spike' ? CUBE_SIZE - 12 : CUBE_SIZE;
 
-                if (
-                    player.x < hitBoxX + hitBoxW &&
-                    player.x + player.size > hitBoxX &&
-                    player.y < hitBoxY + hitBoxH &&
-                    player.y + player.size > hitBoxY
-                ) {
+                if (player.x < hx + hw && player.x + player.size > hx &&
+                    player.y < hy + hh && player.y + player.size > hy) {
                     isGameOver = true;
                     createExplosion();
                     bgMusic.pause();
                 }
             }
 
-            // Kiểm tra chiến thắng
-            if (player.x > LEVEL_LENGTH) {
+            if (player.x > levels[selectedLevelIndex].length) {
                 isWon = true;
                 bgMusic.pause();
             }
         }
     }
 
+    // --- VẼ ĐỒ HỌA ---
     function draw() {
-        // Màu nền Gradient chuẩn Geometry Dash
-        let bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        bgGradient.addColorStop(0, "#190b38");
-        bgGradient.addColorStop(1, "#3c1361");
-        ctx.fillStyle = bgGradient;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Nền chung Gradient
+        let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        bgGrad.addColorStop(0, "#190b38");
+        bgGrad.addColorStop(1, "#3c1361");
+        ctx.fillStyle = bgGrad;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Vẽ các ngôi sao chuyển động Parallax
-        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-        for (let star of stars) {
-            let drawStarX = (star.x - cameraX * star.speed) % canvas.width;
-            if (drawStarX < 0) drawStarX += canvas.width;
-            ctx.fillRect(drawStarX, star.y, star.size, star.size);
+        // Sao nền
+        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        for (let s of stars) {
+            let sx = (s.x - (gameState === 'playing' ? cameraX * s.speed : 0)) % canvas.width;
+            if (sx < 0) sx += canvas.width;
+            ctx.fillRect(sx, s.y, s.size, s.size);
         }
 
-        // Vẽ lưới nền mờ
-        ctx.strokeStyle = "rgba(100, 50, 150, 0.15)";
-        ctx.lineWidth = 1;
-        for (let x = 0; x < canvas.width; x += 40) {
+        if (gameState === 'menu') {
+            // --- GIAO DIỆN MENU CHÍNH ---
+            ctx.fillStyle = "#00ffcc";
+            ctx.font = "bold 48px Arial";
+            ctx.textAlign = "center";
+            ctx.shadowColor = "#0099ff";
+            ctx.shadowBlur = 15;
+            ctx.fillText("GEOMETRY DASH", canvas.width / 2, 130);
+            ctx.shadowBlur = 0;
+
+            // Nút Play lớn ở giữa
+            ctx.fillStyle = "#32cd32";
             ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, canvas.height);
+            ctx.arc(canvas.width / 2, canvas.height / 2, 60, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 4;
             ctx.stroke();
-        }
 
-        // Vẽ mặt đất Stereo Madness (Xanh dương đặc trưng)
-        ctx.fillStyle = "#002080";
-        ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
-        
-        // Họa tiết lưới bên trong mặt đất
-        ctx.strokeStyle = "#0040cc";
-        ctx.lineWidth = 2;
-        for (let x = ( - cameraX * 0.8) % 40; x < canvas.width; x += 40) {
+            // Biểu tượng hình tam giác Play
+            ctx.fillStyle = "#ffffff";
             ctx.beginPath();
-            ctx.moveTo(x, GROUND_Y);
-            ctx.lineTo(x - 50, canvas.height);
+            ctx.moveTo(canvas.width / 2 - 20, canvas.height / 2 - 30);
+            ctx.lineTo(canvas.width / 2 + 30, canvas.height / 2);
+            ctx.lineTo(canvas.width / 2 - 20, canvas.height / 2 + 30);
+            ctx.closePath();
+            ctx.fill();
+
+        } else if (gameState === 'level_select') {
+            // --- GIAO DIỆN CHỌN MÀN CHƠI ---
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 28px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("CHỌN MÀN CHƠI", canvas.width / 2, 60);
+
+            // Nút quay lại
+            ctx.fillStyle = "#332b70";
+            ctx.fillRect(20, 20, 60, 40);
+            ctx.strokeStyle = "#64c8ff";
+            ctx.strokeRect(20, 20, 60, 40);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "20px Arial";
+            ctx.fillText("◄", 50, 47);
+
+            // Hộp hiển thị màn chơi hiện tại
+            let lvl = levels[selectedLevelIndex];
+            ctx.fillStyle = "rgba(20, 15, 50, 0.8)";
+            ctx.fillRect(canvas.width / 2 - 180, canvas.height / 2 - 90, 360, 180);
+            ctx.strokeStyle = lvl.color;
+            ctx.lineWidth = 4;
+            ctx.strokeRect(canvas.width / 2 - 180, canvas.height / 2 - 90, 360, 180);
+
+            ctx.fillStyle = lvl.color;
+            ctx.font = "bold 24px Arial";
+            ctx.fillText(lvl.name, canvas.width / 2, canvas.height / 2 - 45);
+
+            ctx.fillStyle = "#cccccc";
+            ctx.font = "16px Arial";
+            ctx.fillText(`Độ khó: ${lvl.diff}`, canvas.width / 2, canvas.height / 2 - 15);
+
+            // Nút bấm Play màn chơi nhỏ
+            ctx.fillStyle = "#00ff66";
+            ctx.fillRect(canvas.width / 2 - 70, canvas.height / 2 + 25, 140, 45);
+            ctx.fillStyle = "#000000";
+            ctx.font = "bold 20px Arial";
+            ctx.fillText("CHƠI NGAY", canvas.width / 2, canvas.height / 2 + 54);
+
+            // Mũi tên chuyển màn trái / phải
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 30px Arial";
+            ctx.fillText("◄", canvas.width / 2 - 150, canvas.height / 2 + 10);
+            ctx.fillText("►", canvas.width / 2 + 150, canvas.height / 2 + 10);
+
+        } else if (gameState === 'playing') {
+            // --- GIAO DIỆN GAMEPLAY ---
+            ctx.fillStyle = "#002080";
+            ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+
+            ctx.strokeStyle = "#00ffff";
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, GROUND_Y);
+            ctx.lineTo(canvas.width, GROUND_Y);
             ctx.stroke();
-        }
 
-        // Viền sáng neon mặt đất
-        ctx.strokeStyle = "#00ffff";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(0, GROUND_Y);
-        ctx.lineTo(canvas.width, GROUND_Y);
-        ctx.stroke();
-
-        // Vẽ chướng ngại vật (Gai và Block)
-        for (let obs of obstacles) {
-            let drawX = obs.x - cameraX;
-            if (drawX > -100 && drawX < canvas.width + 100) {
-                if (obs.type === 'spike') {
-                    ctx.fillStyle = "#ff2222";
-                    ctx.beginPath();
-                    ctx.moveTo(drawX + CUBE_SIZE / 2, obs.y);
-                    ctx.lineTo(drawX, obs.y + CUBE_SIZE);
-                    ctx.lineTo(drawX + CUBE_SIZE, obs.y + CUBE_SIZE);
-                    ctx.closePath();
-                    ctx.fill();
-                    // Viền gai
-                    ctx.strokeStyle = "#ffa0a0";
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                } else if (obs.type === 'block') {
-                    ctx.fillStyle = "#22bb22";
-                    ctx.fillRect(drawX, obs.y, CUBE_SIZE, CUBE_SIZE);
-                    ctx.strokeStyle = "#ffffff";
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(drawX, obs.y, CUBE_SIZE, CUBE_SIZE);
+            // Vẽ chướng ngại vật
+            for (let obs of obstacles) {
+                let dx = obs.x - cameraX;
+                if (dx > -100 && dx < canvas.width + 100) {
+                    if (obs.type === 'spike') {
+                        ctx.fillStyle = "#ff2222";
+                        ctx.beginPath();
+                        ctx.moveTo(dx + CUBE_SIZE / 2, obs.y);
+                        ctx.lineTo(dx, obs.y + CUBE_SIZE);
+                        ctx.lineTo(dx + CUBE_SIZE, obs.y + CUBE_SIZE);
+                        ctx.closePath();
+                        ctx.fill();
+                    } else if (obs.type === 'block') {
+                        ctx.fillStyle = "#22bb22";
+                        ctx.fillRect(dx, obs.y, CUBE_SIZE, CUBE_SIZE);
+                        ctx.strokeStyle = "#ffffff";
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(dx, obs.y, CUBE_SIZE, CUBE_SIZE);
+                    }
                 }
             }
-        }
 
-        // Vẽ hiệu ứng hạt (Particles & Explosion)
-        for (let p of particles) {
-            ctx.fillStyle = p.color;
-            ctx.fillRect(p.x - cameraX, p.y, p.size, p.size);
-        }
+            for (let p of particles) {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x - cameraX, p.y, p.size, p.size);
+            }
 
-        // Vẽ nhân vật (Cube) khi chưa chết
-        if (!isGameOver) {
-            ctx.save();
-            let playerDrawX = player.x - cameraX;
-            ctx.translate(playerDrawX + player.size / 2, player.y + player.size / 2);
-            ctx.rotate((player.angle * Math.PI) / 180);
+            if (!isGameOver) {
+                ctx.save();
+                let pdx = player.x - cameraX;
+                ctx.translate(pdx + player.size / 2, player.y + player.size / 2);
+                ctx.rotate((player.angle * Math.PI) / 180);
 
-            // Thân khối vuông Vàng Neon
-            ctx.fillStyle = "#ffe600";
-            ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
-            
-            // Viền ngoài và ô vuông nhỏ bên trong chuẩn Game gốc
-            ctx.strokeStyle = "#c88c00";
-            ctx.lineWidth = 3;
-            ctx.strokeRect(-player.size / 2, -player.size / 2, player.size, player.size);
-            
-            ctx.fillStyle = "#ff5000";
-            ctx.fillRect(-player.size / 4, -player.size / 4, player.size / 2, player.size / 2);
-            ctx.restore();
-        }
+                ctx.fillStyle = "#ffe600";
+                ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
+                ctx.strokeStyle = "#c88c00";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(-player.size / 2, -player.size / 2, player.size, player.size);
+                
+                ctx.fillStyle = "#ff5000";
+                ctx.fillRect(-player.size / 4, -player.size / 4, player.size / 2, player.size / 2);
+                ctx.restore();
+            }
 
-        // --- THANH TIẾN ĐỘ & TÊN LEVEL Ở PHÍA TRÊN (HUD) ---
-        let progress = Math.min(100, Math.floor((player.x / LEVEL_LENGTH) * 100));
-        
-        ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-        ctx.fillRect(canvas.width / 2 - 150, 15, 300, 24);
-        ctx.strokeStyle = "#64c8ff";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(canvas.width / 2 - 150, 15, 300, 24);
-
-        ctx.fillStyle = "#00ff66";
-        ctx.fillRect(canvas.width / 2 - 148, 17, (296 * progress) / 100, 20);
-
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 13px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(`Stereo Madness - ${progress}%`, canvas.width / 2, 31);
-
-        // Hiển thị thông báo Thua / Thắng
-        if (isGameOver) {
-            ctx.fillStyle = "rgba(15, 10, 40, 0.8)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#ff3232";
-            ctx.font = "bold 32px Arial";
-            ctx.fillText("CRASHED!", canvas.width / 2, canvas.height / 2 - 15);
-            ctx.font = "18px Arial";
+            // Thanh tiến độ phía trên
+            let lvl = levels[selectedLevelIndex];
+            let progress = Math.min(100, Math.floor((player.x / lvl.length) * 100));
+            ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+            ctx.fillRect(canvas.width / 2 - 150, 15, 300, 22);
+            ctx.strokeStyle = "#64c8ff";
+            ctx.strokeRect(canvas.width / 2 - 150, 15, 300, 22);
+            ctx.fillStyle = "#00ff66";
+            ctx.fillRect(canvas.width / 2 - 148, 17, (296 * progress) / 100, 18);
             ctx.fillStyle = "#ffffff";
-            ctx.fillText("Nhấn SPACE hoặc Click để chơi lại", canvas.width / 2, canvas.height / 2 + 25);
-        } else if (isWon) {
-            ctx.fillStyle = "rgba(15, 10, 40, 0.8)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#32ff32";
-            ctx.font = "bold 32px Arial";
-            ctx.fillText("VICTORY!", canvas.width / 2, canvas.height / 2 - 15);
-            ctx.font = "18px Arial";
-            ctx.fillStyle = "#ffffff";
-            ctx.fillText("Bạn đã hoàn thành Stereo Madness!", canvas.width / 2, canvas.height / 2 + 25);
+            ctx.font = "bold 12px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(`${lvl.name} - ${progress}%`, canvas.width / 2, 30);
+
+            if (isGameOver) {
+                ctx.fillStyle = "rgba(15, 10, 40, 0.85)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#ff3232";
+                ctx.font = "bold 32px Arial";
+                ctx.fillText("CRASHED!", canvas.width / 2, canvas.height / 2 - 10);
+                ctx.font = "16px Arial";
+                ctx.fillStyle = "#ffffff";
+                ctx.fillText("Nhấn SPACE hoặc Click để chơi lại", canvas.width / 2, canvas.height / 2 + 25);
+            } else if (isWon) {
+                ctx.fillStyle = "rgba(15, 10, 40, 0.85)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#32ff32";
+                ctx.font = "bold 32px Arial";
+                ctx.fillText("VICTORY!", canvas.width / 2, canvas.height / 2 - 10);
+                ctx.font = "16px Arial";
+                ctx.fillStyle = "#ffffff";
+                ctx.fillText("Bạn đã hoàn thành màn chơi!", canvas.width / 2, canvas.height / 2 + 25);
+            }
         }
     }
 
