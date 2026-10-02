@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Lite - Real Game 100% Edition</title>
+    <title>Geometry Dash Lite - Real Game Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
 
@@ -518,7 +518,6 @@
     };
 
     let platforms = [];
-    let staircases = [];
     let orbs = [];
     let portals = [];
     let coins = [];
@@ -559,7 +558,6 @@
         document.getElementById("coin-score").innerText = `🪙 XU: ${levelCoins[selectedLevel]}/3`;
 
         platforms = [];
-        staircases = [];
         orbs = [];
         portals = [];
         coins = [];
@@ -568,12 +566,6 @@
         let towerHeights = [180, 240, 300, 220];
         for (let h of towerHeights) {
             platforms.push({ x: towerX, y: 480 - h, width: 60, height: h });
-            
-            let steps = Math.floor(h / 36);
-            for (let s = 1; s <= steps; s++) {
-                staircases.push({ x: towerX - (s * 45), y: 480 - (s * 36), width: 45, height: 36 });
-            }
-
             orbs.push({ x: towerX + 30, y: 480 - h - 15, radius: 12 });
             coins.push({ x: towerX + 30, y: 480 - h - 70, collected: false });
             towerX += 340;
@@ -597,7 +589,7 @@
 
     function pauseGame() {
         isPaused = true;
-        document.getElementById("pause-screen").classList.remove("hidden");
+        document.getElementById("pause-screen").classList.add("hidden");
         stopLevelSynthesizer();
     }
 
@@ -717,8 +709,7 @@
             let pBox = { x: player.x + 4, y: player.y - player.size + 4, w: player.size - 8, h: player.size - 8 };
 
             if (player.mode === "cube") {
-                let allBlocks = [...platforms, ...staircases];
-                allBlocks.forEach(plat => {
+                platforms.forEach(plat => {
                     let sx = plat.x - gameProgress;
                     let oBox = { x: sx, y: plat.y, w: plat.width, h: plat.height };
 
@@ -808,14 +799,6 @@
             ctx.strokeRect(sx, plat.y, plat.width, plat.height);
         });
 
-        staircases.forEach(st => {
-            let sx = st.x - gameProgress;
-            ctx.fillStyle = "#5500aa";
-            ctx.fillRect(sx, st.y, st.width, st.height);
-            ctx.strokeStyle = "#00ffff"; ctx.lineWidth = 2;
-            ctx.strokeRect(sx, st.y, st.width, st.height);
-        });
-
         orbs.forEach(orb => {
             let sx = orb.x - gameProgress;
             ctx.fillStyle = "#00ffff";
@@ -838,7 +821,7 @@
             let pBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
             let ptBox = { x: sx, y: portal.y, w: portal.width, h: portal.height };
             if (pBox.x < ptBox.x + ptBox.w && pBox.x + pBox.w > ptBox.x &&
-                pBox.y < ptBox.y + ptBox.h && pBox.y + pBox.h > ptBox.y) {
+                pBox.y < ptBox.y + ptBox.h && pBox.y + ptBox.h > ptBox.y) {
                 player.mode = portal.targetMode;
             }
         });
