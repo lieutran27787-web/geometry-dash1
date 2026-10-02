@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash Lite - Real Game Edition</title>
+    <title>Geometry Dash Lite - Bug Fixed & Optimized Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
 
@@ -589,7 +589,7 @@
 
     function pauseGame() {
         isPaused = true;
-        document.getElementById("pause-screen").classList.add("hidden");
+        document.getElementById("pause-screen").classList.remove("hidden");
         stopLevelSynthesizer();
     }
 
@@ -821,7 +821,7 @@
             let pBox = { x: player.x, y: player.y - player.size, w: player.size, h: player.size };
             let ptBox = { x: sx, y: portal.y, w: portal.width, h: portal.height };
             if (pBox.x < ptBox.x + ptBox.w && pBox.x + pBox.w > ptBox.x &&
-                pBox.y < ptBox.y + ptBox.h && pBox.y + ptBox.h > ptBox.y) {
+                pBox.y < ptBox.y + ptBox.h && pBox.y + pBox.h > ptBox.y) {
                 player.mode = portal.targetMode;
             }
         });
