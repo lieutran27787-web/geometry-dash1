@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash - Extended Spike Blocks Edition</title>
+    <title>Geometry Dash - Ultimate Edition with Checkpoint & Music</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -42,9 +42,9 @@
         }
         .hidden { display: none !important; }
 
-        /* Màn hình chọn màn chơi */
+        /* Màn hình chọn màn chơi (Ảnh bìa & bố cục giống ảnh 3) */
         #level-select-screen {
-            background: linear-gradient(180deg, #0033cc, #001144);
+            background: linear-gradient(180deg, #0044ee, #001144);
             padding: 20px;
         }
         .level-carousel {
@@ -73,35 +73,44 @@
         .nav-arrow-btn:active { transform: scale(0.95); }
 
         .level-card {
-            background: #002277;
+            background: linear-gradient(180deg, #0033aa, #001a55);
             border: 4px solid #00ffcc;
             border-radius: 16px;
-            width: 380px;
+            width: 400px;
             padding: 20px;
             text-align: center;
             box-shadow: 0 8px 25px rgba(0,255,204,0.4);
             position: relative;
         }
-        .level-title {
-            font-size: 32px;
+        .top-banner {
+            background: #002277;
+            border: 3px solid #00ffcc;
+            border-radius: 10px;
+            padding: 8px 20px;
+            font-size: 26px;
             font-weight: 900;
-            color: #ffcc00;
+            color: #ffffff;
             text-shadow: 2px 2px #000;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(0,255,204,0.3);
         }
-        .level-difficulty {
+        .sub-banner {
+            background: #001a55;
+            border: 2px solid #00ffcc;
+            border-radius: 6px;
+            padding: 8px;
             font-size: 15px;
-            font-weight: bold;
             color: #72ff52;
             margin-bottom: 20px;
-            text-shadow: 1px 1px #000;
+            font-weight: bold;
         }
         .level-actions {
             display: flex;
             justify-content: center;
             gap: 20px;
             align-items: center;
+            margin-bottom: 15px;
         }
         .circle-btn {
             width: 55px;
@@ -132,6 +141,15 @@
         }
         .play-big-btn:hover { transform: scale(1.08); }
 
+        .level-info-bar {
+            display: flex;
+            justify-content: space-around;
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffeb3b;
+            text-shadow: 1px 1px #000;
+        }
+
         .back-arrow {
             position: absolute;
             top: 20px;
@@ -148,6 +166,7 @@
             font-size: 20px;
             font-weight: bold;
             box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+            z-index: 5;
         }
         .skin-shop-icon-btn {
             position: absolute;
@@ -164,61 +183,122 @@
             cursor: pointer;
             font-size: 22px;
             box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+            z-index: 5;
+        }
+        .music-shop-icon-btn {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(to bottom, #00bcd4, #006064);
+            border: 3px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 22px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+            z-index: 5;
         }
 
-        /* Màn hình chọn Skin */
-        #skin-screen {
-            background: linear-gradient(180deg, #333333, #111111);
+        /* Màn hình chọn Nhạc (Giống ảnh 2 - Songs) */
+        #music-screen {
+            background: linear-gradient(180deg, #102a43, #0a101d);
             padding: 20px;
         }
-        .skin-panel {
-            background: #222222;
-            border: 4px solid #555555;
-            border-radius: 12px;
-            width: 650px;
-            padding: 20px;
+        .music-panel {
+            background: linear-gradient(180deg, #00aa66, #004422);
+            border: 4px solid #00ffcc;
+            border-radius: 14px;
+            width: 600px;
+            padding: 25px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.8);
+            position: relative;
+        }
+        .music-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        .music-item {
+            background: linear-gradient(to bottom, #ffeb3b, #f57f17);
+            border: 3px solid #fff;
+            color: #000;
+            font-weight: bold;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            transition: 0.1s;
+        }
+        .music-item:hover { transform: scale(1.02); background: linear-gradient(to bottom, #fff176, #f9a825); }
+        .music-item.selected { border-color: #72ff52; box-shadow: 0 0 12px #72ff52; }
+
+        /* Màn hình Kho Skin (Giống ảnh 1) */
+        #skin-screen {
+            background: linear-gradient(180deg, #2c3e50, #1a252f);
+            padding: 20px;
+        }
+        .skin-panel {
+            background: #1e272e;
+            border: 4px solid #718093;
+            border-radius: 14px;
+            width: 700px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.8);
             position: relative;
         }
         .preview-box {
-            width: 70px;
-            height: 70px;
+            width: 80px;
+            height: 80px;
             background: #111;
             border: 3px solid #00ffcc;
-            border-radius: 8px;
+            border-radius: 10px;
             margin-bottom: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
+            box-shadow: 0 0 15px rgba(0,255,204,0.3);
         }
         .skin-grid {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
-            gap: 8px;
-            background: #151515;
+            gap: 10px;
+            background: #12181b;
             padding: 15px;
-            border-radius: 8px;
-            border: 2px solid #444;
-            max-height: 200px;
+            border-radius: 10px;
+            border: 2px solid #3d3d3d;
+            max-height: 220px;
             overflow-y: auto;
+            width: 100%;
         }
         .skin-item {
-            width: 50px;
-            height: 50px;
-            background: #2a2a2a;
-            border: 2px solid #666;
-            border-radius: 6px;
+            width: 55px;
+            height: 55px;
+            background: #2f3640;
+            border: 2px solid #718093;
+            border-radius: 8px;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
             transition: 0.1s;
         }
-        .skin-item:hover { border-color: #00ffcc; transform: scale(1.05); }
-        .skin-item.selected { border-color: #72ff52; background: #335533; box-shadow: 0 0 10px #72ff52; }
+        .skin-item:hover { border-color: #00ffcc; transform: scale(1.08); }
+        .skin-item.selected { border-color: #72ff52; background: #273c75; box-shadow: 0 0 12px #72ff52; }
 
         /* Màn hình Thống kê cấp độ */
         #stats-screen {
@@ -257,7 +337,7 @@
             height: 100%;
         }
 
-        /* Giao diện trong game */
+        /* Giao diện trong game (Thêm nút đặt Checkpoint / Hồi sinh và nút phát nhạc) */
         #ui-overlay {
             position: absolute;
             top: 10px; left: 10px; right: 10px;
@@ -271,7 +351,7 @@
             z-index: 5;
         }
         .progress-bar-container {
-            width: 450px;
+            width: 350px;
             height: 14px;
             background: rgba(0,0,0,0.6);
             border: 2px solid #fff;
@@ -285,6 +365,29 @@
             background: linear-gradient(90deg, #00ffcc, #72ff52);
             transition: width 0.1s linear;
         }
+        .in-game-controls {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            display: flex;
+            gap: 12px;
+            z-index: 6;
+            pointer-events: auto;
+        }
+        .game-ctrl-btn {
+            background: linear-gradient(to bottom, #ffeb3b, #f57f17);
+            border: 3px solid #fff;
+            color: #000;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            font-size: 14px;
+            transition: 0.1s;
+        }
+        .game-ctrl-btn:hover { transform: scale(1.05); background: linear-gradient(to bottom, #fff176, #f9a825); }
+
         .btn-common {
             background: linear-gradient(to bottom, #72ff52, #1b8a10);
             border: 3px solid #fff;
@@ -302,45 +405,65 @@
 <body>
 
 <div id="game-container">
-    <!-- Màn hình Chọn Màn Chơi -->
+    <!-- Màn hình Chọn Màn Chơi (Ảnh bìa giống ảnh 3) -->
     <div id="level-select-screen" class="screen">
-        <div class="back-arrow" onclick="openStats()" title="Xem thống kê">ℹ️</div>
-        <div class="skin-shop-icon-btn" onclick="openSkinShop()" title="Chọn Skin">🎨</div>
+        <div class="back-arrow" onclick="openStats()" title="Xem thống kê (giống ảnh 4)">ℹ️</div>
+        <div class="skin-shop-icon-btn" onclick="openSkinShop()" title="Kho Skin (giống ảnh 1)">🎨</div>
+        <div class="music-shop-icon-btn" onclick="openMusicShop()" title="Chọn Nhạc (giống ảnh 2)">🎵</div>
 
         <div class="level-carousel">
             <button class="nav-arrow-btn" onclick="changeLevel(-1)">◄</button>
             
             <div class="level-card">
-                <div class="level-title" id="display-level-name">STEREO MADNESS</div>
-                <div class="level-difficulty" id="display-level-diff">⭐ ĐỘ KHÓ: DỄ (TINY)</div>
+                <div class="top-banner" id="display-level-name">STEREO MADNESS</div>
+                <div class="sub-banner" id="display-level-sub">background color 2.1</div>
                 
                 <div class="level-actions">
-                    <div class="circle-btn" onclick="openStats()" style="font-size: 22px;">🛠️</div>
+                    <div class="circle-btn" onclick="openStats()" style="font-size: 22px;" title="Cài đặt">🛠️</div>
                     <div class="play-big-btn" onclick="startGame()">
                         <span style="font-size: 38px; color: #fff; padding-left: 5px;">▶</span>
                     </div>
-                    <div class="circle-btn" onclick="openStats()" style="font-size: 22px;">📤</div>
+                    <div class="circle-btn" onclick="openStats()" style="font-size: 22px;" title="Chia sẻ">📤</div>
+                </div>
+
+                <div class="level-info-bar">
+                    <div id="info-time">⏱️ TINY</div>
+                    <div id="info-song">🎵 STEREO MADNESS</div>
+                    <div id="info-status">ℹ️ UNVERIFIED</div>
                 </div>
             </div>
 
             <button class="nav-arrow-btn" onclick="changeLevel(1)">►</button>
         </div>
         
-        <p style="color: #aaddff; font-size: 14px;">Màn chơi có các khối dài có gai phía trên để nhân vật leo lên & nhảy qua!</p>
+        <p style="color: #aaddff; font-size: 13px;">Sử dụng nút 🎵 ở góc phải để thêm/đổi nhạc và đặt Checkpoint khi chơi!</p>
     </div>
 
-    <!-- Màn hình Kho Skin -->
+    <!-- Màn hình Chọn Nhạc (Giống ảnh 2 - Songs) -->
+    <div id="music-screen" class="screen hidden">
+        <div class="music-panel">
+            <div class="back-arrow" style="top: 15px; left: 15px; width: 40px; height: 40px; font-size: 18px;" onclick="closeMusicShop()">◄</div>
+            <h2 style="color: #ffeb3b; margin-bottom: 10px; text-shadow: 1px 1px #000;">SONGS - CHỌN NHẠC NỀN</h2>
+            <p style="color: #aaddff; font-size: 13px; margin-bottom: 10px;">Chọn bài hát yêu thích để phát khi chơi game</p>
+            
+            <div class="music-grid" id="music-grid-container">
+                <!-- Danh sách nhạc sinh tự động -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Màn hình Kho Skin (Giống ảnh 1) -->
     <div id="skin-screen" class="screen hidden">
         <div class="skin-panel">
             <div class="back-arrow" style="top: 15px; left: 15px; width: 40px; height: 40px; font-size: 18px;" onclick="closeSkinShop()">◄</div>
-            <h2 style="color: #ffeb3b; margin-bottom: 15px; text-shadow: 1px 1px #000;">ICON KIT - CHỌN SKIN NHÂN VẬT</h2>
+            <h2 style="color: #ffeb3b; margin-bottom: 12px; text-shadow: 1px 1px #000;">ICON KIT - KHO SKIN NHÂN VẬT</h2>
             
             <div class="preview-box" id="skin-preview"></div>
             <div class="skin-grid" id="skin-grid-container"></div>
         </div>
     </div>
 
-    <!-- Màn hình Thống kê -->
+    <!-- Màn hình Thống kê (Giống ảnh 4) -->
     <div id="stats-screen" class="screen hidden">
         <div class="stats-box">
             <div class="back-arrow" style="top: 15px; left: 15px; width: 40px; height: 40px; font-size: 18px;" onclick="closeStats()">◄</div>
@@ -351,7 +474,7 @@
             </div>
             <p style="color: #aaddff; font-size: 14px; margin-bottom: 8px;">PRACTICE MODE</p>
             <div class="progress-indicator-line">
-                <div class="progress-fill-green" style="width: 20%;"></div>
+                <div class="progress-fill-green" style="width: 25%;"></div>
             </div>
 
             <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
@@ -380,6 +503,12 @@
             </div>
         </div>
         <div>Thử: <span id="attempts">1</span></div>
+
+        <!-- Nút thêm nhạc & nút đặt điểm hồi sinh (Checkpoint) trực tiếp trong khi chơi -->
+        <div class="in-game-controls">
+            <button class="game-ctrl-btn" onclick="toggleMusicPlayback()" id="music-toggle-btn">🎵 Bật Nhạc</button>
+            <button class="game-ctrl-btn" onclick="placeCheckpoint()" style="background: linear-gradient(to bottom, #00e676, #00c853); color:#fff;">📍 Đặt Checkpoint</button>
+        </div>
     </div>
 
     <canvas id="gameCanvas" width="800" height="450"></canvas>
@@ -394,12 +523,29 @@ let attempts = 1;
 let score = 0;
 let cameraX = 0;
 
+// Trạng thái Checkpoint (Điểm hồi sinh)
+let checkpoint = null; // Lưu { cameraX, playerY, playerVy, rotation }
+
+// Trạng thái Nhạc nền (Web Audio API synthetizer để phát nhạc vui nhộn không cần file ngoài)
+let audioCtx = null;
+let isMusicPlaying = false;
+let musicInterval = null;
+
+const songs = [
+    { name: 'Stereo Madness Anthem', bpm: 120 },
+    { name: 'Polargeist Electronic Mix', bpm: 130 },
+    { name: 'Back on Track Beat', bpm: 140 },
+    { name: 'Base After Base Remix', bpm: 150 },
+    { name: 'Practice Mode Chill Synth', bpm: 110 }
+];
+let currentSongIndex = 0;
+
 const levels = [
-    { name: 'STEREO MADNESS', speed: 5.5, length: 5000, bgColor: '#0055ff', groundColor: '#00aa55', diff: '⭐ DỄ (TINY)' },
-    { name: 'POLARGEIST', speed: 6.5, length: 6000, bgColor: '#0033aa', groundColor: '#008844', diff: '⭐⭐ TRUNG BÌNH' },
-    { name: 'BACK ON TRACK', speed: 7.2, length: 6500, bgColor: '#aa5500', groundColor: '#884400', diff: '⭐⭐ TRUNG BÌNH' },
-    { name: 'BASE AFTER BASE', speed: 8.0, length: 7000, bgColor: '#5500aa', groundColor: '#440088', diff: '⭐⭐⭐ KHÓ' },
-    { name: 'CAN\'T LET GO', speed: 8.8, length: 7500, bgColor: '#aa0055', groundColor: '#880044', diff: '⭐⭐⭐⭐ RẤT KHÓ' }
+    { name: 'STEREO MADNESS', sub: 'background color 2.1', speed: 5.5, length: 7000, bgColor: '#0055ff', groundColor: '#00aa55', time: '⏱️ TINY', song: '🎵 STEREO MADNESS' },
+    { name: 'POLARGEIST', sub: 'background color 2.2', speed: 6.2, length: 8000, bgColor: '#0033aa', groundColor: '#008844', time: '⏱️ SHORT', song: '🎵 POLARGEIST' },
+    { name: 'BACK ON TRACK', sub: 'background color 2.3', speed: 6.8, length: 9000, bgColor: '#aa5500', groundColor: '#884400', time: '⏱️ NORMAL', song: '🎵 TRACKS' },
+    { name: 'BASE AFTER BASE', sub: 'background color 2.4', speed: 7.5, length: 10000, bgColor: '#5500aa', groundColor: '#440088', time: '⏱️ LONG', song: '🎵 BASE' },
+    { name: 'CAN\'T LET GO', sub: 'background color 2.5', speed: 8.2, length: 11000, bgColor: '#aa0055', groundColor: '#880044', time: '⏱️ XLONG', song: '🎵 LOCKED' }
 ];
 let currentLevelIndex = 0;
 
@@ -412,6 +558,14 @@ const skins = [
     { primary: '#ffffff', secondary: '#333333' },
     { primary: '#9c27b0', secondary: '#e91e63' },
     { primary: '#795548', secondary: '#ffccbc' },
+    { primary: '#e74c3c', secondary: '#2ecc71' },
+    { primary: '#3498db', secondary: '#e67e22' },
+    { primary: '#9b59b6', secondary: '#1abc9c' },
+    { primary: '#f1c40f', secondary: '#34495e' },
+    { primary: '#e84393', secondary: '#00cec9' },
+    { primary: '#fdcb6e', secondary: '#6c5ce7' },
+    { primary: '#00b894', secondary: '#d63031' },
+    { primary: '#ffeaa7', secondary: '#2d3436' }
 ];
 let currentSkinIndex = 0;
 
@@ -423,8 +577,10 @@ const obstacles = [];
 function updateLevelDisplay() {
     let lvl = levels[currentLevelIndex];
     document.getElementById('display-level-name').innerText = lvl.name;
-    document.getElementById('display-level-diff').innerText = lvl.diff;
+    document.getElementById('display-level-sub').innerText = lvl.sub;
     document.getElementById('stats-level-title').innerText = lvl.name;
+    document.getElementById('info-time').innerText = lvl.time;
+    document.getElementById('info-song').innerText = lvl.song;
 }
 
 function changeLevel(direction) {
@@ -432,7 +588,6 @@ function changeLevel(direction) {
     updateLevelDisplay();
 }
 
-// Sinh chướng ngại vật: Bao gồm bục khối dài có gai bên trên (extended spike blocks) để leo lên và nhảy qua
 function generateLevel() {
     obstacles.length = 0;
     let lvl = levels[currentLevelIndex];
@@ -440,30 +595,120 @@ function generateLevel() {
     while (currentX < lvl.length - 400) {
         let type = Math.random();
         if (type < 0.3) {
-            // Cụm gai đơn
             obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
-            currentX += 160 + Math.random() * 70;
-        } else if (type < 0.6) {
-            // Khối dài có gai bên trên (Extended Spike Blocks): Nhân vật có thể chạy lên mặt phẳng bục rồi nhảy tiếp qua
-            let blockW = 128; // Bục kéo dài (chiều rộng lớn)
+            currentX += 150 + Math.random() * 60;
+        } else if (type < 0.65) {
+            let blockW = 160;
             let blockH = 64;
             let blockY = 382 - blockH;
             
-            // Thân khối bục để đứng lên
             obstacles.push({ x: currentX, y: blockY, w: blockW, h: blockH, type: 'block' });
-            
-            // Hàng gai đặt phía trên đỉnh khối bục (nhân vật phải nhảy chuẩn xác hoặc leo lên bục rồi nhảy qua)
             obstacles.push({ x: currentX + 32, y: blockY - 32, w: 32, h: 32, type: 'spike' });
             obstacles.push({ x: currentX + 64, y: blockY - 32, w: 32, h: 32, type: 'spike' });
+            obstacles.push({ x: currentX + 96, y: blockY - 32, w: 32, h: 32, type: 'spike' });
             
-            currentX += blockW + 180 + Math.random() * 80;
+            currentX += blockW + 160 + Math.random() * 80;
         } else {
-            // Cụm 2 gai
             obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
             obstacles.push({ x: currentX + 30, y: 350, w: 32, h: 32, type: 'spike' });
-            currentX += 240 + Math.random() * 90;
+            obstacles.push({ x: currentX + 60, y: 350, w: 32, h: 32, type: 'spike' });
+            currentX += 260 + Math.random() * 90;
         }
     }
+}
+
+// Hệ thống phát nhạc bằng Web Audio API
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
+
+function startMusic() {
+    initAudio();
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    if (musicInterval) clearInterval(musicInterval);
+
+    let song = songs[currentSongIndex];
+    let notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
+    
+    musicInterval = setInterval(() => {
+        if (!isMusicPlaying || gameState !== 'PLAYING') return;
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(notes[Math.floor(Math.random() * notes.length)], audioCtx.currentTime);
+        
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+    }, (60 / song.bpm) * 500);
+}
+
+function toggleMusicPlayback() {
+    isMusicPlaying = !isMusicPlaying;
+    let btn = document.getElementById('music-toggle-btn');
+    if (isMusicPlaying) {
+        btn.innerText = '🎵 Tắt Nhạc';
+        startMusic();
+    } else {
+        btn.innerText = '🎵 Bật Nhạc';
+        if (musicInterval) clearInterval(musicInterval);
+    }
+}
+
+// Đặt Checkpoint (Điểm hồi sinh) tại vị trí hiện tại của nhân vật
+function placeCheckpoint() {
+    if (gameState === 'PLAYING') {
+        checkpoint = {
+            cameraX: cameraX,
+            y: player.y,
+            vy: player.vy,
+            rotation: player.rotation,
+            isGrounded: player.isGrounded
+        };
+        // Hiệu ứng thông báo nhỏ khi đặt checkpoint thành công
+        let btn = document.querySelector('.in-game-controls button:nth-child(2)');
+        let oldText = btn.innerText;
+        btn.innerText = '📍 Đã lưu Checkpoint!';
+        setTimeout(() => { btn.innerText = oldText; }, 1200);
+    }
+}
+
+// Khởi tạo giao diện chọn nhạc (Songs - Giống ảnh 2)
+function initMusicShop() {
+    const container = document.getElementById('music-grid-container');
+    container.innerHTML = '';
+    songs.forEach((song, idx) => {
+        let item = document.createElement('div');
+        item.className = `music-item ${idx === currentSongIndex ? 'selected' : ''}`;
+        item.innerHTML = `🎵 ${song.name} (BPM: ${song.bpm})`;
+        item.onclick = () => {
+            currentSongIndex = idx;
+            initMusicShop();
+            if (isMusicPlaying) startMusic();
+        };
+        container.appendChild(item);
+    });
+}
+
+function openMusicShop() {
+    document.getElementById('level-select-screen').classList.add('hidden');
+    document.getElementById('music-screen').classList.remove('hidden');
+    initMusicShop();
+}
+
+function closeMusicShop() {
+    document.getElementById('music-screen').classList.add('hidden');
+    document.getElementById('level-select-screen').classList.remove('hidden');
 }
 
 function initSkinShop() {
@@ -472,8 +717,8 @@ function initSkinShop() {
     skins.forEach((skin, idx) => {
         let item = document.createElement('div');
         item.className = `skin-item ${idx === currentSkinIndex ? 'selected' : ''}`;
-        item.innerHTML = `<div style="width:24px; height:24px; background:${skin.primary}; border:2px solid #000; position:relative; display:flex; justify-content:center; align-items:center;">
-            <div style="width:10px; height:10px; background:${skin.secondary}; border:1px solid #fff;"></div>
+        item.innerHTML = `<div style="width:30px; height:30px; background:${skin.primary}; border:2px solid #000; position:relative; display:flex; justify-content:center; align-items:center;">
+            <div style="width:12px; height:12px; background:${skin.secondary}; border:1px solid #fff;"></div>
         </div>`;
         item.onclick = () => {
             currentSkinIndex = idx;
@@ -488,8 +733,8 @@ function initSkinShop() {
 function updateSkinPreview() {
     const preview = document.getElementById('skin-preview');
     let skin = skins[currentSkinIndex];
-    preview.innerHTML = `<div style="width:36px; height:36px; background:${skin.primary}; border:3px solid #000; position:relative; display:flex; justify-content:center; align-items:center;">
-        <div style="width:14px; height:14px; background:${skin.secondary}; border:1.5px solid #fff;"></div>
+    preview.innerHTML = `<div style="width:42px; height:42px; background:${skin.primary}; border:3px solid #000; position:relative; display:flex; justify-content:center; align-items:center;">
+        <div style="width:18px; height:18px; background:${skin.secondary}; border:1.5px solid #fff;"></div>
     </div>`;
 }
 
@@ -517,6 +762,7 @@ function closeStats() {
 function startGame() {
     document.getElementById('level-select-screen').classList.add('hidden');
     document.getElementById('skin-screen').classList.add('hidden');
+    document.getElementById('music-screen').classList.add('hidden');
     document.getElementById('stats-screen').classList.add('hidden');
     document.getElementById('game-over-screen').classList.add('hidden');
     document.getElementById('ui-overlay').classList.remove('hidden');
@@ -529,20 +775,37 @@ function startGame() {
     player.vy = 0;
     player.rotation = 0;
     cameraX = 0;
+    checkpoint = null; // Xóa checkpoint cũ khi bắt đầu màn mới
     
     generateLevel();
     gameState = 'PLAYING';
+    if (isMusicPlaying) startMusic();
 }
 
 function returnToMenu() {
+    if (musicInterval) clearInterval(musicInterval);
     document.getElementById('game-over-screen').classList.add('hidden');
     document.getElementById('ui-overlay').classList.add('hidden');
     document.getElementById('level-select-screen').classList.remove('hidden');
     gameState = 'MENU';
 }
 
+// Xử lý khi thua: Nếu đã đặt Checkpoint thì hồi sinh tại Checkpoint, ngược lại thì về đầu màn
 function gameOver() {
+    if (checkpoint) {
+        // Hồi sinh tại Checkpoint đã đặt
+        cameraX = checkpoint.cameraX;
+        player.y = checkpoint.y;
+        player.vy = checkpoint.vy;
+        player.rotation = checkpoint.rotation;
+        player.isGrounded = checkpoint.isGrounded;
+        attempts++;
+        document.getElementById('attempts').innerText = attempts;
+        return; // Không hiện màn hình thua, tiếp tục chơi luôn từ checkpoint
+    }
+
     gameState = 'GAMEOVER';
+    if (musicInterval) clearInterval(musicInterval);
     attempts++;
     document.getElementById('attempts').innerText = attempts;
     document.getElementById('result-title').innerText = 'THẤT BẠI';
@@ -553,6 +816,7 @@ function gameOver() {
 
 function gameWin() {
     gameState = 'GAMEOVER';
+    if (musicInterval) clearInterval(musicInterval);
     document.getElementById('result-title').innerText = 'HOÀN THÀNH MÀN CHƠI!';
     document.getElementById('result-title').style.color = '#72ff52';
     document.getElementById('result-score').innerText = `Hoàn thành: 100%`;
@@ -659,6 +923,21 @@ function draw() {
         ctx.stroke();
     }
 
+    // Vẽ cờ Checkpoint nếu đã được đặt trên bản đồ
+    if (checkpoint) {
+        let cpScreenX = checkpoint.cameraX - cameraX + player.x;
+        if (cpScreenX > -50 && cpScreenX < canvas.width + 50) {
+            ctx.fillStyle = '#00e676';
+            ctx.fillRect(cpScreenX + 10, 310, 6, 72);
+            ctx.beginPath();
+            ctx.moveTo(cpScreenX + 16, 310);
+            ctx.lineTo(cpScreenX + 45, 325);
+            ctx.lineTo(cpScreenX + 16, 340);
+            ctx.fillStyle = '#ffeb3b';
+            ctx.fill();
+        }
+    }
+
     for (let obs of obstacles) {
         let screenX = obs.x - cameraX;
         if (screenX > -100 && screenX < canvas.width + 100) {
@@ -680,7 +959,6 @@ function draw() {
                 ctx.fillRect(screenX, obs.y, obs.w, obs.h);
                 ctx.strokeRect(screenX, obs.y, obs.w, obs.h);
                 
-                // Vẽ họa tiết lưới trên khối block kéo dài
                 ctx.fillStyle = '#00ffcc';
                 for(let bx = screenX + 12; bx < screenX + obs.w - 16; bx += 24) {
                     ctx.fillRect(bx, obs.y + 12, 12, obs.h - 24);
