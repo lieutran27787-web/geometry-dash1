@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash - Ultimate Edition (Correct Menu Order)</title>
+    <title>Geometry Dash - Ultimate Edition (Balanced Spikes)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -224,7 +224,7 @@
             background: linear-gradient(to bottom, #fff176, #f9a825);
         }
 
-        /* 3. Màn hình Chọn Màn Chơi (Level Select với mũi tên trái/phải) */
+        /* 3. Màn hình Chọn Màn Chơi */
         #level-select-screen {
             background: linear-gradient(180deg, #102a43, #0a101d);
             padding: 20px;
@@ -253,7 +253,7 @@
         }
         .nav-arrow-btn:hover { transform: scale(1.1); background: linear-gradient(to bottom, #8aff6c, #25a117); }
 
-        /* Màn hình Kho Skin (Giống ảnh 1) */
+        /* Màn hình Kho Skin */
         #skin-screen {
             background: linear-gradient(180deg, #2c3e50, #1a252f);
             padding: 20px;
@@ -309,7 +309,7 @@
         .skin-item:hover { border-color: #00ffcc; transform: scale(1.08); }
         .skin-item.selected { border-color: #72ff52; background: #273c75; box-shadow: 0 0 12px #72ff52; }
 
-        /* Màn hình Thống kê cấp độ (Giống ảnh 4) */
+        /* Màn hình Thống kê */
         #stats-screen {
             background: rgba(0,0,0,0.92);
         }
@@ -414,11 +414,11 @@
 <body>
 
 <div id="game-container">
-    <!-- 1. Màn hình Mở đầu / Ảnh bìa bên ngoài trước khi vô chọn màn (Giống ảnh 3) -->
+    <!-- 1. Màn hình Mở đầu / Ảnh bìa bên ngoài (Giống ảnh 3) -->
     <div id="main-title-screen" class="screen">
-        <div class="back-arrow" onclick="openStats()" title="Xem thống kê (giống ảnh 4)">ℹ️</div>
-        <div class="skin-shop-icon-btn" onclick="openSkinShop()" title="Kho Skin (giống ảnh 1)">🎨</div>
-        <div class="settings-gear-btn" onclick="openSettings()" title="Cài đặt (giống ảnh 2)">⚙️</div>
+        <div class="back-arrow" onclick="openStats()" title="Xem thống kê">ℹ️</div>
+        <div class="skin-shop-icon-btn" onclick="openSkinShop()" title="Kho Skin">🎨</div>
+        <div class="settings-gear-btn" onclick="openSettings()" title="Cài đặt">⚙️</div>
 
         <div class="title-card">
             <div class="top-banner" id="cover-title-name">POLARGEIST</div>
@@ -462,10 +462,10 @@
         </div>
     </div>
 
-    <!-- 3. Màn hình Chọn Màn Chơi (Level Select với nút mũi tên trái/phải) -->
+    <!-- 3. Màn hình Chọn Màn Chơi -->
     <div id="level-select-screen" class="screen hidden">
         <div class="back-arrow" onclick="closeLevelSelect()" title="Quay lại ảnh bìa">◄</div>
-        <div class="skin-shop-icon-btn" onclick="openSkinShop()" title="Kho Skin (giống ảnh 1)">🎨</div>
+        <div class="skin-shop-icon-btn" onclick="openSkinShop()" title="Kho Skin">🎨</div>
 
         <div class="level-carousel">
             <button class="nav-arrow-btn" onclick="changeLevel(-1)">◄</button>
@@ -492,10 +492,10 @@
             <button class="nav-arrow-btn" onclick="changeLevel(1)">►</button>
         </div>
         
-        <p style="color: #aaddff; font-size: 13px;">Sử dụng nút ◄ và ► để chọn màn chơi kéo dài với bục khối gai phong phú!</p>
+        <p style="color: #aaddff; font-size: 13px;">Khối ở dưới dài hơn, hàng gai trên đỉnh chỉ có độ rộng 2 ô!</p>
     </div>
 
-    <!-- Màn hình Kho Skin (Giống ảnh 1) -->
+    <!-- Màn hình Kho Skin -->
     <div id="skin-screen" class="screen hidden">
         <div class="skin-panel">
             <div class="back-arrow" style="top: 15px; left: 15px; width: 40px; height: 40px; font-size: 18px;" onclick="closeSkinShop()">◄</div>
@@ -506,7 +506,7 @@
         </div>
     </div>
 
-    <!-- Màn hình Thống kê (Giống ảnh 4) -->
+    <!-- Màn hình Thống kê -->
     <div id="stats-screen" class="screen hidden">
         <div class="stats-box">
             <div class="back-arrow" style="top: 15px; left: 15px; width: 40px; height: 40px; font-size: 18px;" onclick="closeStats()">◄</div>
@@ -635,15 +635,18 @@ function generateLevel() {
             obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
             currentX += 160 + Math.random() * 60;
         } else if (type < 0.7) {
-            let blockW = 192;
+            // Khối bục dài ở dưới (rộng 224px) và hàng gai trên đỉnh chỉ có độ rộng 2 ô (2 * 32 = 64px)
+            let blockW = 224; 
             let blockH = 64;
             let blockY = 382 - blockH;
             
+            // 1. Khối bục dưới kéo dài
             obstacles.push({ x: currentX, y: blockY, w: blockW, h: blockH, type: 'block' });
-            let spikeCount = Math.floor(blockW / 32);
-            for (let i = 0; i < spikeCount; i++) {
-                obstacles.push({ x: currentX + (i * 32), y: blockY - 32, w: 32, h: 32, type: 'spike' });
-            }
+            
+            // 2. Chỉ đặt đúng 2 ô gai ở trên đỉnh bục (độ rộng 2 ô = 64px)
+            obstacles.push({ x: currentX + 48, y: blockY - 32, w: 32, h: 32, type: 'spike' });
+            obstacles.push({ x: currentX + 80, y: blockY - 32, w: 32, h: 32, type: 'spike' });
+            
             currentX += blockW + 180 + Math.random() * 80;
         } else {
             obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
@@ -653,7 +656,6 @@ function generateLevel() {
     }
 }
 
-// Quản lý chuyển đổi màn hình theo đúng thứ tự yêu cầu
 function openLevelSelect() {
     document.getElementById('main-title-screen').classList.add('hidden');
     document.getElementById('level-select-screen').classList.remove('hidden');
@@ -979,3 +981,4 @@ loop();
 
 </body>
 </html>
+d_spikes.html thành công.")
