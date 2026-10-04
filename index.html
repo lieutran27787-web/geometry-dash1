@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash - Ultimate Edition (Balanced Spikes)</title>
+    <title>Geometry Dash - Ultimate Edition (Extended Block Ramps)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -42,7 +42,7 @@
         }
         .hidden { display: none !important; }
 
-        /* 1. Màn hình Mở đầu / Ảnh bìa bên ngoài trước khi vô chọn màn (Giống ảnh 3) */
+        /* 1. Màn hình Mở đầu / Ảnh bìa bên ngoài (Giống ảnh 3) */
         #main-title-screen {
             background: linear-gradient(180deg, #0044ee, #001144);
             padding: 20px;
@@ -492,7 +492,7 @@
             <button class="nav-arrow-btn" onclick="changeLevel(1)">►</button>
         </div>
         
-        <p style="color: #aaddff; font-size: 13px;">Khối ở dưới dài hơn, hàng gai trên đỉnh chỉ có độ rộng 2 ô!</p>
+        <p style="color: #aaddff; font-size: 13px;">Đoạn dốc/bậc thang dẫn lên khối bục được kéo dài và thoải hơn!</p>
     </div>
 
     <!-- Màn hình Kho Skin -->
@@ -629,29 +629,38 @@ function generateLevel() {
     obstacles.length = 0;
     let lvl = levels[currentLevelIndex];
     let currentX = 600;
+
     while (currentX < lvl.length - 400) {
         let type = Math.random();
         if (type < 0.3) {
             obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
-            currentX += 160 + Math.random() * 60;
+            currentX += 180 + Math.random() * 60;
         } else if (type < 0.7) {
-            // Khối bục dài ở dưới (rộng 224px) và hàng gai trên đỉnh chỉ có độ rộng 2 ô (2 * 32 = 64px)
-            let blockW = 224; 
-            let blockH = 64;
-            let blockY = 382 - blockH;
+            // Thay vì bậc cao ngay lập tức, ta tạo cấu trúc bẫy/bậc thang thoai thoải (ramp/stairs) ở đoạn trước bục chính để nhân vật chạy lên mượt mà
+            let rampH1 = 32;
+            let rampH2 = 48;
+            let mainBlockH = 64;
+
+            // Bậc 1 dẫn lên (thoải hơn ở đoạn trước chỗ nhảy lên bục)
+            obstacles.push({ x: currentX, y: 382 - rampH1, w: 64, h: rampH1, type: 'block' });
+            // Bậc 2
+            obstacles.push({ x: currentX + 64, y: 382 - rampH2, w: 64, h: rampH2, type: 'block' });
             
-            // 1. Khối bục dưới kéo dài
-            obstacles.push({ x: currentX, y: blockY, w: blockW, h: blockH, type: 'block' });
+            // Khối bục chính kéo dài siêu rộng ở phía trên (rộng 256px)
+            let blockW = 256;
+            let blockY = 382 - mainBlockH;
+            obstacles.push({ x: currentX + 128, y: blockY, w: blockW, h: mainBlockH, type: 'block' });
             
-            // 2. Chỉ đặt đúng 2 ô gai ở trên đỉnh bục (độ rộng 2 ô = 64px)
-            obstacles.push({ x: currentX + 48, y: blockY - 32, w: 32, h: 32, type: 'spike' });
-            obstacles.push({ x: currentX + 80, y: blockY - 32, w: 32, h: 32, type: 'spike' });
+            // Hàng gai thu gọn chỉ rộng 2 ô (64px) đặt ở giữa bục chính
+            let spikeOffsetX = currentX + 128 + (blockW / 2) - 32;
+            obstacles.push({ x: spikeOffsetX, y: blockY - 32, w: 32, h: 32, type: 'spike' });
+            obstacles.push({ x: spikeOffsetX + 32, y: blockY - 32, w: 32, h: 32, type: 'spike' });
             
-            currentX += blockW + 180 + Math.random() * 80;
+            currentX += 128 + blockW + 200 + Math.random() * 80;
         } else {
             obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
             obstacles.push({ x: currentX + 32, y: 350, w: 32, h: 32, type: 'spike' });
-            currentX += 240 + Math.random() * 80;
+            currentX += 240 + Math.random() * 70;
         }
     }
 }
@@ -776,7 +785,7 @@ function gameOver() {
     document.getElementById('result-title').innerText = 'THẤT BẠI';
     document.getElementById('result-title').style.color = '#ff5252';
     document.getElementById('result-score').innerText = `Hoàn thành: ${Math.floor(score)}%`;
-    document.getElementById('game-over-screen').classList.remove('hidden');
+    document.getElementById('game-over-screen').classList.add('hidden');
 }
 
 function gameWin() {
@@ -785,7 +794,7 @@ function gameWin() {
     document.getElementById('result-title').innerText = 'HOÀN THÀNH MÀN CHƠI!';
     document.getElementById('result-title').style.color = '#72ff52';
     document.getElementById('result-score').innerText = `Hoàn thành: 100%`;
-    document.getElementById('game-over-screen').classList.remove('hidden');
+    document.getElementById('game-over-screen').classList.add('hidden');
 }
 
 window.addEventListener('keydown', (e) => {
@@ -919,7 +928,7 @@ function draw() {
             } else if (obs.type === 'block') {
                 ctx.fillStyle = '#002244';
                 ctx.strokeStyle = '#00ffcc';
-                ctx.lineWidth = 3;
+                ctx.lineWidth, ctx.lineWidth = 3;
                 ctx.fillRect(screenX, obs.y, obs.w, obs.h);
                 ctx.strokeRect(screenX, obs.y, obs.w, obs.h);
                 
@@ -936,7 +945,7 @@ function draw() {
     ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
     
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth, ctx.lineWidth = 4;
+    ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(0, groundY);
     ctx.lineTo(canvas.width, groundY);
