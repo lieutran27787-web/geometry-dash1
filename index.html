@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash - Ultimate Edition (Smooth Motion)</title>
+    <title>Geometry Dash - Ultimate Edition (Very Long Levels)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -376,10 +376,10 @@
         }
         .in-game-controls {
             position: absolute;
-            bottom: 15px;
-            right: 15px;
+            bottom: 12px;
+            right: 12px;
             display: flex;
-            gap: 12px;
+            gap: 10px;
             z-index: 6;
             pointer-events: auto;
         }
@@ -388,14 +388,29 @@
             border: 3px solid #fff;
             color: #000;
             font-weight: bold;
-            padding: 8px 16px;
+            padding: 10px 18px;
             border-radius: 20px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
             font-size: 14px;
             transition: 0.1s;
         }
-        .game-ctrl-btn:hover { transform: scale(1.05); background: linear-gradient(to bottom, #fff176, #f9a825); }
+        .game-ctrl-btn:hover { transform: scale(1.08); background: linear-gradient(to bottom, #fff176, #f9a825); }
+        
+        #checkpoint-btn {
+            background: linear-gradient(to bottom, #00ff66, #00aa44);
+            color: #fff;
+            text-shadow: 1px 1px #000;
+            border: 3px solid #ffffff;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.8);
+            font-size: 15px;
+            animation: pulse-cp 1.5s infinite;
+        }
+        @keyframes pulse-cp {
+            0% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 255, 102, 0.6); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 255, 102, 1); }
+            100% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 255, 102, 0.6); }
+        }
 
         .btn-common {
             background: linear-gradient(to bottom, #72ff52, #1b8a10);
@@ -492,7 +507,7 @@
             <button class="nav-arrow-btn" onclick="changeLevel(1)">►</button>
         </div>
         
-        <p style="color: #aaddff; font-size: 13px;">Chuyển động mượt mà 60+ FPS không giật lag!</p>
+        <p style="color: #aaddff; font-size: 13px;">Các màn chơi siêu dài (16000+ pixels) giống hệt game gốc!</p>
     </div>
 
     <!-- Màn hình Kho Skin -->
@@ -549,7 +564,7 @@
 
         <div class="in-game-controls">
             <button class="game-ctrl-btn" onclick="toggleMusicPlayback()" id="music-toggle-btn">🎵 Bật Nhạc</button>
-            <button class="game-ctrl-btn" onclick="placeCheckpoint()" style="background: linear-gradient(to bottom, #00e676, #00c853); color:#fff;">📍 Đặt Checkpoint</button>
+            <button class="game-ctrl-btn" id="checkpoint-btn" onclick="placeCheckpoint()">📍 Đặt Checkpoint</button>
             <button class="game-ctrl-btn" onclick="toggleAutoCheckpoint()" id="auto-cp-ingame-btn" style="background: linear-gradient(to bottom, #29b6f6, #0288d1); color:#fff;">⚡ Auto CP: TẮT</button>
         </div>
     </div>
@@ -583,12 +598,13 @@ const songs = [
 ];
 let currentSongIndex = 0;
 
+// Cập nhật các màn chơi siêu dài (độ dài lên tới 16000+ pixels giống game gốc)
 const levels = [
-    { name: 'STEREO MADNESS', sub: 'background color 2.1', speed: 5, length: 7000, bgColor: '#0055ff', groundColor: '#00aa55', diff: '⭐ DỄ (TINY)' },
-    { name: 'POLARGEIST', sub: 'background color 2.2', speed: 5.8, length: 8000, bgColor: '#0033aa', groundColor: '#008844', diff: '⭐⭐ TRUNG BÌNH' },
-    { name: 'BACK ON TRACK', sub: 'background color 2.3', speed: 6.4, length: 9000, bgColor: '#aa5500', groundColor: '#884400', diff: '⭐⭐ TRUNG BÌNH' },
-    { name: 'BASE AFTER BASE', sub: 'background color 2.4', speed: 7.0, length: 10000, bgColor: '#5500aa', groundColor: '#440088', diff: '⭐⭐⭐ KHÓ' },
-    { name: 'CAN\'T LET GO', sub: 'background color 2.5', speed: 7.6, length: 11000, bgColor: '#aa0055', groundColor: '#880044', diff: '⭐⭐⭐⭐ RẤT KHÓ' }
+    { name: 'STEREO MADNESS', sub: 'background color 2.1', speed: 5, length: 16000, bgColor: '#0055ff', groundColor: '#00aa55', diff: '⭐ DỄ (TINY)' },
+    { name: 'POLARGEIST', sub: 'background color 2.2', speed: 5.8, length: 18000, bgColor: '#0033aa', groundColor: '#008844', diff: '⭐⭐ TRUNG BÌNH' },
+    { name: 'BACK ON TRACK', sub: 'background color 2.3', speed: 6.4, length: 20000, bgColor: '#aa5500', groundColor: '#884400', diff: '⭐⭐ TRUNG BÌNH' },
+    { name: 'BASE AFTER BASE', sub: 'background color 2.4', speed: 7.0, length: 22000, bgColor: '#5500aa', groundColor: '#440088', diff: '⭐⭐⭐ KHÓ' },
+    { name: 'CAN\'T LET GO', sub: 'background color 2.5', speed: 7.6, length: 24000, bgColor: '#aa0055', groundColor: '#880044', diff: '⭐⭐⭐⭐ RẤT KHÓ' }
 ];
 let currentLevelIndex = 0;
 
@@ -632,15 +648,15 @@ function changeLevel(direction) {
 function generateLevel() {
     obstacles.length = 0;
     let lvl = levels[currentLevelIndex];
-    let currentX = 900;
+    let currentX = 1000; // Khoảng đà siêu dài ở đầu màn
 
-    while (currentX < lvl.length - 400) {
+    while (currentX < lvl.length - 600) {
         let type = Math.random();
         if (type < 0.3) {
             obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
-            currentX += 180 + Math.random() * 60;
+            currentX += 200 + Math.random() * 80;
         } else if (type < 0.7) {
-            let blockW = 280; 
+            let blockW = 320; 
             let blockH = 64;
             let blockY = 382 - blockH;
             
@@ -650,11 +666,11 @@ function generateLevel() {
             obstacles.push({ x: spikeOffsetX, y: blockY - 32, w: 32, h: 32, type: 'spike' });
             obstacles.push({ x: spikeOffsetX + 32, y: blockY - 32, w: 32, h: 32, type: 'spike' });
             
-            currentX += blockW + 200 + Math.random() * 80;
+            currentX += blockW + 250 + Math.random() * 100;
         } else {
             obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
             obstacles.push({ x: currentX + 32, y: 350, w: 32, h: 32, type: 'spike' });
-            currentX += 260 + Math.random() * 70;
+            currentX += 280 + Math.random() * 90;
         }
     }
 }
@@ -675,10 +691,10 @@ function placeCheckpoint() {
             rotation: player.rotation,
             isGrounded: player.isGrounded
         };
-        let btn = document.querySelector('.in-game-controls button:nth-child(2)');
+        let btn = document.getElementById('checkpoint-btn');
         let oldText = btn.innerText;
-        btn.innerText = '📍 Đã lưu Checkpoint!';
-        setTimeout(() => { btn.innerText = oldText; }, 1200);
+        btn.innerText = '📍 ĐÃ LƯU CHECKPOINT!';
+        setTimeout(() => { btn.innerText = oldText; }, 1400);
     }
 }
 
@@ -844,7 +860,7 @@ function update() {
     score = Math.min(100, (cameraX / lvl.length) * 100);
     document.getElementById('progress').style.width = score + '%';
 
-    if (isAutoCheckpointEnabled && cameraX - lastAutoCpDistance >= 1000) {
+    if (isAutoCheckpointEnabled && cameraX - lastAutoCpDistance >= 1500) {
         checkpoint = {
             cameraX: cameraX,
             y: player.y,
@@ -871,10 +887,10 @@ function update() {
     }
 
     let pBox = {
-        x: player.x + 3,
-        y: player.y + 3,
-        w: player.size - 6,
-        h: player.size - 6
+        x: player.x + 4,
+        y: player.y + 2,
+        w: player.size - 8,
+        h: player.size - 4
     };
 
     for (let obs of obstacles) {
@@ -891,7 +907,7 @@ function update() {
                     gameOver();
                 } else if (obs.type === 'block') {
                     let prevY = (player.y - player.vy);
-                    if (prevY + player.size <= obs.y + 16 && player.vy >= 0) {
+                    if (prevY + player.size <= obs.y + 18 && player.vy >= 0) {
                         player.y = obs.y - player.size;
                         player.vy = 0;
                         player.isGrounded = true;
@@ -994,7 +1010,6 @@ function draw() {
 
     let skin = skins[currentSkinIndex];
     ctx.save();
-    // Làm tròn tọa độ render player để tránh hiện tượng rung giật pixel (jitter)
     ctx.translate(Math.round(player.x + player.size / 2), Math.round(player.y + player.size / 2));
     ctx.rotate((player.rotation * Math.PI) / 180);
 
@@ -1025,3 +1040,4 @@ loop();
 
 </body>
 </html>
+long_levels.html thành công.")
