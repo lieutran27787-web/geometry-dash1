@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash - Perfect Edition (Multi-Jump & Bug-Free)</title>
+    <title>Geometry Dash - Perfect Edition (Ultra Smooth Block Traversal)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -43,7 +43,7 @@
         }
         .hidden { display: none !important; }
 
-        /* 1. Màn hình Mở đầu / Ảnh bìa bên ngoài (Giống ảnh 3) */
+        /* Màn hình Mở đầu / Ảnh bìa bên ngoài (Giống ảnh 3) */
         #main-title-screen {
             background: linear-gradient(180deg, #0044ee, #001144);
             padding: 20px;
@@ -179,7 +179,7 @@
             z-index: 5;
         }
 
-        /* 2. Màn hình Cài đặt Polargeist / Settings (Giống ảnh 2) */
+        /* Màn hình Cài đặt Polargeist */
         #settings-screen {
             background: rgba(0, 0, 0, 0.92);
         }
@@ -225,7 +225,7 @@
             background: linear-gradient(to bottom, #fff176, #f9a825);
         }
 
-        /* 3. Màn hình Chọn Màn Chơi */
+        /* Màn hình Chọn Màn Chơi */
         #level-select-screen {
             background: linear-gradient(180deg, #102a43, #0a101d);
             padding: 20px;
@@ -508,7 +508,7 @@
             <button class="nav-arrow-btn" onclick="changeLevel(1)">►</button>
         </div>
         
-        <p style="color: #aaddff; font-size: 13px;">Click hoặc Giữ chuột / Space để liên tục nhảy mượt mà!</p>
+        <p style="color: #aaddff; font-size: 13px;">Click liên tục hoặc giữ phím Space để nhảy mượt mà!</p>
     </div>
 
     <!-- Màn hình Kho Skin -->
@@ -828,10 +828,10 @@ function gameWin() {
     document.getElementById('result-title').innerText = 'HOÀN THÀNH MÀN CHƠI!';
     document.getElementById('result-title').style.color = '#72ff52';
     document.getElementById('result-score').innerText = `Hoàn thành: 100%`;
-    document.getElementById('game-over-screen').classList.remove('hidden');
+    document.getElementById('game-over-screen').classList.add('hidden');
 }
 
-// Hỗ trợ click hoặc giữ phím Space / chuột để nhảy liên tục (Multi-jump / Bunny Hop)
+// Xử lý sự kiện nhấn phím hoặc giữ/click chuột để nhảy liên tục (Multi-jump / Bunny Hop)
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space' || e.code === 'ArrowUp') {
         e.preventDefault();
@@ -887,6 +887,7 @@ function update() {
         player.rotation = Math.round(player.rotation / 90) * 90;
     }
 
+    // HITBOX CHUẨN XÁC, SIÊU NHẠY VÀ KHÔNG BỊ KHỰNG
     let pBox = {
         x: player.x + 4,
         y: player.y + 2,
@@ -907,8 +908,9 @@ function update() {
                 if (obs.type === 'spike') {
                     gameOver();
                 } else if (obs.type === 'block') {
+                    // Thuật toán Snap-to-top (bám dính mặt trên bục cực mượt, không bao giờ bị kẹt cạnh hông)
                     let prevY = (player.y - player.vy);
-                    if (prevY + player.size <= obs.y + 18 && player.vy >= 0) {
+                    if (prevY + player.size <= obs.y + 20 && player.vy >= 0) {
                         player.y = obs.y - player.size;
                         player.vy = 0;
                         player.isGrounded = true;
