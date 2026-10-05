@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash - Ultimate Edition (High Sensitivity Hitbox)</title>
+    <title>Geometry Dash - Ultimate Edition (Smooth Motion)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -211,7 +211,7 @@
             border: 3px solid #ffffff;
             color: #000;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 15px;
             padding: 12px;
             border-radius: 8px;
             cursor: pointer;
@@ -453,11 +453,11 @@
                 <div class="settings-option-btn">HOW TO PLAY</div>
                 <div class="settings-option-btn">RATE</div>
                 <div class="settings-option-btn">SONGS</div>
-                <div class="settings-option-btn" style="grid-column: span 2;">OPTIONS</div>
+                <div class="settings-option-btn" id="auto-cp-setting-btn" onclick="toggleAutoCheckpoint()" style="grid-column: span 2; background: linear-gradient(to bottom, #00e676, #00c853); color:#fff;">📍 CHẾ ĐỘ TỰ ĐỘNG CHECKPOINT: TẮT</div>
             </div>
 
             <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; text-align: center; border: 2px solid #00ffcc;">
-                <p style="color: #00ffcc; font-size: 13px;">Trạng thái: Sẵn sàng cấu hình đồ họa & âm thanh</p>
+                <p style="color: #00ffcc; font-size: 13px;">Bật chế độ này để game tự động lưu điểm hồi sinh khi bạn vượt qua mốc quan trọng!</p>
             </div>
         </div>
     </div>
@@ -492,7 +492,7 @@
             <button class="nav-arrow-btn" onclick="changeLevel(1)">►</button>
         </div>
         
-        <p style="color: #aaddff; font-size: 13px;">Độ nhạy va chạm cực cao, tiếp xúc bục siêu mượt mà!</p>
+        <p style="color: #aaddff; font-size: 13px;">Chuyển động mượt mà 60+ FPS không giật lag!</p>
     </div>
 
     <!-- Màn hình Kho Skin -->
@@ -550,6 +550,7 @@
         <div class="in-game-controls">
             <button class="game-ctrl-btn" onclick="toggleMusicPlayback()" id="music-toggle-btn">🎵 Bật Nhạc</button>
             <button class="game-ctrl-btn" onclick="placeCheckpoint()" style="background: linear-gradient(to bottom, #00e676, #00c853); color:#fff;">📍 Đặt Checkpoint</button>
+            <button class="game-ctrl-btn" onclick="toggleAutoCheckpoint()" id="auto-cp-ingame-btn" style="background: linear-gradient(to bottom, #29b6f6, #0288d1); color:#fff;">⚡ Auto CP: TẮT</button>
         </div>
     </div>
 
@@ -566,6 +567,9 @@ let score = 0;
 let cameraX = 0;
 let checkpoint = null;
 
+let isAutoCheckpointEnabled = false;
+let lastAutoCpDistance = 0;
+
 let audioCtx = null;
 let isMusicPlaying = false;
 let musicInterval = null;
@@ -580,11 +584,11 @@ const songs = [
 let currentSongIndex = 0;
 
 const levels = [
-    { name: 'STEREO MADNESS', sub: 'background color 2.1', speed: 5.5, length: 7000, bgColor: '#0055ff', groundColor: '#00aa55', diff: '⭐ DỄ (TINY)' },
-    { name: 'POLARGEIST', sub: 'background color 2.2', speed: 6.2, length: 8000, bgColor: '#0033aa', groundColor: '#008844', diff: '⭐⭐ TRUNG BÌNH' },
-    { name: 'BACK ON TRACK', sub: 'background color 2.3', speed: 6.8, length: 9000, bgColor: '#aa5500', groundColor: '#884400', diff: '⭐⭐ TRUNG BÌNH' },
-    { name: 'BASE AFTER BASE', sub: 'background color 2.4', speed: 7.5, length: 10000, bgColor: '#5500aa', groundColor: '#440088', diff: '⭐⭐⭐ KHÓ' },
-    { name: 'CAN\'T LET GO', sub: 'background color 2.5', speed: 8.2, length: 11000, bgColor: '#aa0055', groundColor: '#880044', diff: '⭐⭐⭐⭐ RẤT KHÓ' }
+    { name: 'STEREO MADNESS', sub: 'background color 2.1', speed: 5, length: 7000, bgColor: '#0055ff', groundColor: '#00aa55', diff: '⭐ DỄ (TINY)' },
+    { name: 'POLARGEIST', sub: 'background color 2.2', speed: 5.8, length: 8000, bgColor: '#0033aa', groundColor: '#008844', diff: '⭐⭐ TRUNG BÌNH' },
+    { name: 'BACK ON TRACK', sub: 'background color 2.3', speed: 6.4, length: 9000, bgColor: '#aa5500', groundColor: '#884400', diff: '⭐⭐ TRUNG BÌNH' },
+    { name: 'BASE AFTER BASE', sub: 'background color 2.4', speed: 7.0, length: 10000, bgColor: '#5500aa', groundColor: '#440088', diff: '⭐⭐⭐ KHÓ' },
+    { name: 'CAN\'T LET GO', sub: 'background color 2.5', speed: 7.6, length: 11000, bgColor: '#aa0055', groundColor: '#880044', diff: '⭐⭐⭐⭐ RẤT KHÓ' }
 ];
 let currentLevelIndex = 0;
 
@@ -609,7 +613,7 @@ const skins = [
 let currentSkinIndex = 0;
 
 const player = {
-    x: 150, y: 300, size: 32, vy: 0, gravity: 0.85, jumpForce: -13, rotation: 0, isGrounded: false
+    x: 150, y: 300, size: 32, vy: 0, gravity: 0.8, jumpForce: -12.5, rotation: 0, isGrounded: false
 };
 const obstacles = [];
 
@@ -628,7 +632,7 @@ function changeLevel(direction) {
 function generateLevel() {
     obstacles.length = 0;
     let lvl = levels[currentLevelIndex];
-    let currentX = 900; // Khoảng đà an toàn ở đầu màn
+    let currentX = 900;
 
     while (currentX < lvl.length - 400) {
         let type = Math.random();
@@ -640,10 +644,8 @@ function generateLevel() {
             let blockH = 64;
             let blockY = 382 - blockH;
             
-            // 1. Khối bục dài ở dưới (phẳng, chiều cao bằng nhau)
             obstacles.push({ x: currentX, y: blockY, w: blockW, h: blockH, type: 'block' });
             
-            // 2. Hàng gai trên đỉnh chỉ rộng 2 ô (64px) đặt cân đối ở giữa bục
             let spikeOffsetX = currentX + (blockW / 2) - 32;
             obstacles.push({ x: spikeOffsetX, y: blockY - 32, w: 32, h: 32, type: 'spike' });
             obstacles.push({ x: spikeOffsetX + 32, y: blockY - 32, w: 32, h: 32, type: 'spike' });
@@ -654,6 +656,29 @@ function generateLevel() {
             obstacles.push({ x: currentX + 32, y: 350, w: 32, h: 32, type: 'spike' });
             currentX += 260 + Math.random() * 70;
         }
+    }
+}
+
+function toggleAutoCheckpoint() {
+    isAutoCheckpointEnabled = !isAutoCheckpointEnabled;
+    let stateText = isAutoCheckpointEnabled ? 'BẬT' : 'TẮT';
+    document.getElementById('auto-cp-setting-btn').innerText = `📍 CHẾ ĐỘ TỰ ĐỘNG CHECKPOINT: ${stateText}`;
+    document.getElementById('auto-cp-ingame-btn').innerText = `⚡ Auto CP: ${stateText}`;
+}
+
+function placeCheckpoint() {
+    if (gameState === 'PLAYING') {
+        checkpoint = {
+            cameraX: cameraX,
+            y: player.y,
+            vy: player.vy,
+            rotation: player.rotation,
+            isGrounded: player.isGrounded
+        };
+        let btn = document.querySelector('.in-game-controls button:nth-child(2)');
+        let oldText = btn.innerText;
+        btn.innerText = '📍 Đã lưu Checkpoint!';
+        setTimeout(() => { btn.innerText = oldText; }, 1200);
     }
 }
 
@@ -745,6 +770,7 @@ function startGame() {
     player.rotation = 0;
     cameraX = 0;
     checkpoint = null;
+    lastAutoCpDistance = 0;
     
     generateLevel();
     gameState = 'PLAYING';
@@ -818,6 +844,17 @@ function update() {
     score = Math.min(100, (cameraX / lvl.length) * 100);
     document.getElementById('progress').style.width = score + '%';
 
+    if (isAutoCheckpointEnabled && cameraX - lastAutoCpDistance >= 1000) {
+        checkpoint = {
+            cameraX: cameraX,
+            y: player.y,
+            vy: player.vy,
+            rotation: player.rotation,
+            isGrounded: player.isGrounded
+        };
+        lastAutoCpDistance = cameraX;
+    }
+
     if (cameraX >= lvl.length) {
         gameWin();
         return;
@@ -833,8 +870,6 @@ function update() {
         player.rotation = Math.round(player.rotation / 90) * 90;
     }
 
-    // HITBOX CỰC KỲ NHẠY VÀ CHUẨN XÁC
-    // Thu nhỏ hitbox đi 6px (mỗi bên 3px) giúp nhân vật bắt va chạm mượt mà, không bị kẹt khi nhảy lên bục
     let pBox = {
         x: player.x + 3,
         y: player.y + 3,
@@ -855,9 +890,7 @@ function update() {
                 if (obs.type === 'spike') {
                     gameOver();
                 } else if (obs.type === 'block') {
-                    // Kiểm tra tiếp đất siêu nhạy từ trên xuống đỉnh bục
                     let prevY = (player.y - player.vy);
-                    // Khoảng tiếp xúc nhạy (cho phép nhân vật nhận diện đứng trên bục cực nhanh)
                     if (prevY + player.size <= obs.y + 16 && player.vy >= 0) {
                         player.y = obs.y - player.size;
                         player.vy = 0;
@@ -890,7 +923,7 @@ function draw() {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
     ctx.lineWidth = 1;
     let gridSize = 40;
-    let offsetX = -(cameraX % gridSize);
+    let offsetX = -((Math.round(cameraX)) % gridSize);
     for (let x = offsetX; x < canvas.width; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
@@ -899,7 +932,7 @@ function draw() {
     }
 
     if (checkpoint) {
-        let cpScreenX = checkpoint.cameraX - cameraX + player.x;
+        let cpScreenX = Math.round(checkpoint.cameraX - cameraX + player.x);
         if (cpScreenX > -50 && cpScreenX < canvas.width + 50) {
             ctx.fillStyle = '#00e676';
             ctx.fillRect(cpScreenX + 10, 310, 6, 72);
@@ -913,7 +946,7 @@ function draw() {
     }
 
     for (let obs of obstacles) {
-        let screenX = obs.x - cameraX;
+        let screenX = Math.round(obs.x - cameraX);
         if (screenX > -100 && screenX < canvas.width + 100) {
             if (obs.type === 'spike') {
                 ctx.fillStyle = '#111111';
@@ -954,14 +987,15 @@ function draw() {
 
     ctx.fillStyle = '#00cc66';
     let floorGridSize = 32;
-    let floorOffsetX = -(cameraX % floorGridSize);
+    let floorOffsetX = -((Math.round(cameraX)) % floorGridSize);
     for (let x = floorOffsetX; x < canvas.width; x += floorGridSize) {
         ctx.fillRect(x, groundY + 4, floorGridSize - 4, 12);
     }
 
     let skin = skins[currentSkinIndex];
     ctx.save();
-    ctx.translate(player.x + player.size / 2, player.y + player.size / 2);
+    // Làm tròn tọa độ render player để tránh hiện tượng rung giật pixel (jitter)
+    ctx.translate(Math.round(player.x + player.size / 2), Math.round(player.y + player.size / 2));
     ctx.rotate((player.rotation * Math.PI) / 180);
 
     ctx.fillStyle = skin.primary;
