@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Geometry Dash - Ultimate Masterpiece Edition</title>
+    <title>Geometry Dash - Perfect Masterpiece with SFX Audio</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
         body {
@@ -49,7 +49,6 @@
         }
         .hidden { display: none !important; }
 
-        /* Màn hình Mở đầu / Ảnh bìa bên ngoài (Giống ảnh 3) */
         #main-title-screen {
             background: linear-gradient(180deg, #0044ee, #001144);
         }
@@ -177,7 +176,6 @@
         }
         .upload-label:hover { background: linear-gradient(to bottom, #26c6da, #00acc1); }
 
-        /* Màn hình Cài đặt Polargeist */
         #settings-screen { background: rgba(0, 0, 0, 0.92); }
         .settings-panel {
             background: linear-gradient(180deg, #00aa66, #004422);
@@ -200,7 +198,6 @@
         }
         .settings-option-btn:hover { transform: scale(1.03); background: linear-gradient(to bottom, #fff176, #f9a825); }
 
-        /* Màn hình Chọn Màn Chơi */
         #level-select-screen { background: linear-gradient(180deg, #102a43, #0a101d); padding: 15px; }
         .level-carousel { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .nav-arrow-btn {
@@ -213,7 +210,6 @@
         }
         .nav-arrow-btn:hover { transform: scale(1.1); background: linear-gradient(to bottom, #8aff6c, #25a117); }
 
-        /* Kho Skin */
         #skin-screen { background: linear-gradient(180deg, #2c3e50, #1a252f); padding: 15px; }
         .skin-panel {
             background: #1e272e; border: 4px solid #718093; border-radius: 14px;
@@ -237,7 +233,6 @@
         .skin-item:hover { border-color: #00ffcc; transform: scale(1.08); }
         .skin-item.selected { border-color: #72ff52; background: #273c75; box-shadow: 0 0 12px #72ff52; }
 
-        /* Màn hình Thống kê */
         #stats-screen { background: rgba(0,0,0,0.92); }
         .stats-box {
             background: linear-gradient(180deg, #007744, #003322); border: 4px solid #72ff52;
@@ -248,7 +243,6 @@
         .progress-indicator-line { background: #111; border: 2px solid #fff; height: 16px; border-radius: 8px; margin-bottom: 12px; overflow: hidden; position: relative; }
         .progress-fill-green { background: #72ff52; width: 100%; height: 100%; }
 
-        /* Màn hình Chiến Thắng (Victory Screen) */
         #victory-screen {
             background: radial-gradient(circle, #002244 0%, #050b14 100%);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -263,7 +257,6 @@
             position: relative;
         }
 
-        /* Giao diện trong game */
         #ui-overlay {
             position: absolute; top: 8px; left: 8px; right: 8px;
             display: flex; justify-content: space-between; align-items: center;
@@ -315,7 +308,6 @@
 <body>
 
 <div id="game-container">
-    <!-- 1. Màn hình Mở đầu -->
     <div id="main-title-screen" class="screen">
         <div class="back-arrow" onclick="openStats()">ℹ️</div>
         <div class="skin-shop-icon-btn" onclick="openSkinShop()">🎨</div>
@@ -336,7 +328,7 @@
             <div class="title-info-bar">
                 <div>⏱️ TINY</div>
                 <div>🎵 POLARGEIST</div>
-                <div>ℹ️ CUSTOM MP3</div>
+                <div>ℹ️ SFX AUDIO</div>
             </div>
         </div>
 
@@ -349,11 +341,10 @@
                 🖼️ Thêm ảnh nền
                 <input type="file" id="img-upload" accept="image/*" style="display: none;" onchange="loadCustomImage(event)">
             </label>
-            <div id="media-status" style="font-size: 11px; color: #aaddff; margin-top: 4px;">Chưa có tệp tùy chỉnh nào được tải lên.</div>
+            <div id="media-status" style="font-size: 11px; color: #aaddff; margin-top: 4px;">Hệ thống âm thanh Web Audio sẵn sàng phát tiếng!</div>
         </div>
     </div>
 
-    <!-- 2. Màn hình Cài đặt -->
     <div id="settings-screen" class="screen hidden">
         <div class="settings-panel">
             <button class="back-arrow" style="top: 12px; left: 12px; width: 36px; height: 36px; font-size: 16px;" onclick="closeSettings()">◄</button>
@@ -369,7 +360,6 @@
         </div>
     </div>
 
-    <!-- 3. Màn hình Chọn Màn Chơi -->
     <div id="level-select-screen" class="screen hidden">
         <div class="back-arrow" onclick="closeLevelSelect()">◄</div>
         <div class="skin-shop-icon-btn" onclick="openSkinShop()">🎨</div>
@@ -392,10 +382,9 @@
 
             <button class="nav-arrow-btn" onclick="changeLevel(1)">►</button>
         </div>
-        <p style="color: #aaddff; font-size: 12px; text-align: center;">Vượt qua 100% để hiển thị thông điệp vinh quang!</p>
+        <p style="color: #aaddff; font-size: 12px; text-align: center;">Chạm JUMP hoặc nhấn Space để nhảy và nghe hiệu ứng âm thanh!</p>
     </div>
 
-    <!-- Kho Skin -->
     <div id="skin-screen" class="screen hidden">
         <div class="skin-panel">
             <button class="back-arrow" style="top: 12px; left: 12px; width: 36px; height: 36px; font-size: 16px;" onclick="closeSkinShop()">◄</button>
@@ -405,7 +394,6 @@
         </div>
     </div>
 
-    <!-- Thống kê -->
     <div id="stats-screen" class="screen hidden">
         <div class="stats-box">
             <button class="back-arrow" style="top: 12px; left: 12px; width: 36px; height: 36px; font-size: 16px;" onclick="closeStats()">◄</button>
@@ -422,7 +410,6 @@
         </div>
     </div>
 
-    <!-- Game Over -->
     <div id="game-over-screen" class="screen hidden">
         <h1 id="result-title" style="font-size: 30px; color: #ff5252;">THẤT BẠI</h1>
         <p id="result-score" style="margin-bottom: 15px; font-size: 16px;">Hoàn thành: 0%</p>
@@ -432,7 +419,6 @@
         </div>
     </div>
 
-    <!-- 4. Màn hình Chiến Thắng (Victory Screen) -->
     <div id="victory-screen" class="screen hidden">
         <div class="victory-card">
             <h1 style="color: #ffeb3b; font-size: 28px; text-shadow: 2px 2px #000; margin-bottom: 8px;">🔥 KHẢ NĂNG BÁ KHÍ! 🔥</h1>
@@ -447,7 +433,6 @@
         </div>
     </div>
 
-    <!-- Giao diện trong game -->
     <div id="ui-overlay" class="hidden">
         <div>Màn: <span id="ui-level-name" style="color: #72ff52;">STEREO</span></div>
         <div style="flex-grow: 1; text-align: center;">
@@ -483,6 +468,42 @@ let lastAutoCpDistance = 0;
 let customAudio = null;
 let customImage = null;
 let isCustomMusicPlaying = false;
+
+// Hệ thống Web Audio API phát âm thanh hiệu ứng (SFX) trực tiếp mượt mà
+let sfxCtx = null;
+function playSound(type) {
+    try {
+        if (!sfxCtx) {
+            sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (sfxCtx.state === 'suspended') {
+            sfxCtx.resume();
+        }
+        let osc = sfxCtx.createOscillator();
+        let gain = sfxCtx.createGain();
+        osc.connect(gain);
+        gain.connect(sfxCtx.destination);
+
+        let now = sfxCtx.currentTime;
+        if (type === 'jump') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.exponentialRampToValueAtTime(700, now + 0.12);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+            osc.start(now);
+            osc.stop(now + 0.12);
+        } else if (type === 'crash') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.linearRampToValueAtTime(40, now + 0.2);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+            osc.start(now);
+            osc.stop(now + 0.2);
+        }
+    } catch(e) {}
+}
 
 const levels = [
     { name: 'STEREO MADNESS', sub: 'background color 2.1', speed: 5, length: 16000, bgColor: '#0055ff', groundColor: '#00aa55', diff: '⭐ DỄ' },
@@ -721,6 +742,7 @@ function returnToMenu() {
 }
 
 function gameOver() {
+    playSound('crash');
     if (checkpoint) {
         cameraX = checkpoint.cameraX;
         player.y = checkpoint.y;
@@ -764,6 +786,7 @@ function jump() {
     if (gameState === 'PLAYING' && player.isGrounded) {
         player.vy = player.jumpForce;
         player.isGrounded = false;
+        playSound('jump');
     }
 }
 
@@ -1020,3 +1043,4 @@ loop();
 
 </body>
 </html>
+y_dash_sfx_masterpiece.html thành công.")
