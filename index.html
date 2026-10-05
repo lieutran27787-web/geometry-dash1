@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Geometry Dash - Mobile Touch Edition</title>
+    <title>Geometry Dash - Ultimate Masterpiece Edition</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
         body {
@@ -26,7 +26,7 @@
             max-height: 450px;
             background: linear-gradient(135deg, #0055ff, #001e66);
             border: 4px solid #00ffcc;
-            box-shadow: 0 0 30px rgba(0, 255, 204, 0.5);
+            box-shadow: 0 0 35px rgba(0, 255, 204, 0.6);
             overflow: hidden;
             border-radius: 8px;
         }
@@ -43,7 +43,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.92);
             z-index: 10;
             padding: 10px;
         }
@@ -105,7 +105,9 @@
             align-items: center;
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            transition: 0.1s;
         }
+        .circle-btn:hover { transform: scale(1.1); }
         .play-big-btn {
             width: 75px;
             height: 75px;
@@ -117,7 +119,10 @@
             align-items: center;
             cursor: pointer;
             box-shadow: 0 6px 15px rgba(0,0,0,0.6);
+            transition: 0.1s;
         }
+        .play-big-btn:hover { transform: scale(1.08); }
+
         .title-info-bar {
             display: flex;
             justify-content: space-around;
@@ -152,6 +157,26 @@
             cursor: pointer; font-size: 20px; z-index: 5;
         }
 
+        .custom-media-panel {
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px dashed #00ffcc;
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 15px;
+            text-align: center;
+            width: 90%;
+            max-width: 460px;
+        }
+        .upload-label {
+            display: inline-block;
+            background: linear-gradient(to bottom, #00bcd4, #00838f);
+            color: #fff; font-weight: bold; font-size: 13px;
+            padding: 8px 14px; border-radius: 15px; cursor: pointer;
+            border: 2px solid #fff; margin: 4px; box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+            transition: 0.1s;
+        }
+        .upload-label:hover { background: linear-gradient(to bottom, #26c6da, #00acc1); }
+
         /* Màn hình Cài đặt Polargeist */
         #settings-screen { background: rgba(0, 0, 0, 0.92); }
         .settings-panel {
@@ -171,7 +196,9 @@
             background: linear-gradient(to bottom, #ffeb3b, #f57f17);
             border: 3px solid #ffffff; color: #000; font-weight: bold; font-size: 14px;
             padding: 10px; border-radius: 8px; cursor: pointer; text-align: center;
+            transition: 0.1s;
         }
+        .settings-option-btn:hover { transform: scale(1.03); background: linear-gradient(to bottom, #fff176, #f9a825); }
 
         /* Màn hình Chọn Màn Chơi */
         #level-select-screen { background: linear-gradient(180deg, #102a43, #0a101d); padding: 15px; }
@@ -182,17 +209,21 @@
             border: 3px solid #fff; border-radius: 50%;
             font-size: 22px; font-weight: bold; color: #fff;
             cursor: pointer; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6); transition: 0.1s;
         }
+        .nav-arrow-btn:hover { transform: scale(1.1); background: linear-gradient(to bottom, #8aff6c, #25a117); }
 
         /* Kho Skin */
         #skin-screen { background: linear-gradient(180deg, #2c3e50, #1a252f); padding: 15px; }
         .skin-panel {
             background: #1e272e; border: 4px solid #718093; border-radius: 14px;
             width: 90%; max-width: 650px; padding: 20px; display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.8); position: relative;
         }
         .preview-box {
             width: 70px; height: 70px; background: #111; border: 3px solid #00ffcc;
             border-radius: 10px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 15px rgba(0,255,204,0.3);
         }
         .skin-grid {
             display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px;
@@ -201,22 +232,38 @@
         }
         .skin-item {
             width: 45px; height: 45px; background: #2f3640; border: 2px solid #718093;
-            border-radius: 6px; cursor: pointer; display: flex; justify-content: center; align-items: center;
+            border-radius: 6px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.1s;
         }
-        .skin-item.selected { border-color: #72ff52; background: #273c75; }
+        .skin-item:hover { border-color: #00ffcc; transform: scale(1.08); }
+        .skin-item.selected { border-color: #72ff52; background: #273c75; box-shadow: 0 0 12px #72ff52; }
 
         /* Màn hình Thống kê */
         #stats-screen { background: rgba(0,0,0,0.92); }
         .stats-box {
             background: linear-gradient(180deg, #007744, #003322); border: 4px solid #72ff52;
-            border-radius: 12px; width: 90%
-            ; max-width: 480px; padding: 20px; text-align: center;
+            border-radius: 12px; width: 90%; max-width: 480px; padding: 20px; text-align: center;
+            box-shadow: 0 0 25px rgba(114,255,82,0.4); position: relative;
         }
-        .stats-title { font-size: 24px; font-weight: 900; color: #ffffff; text-shadow: 2px 2px #000; margin-bottom: 15px; }
-        .progress-indicator-line { background: #111; border: 2px solid #fff; height: 16px; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+        .stats-title { font-size: 24px; font-weight: 900; color: #ffffff; text-shadow: 2px 2px #000; margin-bottom: 15px; text-transform: uppercase; }
+        .progress-indicator-line { background: #111; border: 2px solid #fff; height: 16px; border-radius: 8px; margin-bottom: 12px; overflow: hidden; position: relative; }
         .progress-fill-green { background: #72ff52; width: 100%; height: 100%; }
 
-        /* Giao diện trong game & Nút bấm cảm ứng cho điện thoại */
+        /* Màn hình Chiến Thắng (Victory Screen) */
+        #victory-screen {
+            background: radial-gradient(circle, #002244 0%, #050b14 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .victory-card {
+            background: rgba(0, 0, 0, 0.88);
+            border: 5px solid #72ff52;
+            border-radius: 20px;
+            width: 90%; max-width: 520px; padding: 25px;
+            text-align: center;
+            box-shadow: 0 0 45px rgba(114,255,82,0.7);
+            position: relative;
+        }
+
+        /* Giao diện trong game */
         #ui-overlay {
             position: absolute; top: 8px; left: 8px; right: 8px;
             display: flex; justify-content: space-between; align-items: center;
@@ -232,14 +279,20 @@
         .game-ctrl-btn {
             background: linear-gradient(to bottom, #ffeb3b, #f57f17); border: 2px solid #fff; color: #000;
             font-weight: bold; padding: 6px 12px; border-radius: 16px; cursor: pointer;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.6); font-size: 12px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.6); font-size: 12px; transition: 0.1s;
         }
+        .game-ctrl-btn:hover { transform: scale(1.08); background: linear-gradient(to bottom, #fff176, #f9a825); }
+        
         #checkpoint-btn {
             background: linear-gradient(to bottom, #00ff66, #00aa44); color: #fff; border: 2px solid #fff;
-            box-shadow: 0 0 10px rgba(0, 255, 102, 0.8); font-size: 13px;
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.8); font-size: 13px; animation: pulse-cp 1.5s infinite;
+        }
+        @keyframes pulse-cp {
+            0% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 255, 102, 0.6); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 255, 102, 1); }
+            100% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 255, 102, 0.6); }
         }
 
-        /* Nút JUMP ảo trên màn hình điện thoại (Mobile On-Screen Jump Button) */
         #mobile-jump-btn {
             position: absolute; bottom: 8px; left: 8px;
             width: 110px; height: 50px;
@@ -248,19 +301,21 @@
             color: #fff; font-size: 16px; font-weight: bold;
             display: flex; justify-content: center; align-items: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 6; pointer-events: auto;
-            text-shadow: 1px 1px #000;
+            text-shadow: 1px 1px #000; transition: 0.1s;
         }
         #mobile-jump-btn:active { transform: scale(0.95); background: linear-gradient(to bottom, #ff4d79, #e60039); }
 
         .btn-common {
             background: linear-gradient(to bottom, #72ff52, #1b8a10); border: 3px solid #fff; color: #fff;
-            font-weight: bold; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 15px;
+            font-weight: bold; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 15px; transition: 0.1s;
         }
+        .btn-common:hover { transform: scale(1.05); }
     </style>
 </head>
 <body>
 
 <div id="game-container">
+    <!-- 1. Màn hình Mở đầu -->
     <div id="main-title-screen" class="screen">
         <div class="back-arrow" onclick="openStats()">ℹ️</div>
         <div class="skin-shop-icon-btn" onclick="openSkinShop()">🎨</div>
@@ -281,12 +336,24 @@
             <div class="title-info-bar">
                 <div>⏱️ TINY</div>
                 <div>🎵 POLARGEIST</div>
-                <div>ℹ️ UNVERIFIED</div>
+                <div>ℹ️ CUSTOM MP3</div>
             </div>
         </div>
-        <p style="color: #aaddff; font-size: 12px; margin-top: 12px; text-align: center;">Hỗ trợ hoàn hảo trên Điện thoại & Máy tính bảng!</p>
+
+        <div class="custom-media-panel">
+            <label class="upload-label">
+                🎵 Thêm nhạc MP3
+                <input type="file" id="mp3-upload" accept="audio/mp3,audio/*" style="display: none;" onchange="loadCustomAudio(event)">
+            </label>
+            <label class="upload-label" style="background: linear-gradient(to bottom, #e91e63, #c2185b);">
+                🖼️ Thêm ảnh nền
+                <input type="file" id="img-upload" accept="image/*" style="display: none;" onchange="loadCustomImage(event)">
+            </label>
+            <div id="media-status" style="font-size: 11px; color: #aaddff; margin-top: 4px;">Chưa có tệp tùy chỉnh nào được tải lên.</div>
+        </div>
     </div>
 
+    <!-- 2. Màn hình Cài đặt -->
     <div id="settings-screen" class="screen hidden">
         <div class="settings-panel">
             <button class="back-arrow" style="top: 12px; left: 12px; width: 36px; height: 36px; font-size: 16px;" onclick="closeSettings()">◄</button>
@@ -302,6 +369,7 @@
         </div>
     </div>
 
+    <!-- 3. Màn hình Chọn Màn Chơi -->
     <div id="level-select-screen" class="screen hidden">
         <div class="back-arrow" onclick="closeLevelSelect()">◄</div>
         <div class="skin-shop-icon-btn" onclick="openSkinShop()">🎨</div>
@@ -324,21 +392,23 @@
 
             <button class="nav-arrow-btn" onclick="changeLevel(1)">►</button>
         </div>
-        <p style="color: #aaddff; font-size: 12px; text-align: center;">Chạm nút JUMP trên màn hình hoặc click để nhảy!</p>
+        <p style="color: #aaddff; font-size: 12px; text-align: center;">Vượt qua 100% để hiển thị thông điệp vinh quang!</p>
     </div>
 
+    <!-- Kho Skin -->
     <div id="skin-screen" class="screen hidden">
         <div class="skin-panel">
-            <div class="back-arrow" style="top: 12px; left: 12px; width: 36px; height: 36px; font-size: 16px;" onclick="closeSkinShop()">◄</div>
+            <button class="back-arrow" style="top: 12px; left: 12px; width: 36px; height: 36px; font-size: 16px;" onclick="closeSkinShop()">◄</button>
             <h2 style="color: #ffeb3b; margin-bottom: 10px; font-size: 20px;">ICON KIT</h2>
             <div class="preview-box" id="skin-preview"></div>
             <div class="skin-grid" id="skin-grid-container"></div>
         </div>
     </div>
 
+    <!-- Thống kê -->
     <div id="stats-screen" class="screen hidden">
         <div class="stats-box">
-            <div class="back-arrow" style="top: 12px; left: 12px; width: 36px; height: 36px; font-size: 16px;" onclick="closeStats()">◄</div>
+            <button class="back-arrow" style="top: 12px; left: 12px; width: 36px; height: 36px; font-size: 16px;" onclick="closeStats()">◄</button>
             <div class="stats-title" id="stats-level-title" style="font-size: 20px;">STEREO MADNESS</div>
             <p style="color: #aaddff; font-size: 13px; margin-bottom: 6px;">NORMAL MODE</p>
             <div class="progress-indicator-line"><div class="progress-fill-green" style="width: 100%;"></div></div>
@@ -352,6 +422,7 @@
         </div>
     </div>
 
+    <!-- Game Over -->
     <div id="game-over-screen" class="screen hidden">
         <h1 id="result-title" style="font-size: 30px; color: #ff5252;">THẤT BẠI</h1>
         <p id="result-score" style="margin-bottom: 15px; font-size: 16px;">Hoàn thành: 0%</p>
@@ -361,6 +432,22 @@
         </div>
     </div>
 
+    <!-- 4. Màn hình Chiến Thắng (Victory Screen) -->
+    <div id="victory-screen" class="screen hidden">
+        <div class="victory-card">
+            <h1 style="color: #ffeb3b; font-size: 28px; text-shadow: 2px 2px #000; margin-bottom: 8px;">🔥 KHẢ NĂNG BÁ KHÍ! 🔥</h1>
+            <p style="color: #72ff52; font-size: 14px; font-weight: bold; margin-bottom: 15px; line-height: 1.4;">"Bằng một sự tập trung tột độ và ý chí sắt đá, ngươi đã đạp bằng mọi gian khó, khải hoàn trở về với khí phách anh hùng và uy quyền bá khí lẫy lừng!"</p>
+            
+            <canvas id="victoryCanvas" width="380" height="130" style="display: block; margin: 0 auto 15px; background: rgba(0,0,0,0.5); border-radius: 8px; border: 2px solid #00ffcc;"></canvas>
+
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <button class="btn-common" onclick="startGame()">CHƠI LẠI</button>
+                <button class="btn-common" style="background: linear-gradient(to bottom, #00bcd4, #00838f);" onclick="returnToMenu()">VỀ MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Giao diện trong game -->
     <div id="ui-overlay" class="hidden">
         <div>Màn: <span id="ui-level-name" style="color: #72ff52;">STEREO</span></div>
         <div style="flex-grow: 1; text-align: center;">
@@ -368,11 +455,10 @@
         </div>
         <div>Thử: <span id="attempts">1</span></div>
 
-        <!-- Nút JUMP ảo hiển thị trên màn hình điện thoại -->
         <button id="mobile-jump-btn" onmousedown="jump()" ontouchstart="jump(); event.preventDefault();">🚀 JUMP</button>
 
         <div class="in-game-controls">
-            <button class="game-ctrl-btn" onclick="toggleMusicPlayback()" id="music-toggle-btn">🎵 Nhạc</button>
+            <button class="game-ctrl-btn" onclick="toggleCustomMusic()" id="music-toggle-btn">🎵 Tắt Nhạc</button>
             <button class="game-ctrl-btn" id="checkpoint-btn" onclick="placeCheckpoint()">📍 Lưu CP</button>
             <button class="game-ctrl-btn" onclick="toggleAutoCheckpoint()" id="auto-cp-ingame-btn" style="background: linear-gradient(to bottom, #29b6f6, #0288d1); color:#fff;">⚡ Auto: TẮT</button>
         </div>
@@ -394,16 +480,9 @@ let checkpoint = null;
 let isAutoCheckpointEnabled = false;
 let lastAutoCpDistance = 0;
 
-let audioCtx = null;
-let isMusicPlaying = false;
-let musicInterval = null;
-
-const songs = [
-    { name: 'Stereo Madness', bpm: 120 },
-    { name: 'Polargeist', bpm: 130 },
-    { name: 'Back on Track', bpm: 140 }
-];
-let currentSongIndex = 0;
+let customAudio = null;
+let customImage = null;
+let isCustomMusicPlaying = false;
 
 const levels = [
     { name: 'STEREO MADNESS', sub: 'background color 2.1', speed: 5, length: 16000, bgColor: '#0055ff', groundColor: '#00aa55', diff: '⭐ DỄ' },
@@ -430,6 +509,42 @@ const player = {
     x: 150, y: 300, size: 32, vy: 0, gravity: 0.8, jumpForce: -12.5, rotation: 0, isGrounded: false
 };
 const obstacles = [];
+
+function loadCustomAudio(event) {
+    let file = event.target.files[0];
+    if (file) {
+        let fileURL = URL.createObjectURL(file);
+        customAudio = new Audio(fileURL);
+        customAudio.loop = true;
+        document.getElementById('media-status').innerText = `✅ Đã tải nhạc: ${file.name}`;
+    }
+}
+
+function loadCustomImage(event) {
+    let file = event.target.files[0];
+    if (file) {
+        let fileURL = URL.createObjectURL(file);
+        customImage = new Image();
+        customImage.src = fileURL;
+        document.getElementById('media-status').innerText += ` | ✅ Đã tải ảnh nền: ${file.name}`;
+    }
+}
+
+function toggleCustomMusic() {
+    if (!customAudio) {
+        alert("Vui lòng bấm 'Thêm nhạc MP3' ở màn hình chính trước khi chơi!");
+        return;
+    }
+    isCustomMusicPlaying = !isCustomMusicPlaying;
+    let btn = document.getElementById('music-toggle-btn');
+    if (isCustomMusicPlaying) {
+        customAudio.play();
+        btn.innerText = '🎵 Tắt Nhạc';
+    } else {
+        customAudio.pause();
+        btn.innerText = '🎵 Bật Nhạc';
+    }
+}
 
 function updateLevelDisplay() {
     let lvl = levels[currentLevelIndex];
@@ -526,7 +641,7 @@ function openSkinShop() {
 
 function closeSkinShop() {
     document.getElementById('skin-screen').classList.add('hidden');
-    document.getElementById('main-title-screen').classList.remove('hidden');
+    document.getElementById('level-select-screen').classList.remove('hidden');
 }
 
 function openStats() {
@@ -573,6 +688,7 @@ function startGame() {
     document.getElementById('skin-screen').classList.add('hidden');
     document.getElementById('stats-screen').classList.add('hidden');
     document.getElementById('game-over-screen').classList.add('hidden');
+    document.getElementById('victory-screen').classList.add('hidden');
     document.getElementById('ui-overlay').classList.remove('hidden');
 
     let lvl = levels[currentLevelIndex];
@@ -588,11 +704,17 @@ function startGame() {
     
     generateLevel();
     gameState = 'PLAYING';
+
+    if (customAudio && isCustomMusicPlaying) {
+        customAudio.currentTime = 0;
+        customAudio.play();
+    }
 }
 
 function returnToMenu() {
-    if (musicInterval) clearInterval(musicInterval);
+    if (customAudio) customAudio.pause();
     document.getElementById('game-over-screen').classList.add('hidden');
+    document.getElementById('victory-screen').classList.add('hidden');
     document.getElementById('ui-overlay').classList.add('hidden');
     document.getElementById('main-title-screen').classList.remove('hidden');
     gameState = 'MENU';
@@ -611,7 +733,7 @@ function gameOver() {
     }
 
     gameState = 'GAMEOVER';
-    if (musicInterval) clearInterval(musicInterval);
+    if (customAudio) customAudio.pause();
     attempts++;
     document.getElementById('attempts').innerText = attempts;
     document.getElementById('result-title').innerText = 'THẤT BẠI';
@@ -620,14 +742,13 @@ function gameOver() {
 }
 
 function gameWin() {
-    gameState = 'GAMEOVER';
-    if (musicInterval) clearInterval(musicInterval);
-    document.getElementById('result-title').innerText = 'HOÀN THÀNH!';
-    document.getElementById('result-score').innerText = `Hoàn thành: 100%`;
-    document.getElementById('game-over-screen').classList.remove('hidden');
+    gameState = 'VICTORY';
+    if (customAudio) customAudio.pause();
+    document.getElementById('ui-overlay').classList.add('hidden');
+    document.getElementById('victory-screen').classList.remove('hidden');
+    startVictoryAnimation();
 }
 
-// Điều khiển đa nền tảng: Bàn phím + Click + Chạm màn hình điện thoại
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space' || e.code === 'ArrowUp') {
         e.preventDefault();
@@ -727,11 +848,15 @@ function draw() {
 
     let lvl = levels[currentLevelIndex];
 
-    let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    bgGrad.addColorStop(0, lvl.bgColor);
-    bgGrad.addColorStop(1, '#0b0f19');
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (customImage && customImage.complete) {
+        ctx.drawImage(customImage, 0, 0, canvas.width, canvas.height);
+    } else {
+        let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        bgGrad.addColorStop(0, lvl.bgColor);
+        bgGrad.addColorStop(1, '#0b0f19');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
     ctx.lineWidth = 1;
@@ -824,6 +949,64 @@ function draw() {
     ctx.strokeRect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
 
     ctx.restore();
+}
+
+const vCanvas = document.getElementById('victoryCanvas');
+const vCtx = vCanvas.getContext('2d');
+let animFrame = 0;
+
+function startVictoryAnimation() {
+    function drawVictory() {
+        if (gameState !== 'VICTORY') return;
+        animFrame++;
+        vCtx.clearRect(0, 0, vCanvas.width, vCanvas.height);
+
+        vCtx.fillStyle = '#ffffff';
+        vCtx.fillRect(60, 30, 5, 85);
+        vCtx.beginPath();
+        vCtx.moveTo(65, 30);
+        let wave1 = Math.sin(animFrame * 0.1) * 7;
+        vCtx.lineTo(130, 40 + wave1);
+        vCtx.lineTo(130, 80 + wave1);
+        vCtx.lineTo(65, 70);
+        vCtx.fillStyle = '#ff3366';
+        vCtx.fill();
+
+        vCtx.fillStyle = '#ffffff';
+        vCtx.fillRect(334, 30, 5, 85);
+        vCtx.beginPath();
+        vCtx.moveTo(339, 30);
+        let wave2 = Math.cos(animFrame * 0.1) * 7;
+        vCtx.lineTo(274, 40 + wave2);
+        vCtx.lineTo(274, 80 + wave2);
+        vCtx.lineTo(339, 70);
+        vCtx.fillStyle = '#00e676';
+        vCtx.fill();
+
+        let jumpOffset = Math.abs(Math.sin(animFrame * 0.15)) * 22;
+        let skin = skins[currentSkinIndex];
+        
+        vCtx.save();
+        vCtx.translate(200, 90 - jumpOffset);
+        vCtx.rotate((animFrame * 5 * Math.PI) / 180);
+
+        vCtx.fillStyle = skin.primary;
+        vCtx.strokeStyle = '#000000';
+        vCtx.lineWidth = 3;
+        vCtx.fillRect(-16, -16, 32, 32);
+        vCtx.strokeRect(-16, -16, 32, 32);
+
+        vCtx.fillStyle = skin.secondary;
+        vCtx.strokeStyle = '#ffffff';
+        vCtx.lineWidth = 2;
+        vCtx.fillRect(-6, -6, 12, 12);
+        vCtx.strokeRect(-6, -6, 12, 12);
+
+        vCtx.restore();
+
+        requestAnimationFrame(drawVictory);
+    }
+    drawVictory();
 }
 
 function loop() {
