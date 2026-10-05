@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash - Ultimate Edition (Very Long Levels)</title>
+    <title>Geometry Dash - Perfect Edition (Multi-Jump & Bug-Free)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -15,6 +15,7 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
+            user-select: none;
         }
         #game-container {
             position: relative;
@@ -507,7 +508,7 @@
             <button class="nav-arrow-btn" onclick="changeLevel(1)">►</button>
         </div>
         
-        <p style="color: #aaddff; font-size: 13px;">Các màn chơi siêu dài (16000+ pixels) giống hệt game gốc!</p>
+        <p style="color: #aaddff; font-size: 13px;">Click hoặc Giữ chuột / Space để liên tục nhảy mượt mà!</p>
     </div>
 
     <!-- Màn hình Kho Skin -->
@@ -598,7 +599,6 @@ const songs = [
 ];
 let currentSongIndex = 0;
 
-// Cập nhật các màn chơi siêu dài (độ dài lên tới 16000+ pixels giống game gốc)
 const levels = [
     { name: 'STEREO MADNESS', sub: 'background color 2.1', speed: 5, length: 16000, bgColor: '#0055ff', groundColor: '#00aa55', diff: '⭐ DỄ (TINY)' },
     { name: 'POLARGEIST', sub: 'background color 2.2', speed: 5.8, length: 18000, bgColor: '#0033aa', groundColor: '#008844', diff: '⭐⭐ TRUNG BÌNH' },
@@ -648,7 +648,7 @@ function changeLevel(direction) {
 function generateLevel() {
     obstacles.length = 0;
     let lvl = levels[currentLevelIndex];
-    let currentX = 1000; // Khoảng đà siêu dài ở đầu màn
+    let currentX = 1000;
 
     while (currentX < lvl.length - 600) {
         let type = Math.random();
@@ -828,9 +828,10 @@ function gameWin() {
     document.getElementById('result-title').innerText = 'HOÀN THÀNH MÀN CHƠI!';
     document.getElementById('result-title').style.color = '#72ff52';
     document.getElementById('result-score').innerText = `Hoàn thành: 100%`;
-    document.getElementById('game-over-screen').classList.add('hidden');
+    document.getElementById('game-over-screen').classList.remove('hidden');
 }
 
+// Hỗ trợ click hoặc giữ phím Space / chuột để nhảy liên tục (Multi-jump / Bunny Hop)
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space' || e.code === 'ArrowUp') {
         e.preventDefault();
@@ -838,7 +839,7 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
-canvas.addEventListener('mousedown', () => {
+canvas.addEventListener('mousedown', (e) => {
     jump();
 });
 
@@ -1040,4 +1041,4 @@ loop();
 
 </body>
 </html>
-long_levels.html thành công.")
+ct_edition.html thành công.")
