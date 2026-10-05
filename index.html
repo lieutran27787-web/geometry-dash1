@@ -32,7 +32,10 @@
         }
         canvas {
             display: block;
-            background: #112244;
+            /* Tối ưu hiệu suất: Xóa màu nền cứng để hỗ trợ hiển thị ảnh nền bằng CSS */
+            background-color: transparent; 
+            background-position: center;
+            background-size: cover;
             width: 100%;
             height: 100%;
             cursor: pointer;
@@ -245,7 +248,7 @@
         .progress-indicator-line { background: #111; border: 2px solid #fff; height: 16px; border-radius: 8px; margin-bottom: 12px; overflow: hidden; position: relative; }
         .progress-fill-green { background: #72ff52; width: 100%; height: 100%; }
 
-        #victory-screen {
+        #victory-screen, #game-over-screen {
             background: radial-gradient(circle, #002244 0%, #050b14 100%);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
@@ -414,6 +417,7 @@
     <div id="game-over-screen" class="screen hidden">
         <h1 id="result-title" style="font-size: 30px; color: #ff5252;">THẤT BẠI</h1>
         <p id="result-score" style="margin-bottom: 15px; font-size: 16px;">Hoàn thành: 0%</p>
+        <p style="margin-bottom: 15px; font-size: 14px; color: #aaddff;">Thử lại lần thứ: <span id="attempts">1</span></p>
         <div style="display: flex; gap: 10px;">
             <button class="btn-common" onclick="startGame()">THỬ LẠI</button>
             <button class="btn-common" style="background: linear-gradient(to bottom, #ff5252, #c62828);" onclick="returnToMenu()">MENU</button>
@@ -442,10 +446,10 @@
         </div>
         <div>Xu: <span id="ui-coins" style="color: #ffeb3b;">0/3</span></div>
 
-        <button id="mobile-action-btn" onmousedown="handleActionStart()" onmouseup="handleActionEnd()" ontouchstart="handleActionStart(); event.preventDefault();" ontouchend="handleActionEnd(); event.preventDefault();">🚀 JUMP / ACTION</button>
+        <button id="mobile-action-btn" onmousedown="handleActionStart()" onmouseup="handleActionEnd()" ontouchstart="handleActionStart(); event.preventDefault();" ontouchend="handleActionEnd(); event.preventDefault();">🚀 JUMP</button>
 
         <div class="in-game-controls">
-            <button class="game-ctrl-btn" onclick="toggleCustomMusic()" id="music-toggle-btn">🎵 Tắt Nhạc</button>
+            <button class="game-ctrl-btn" onclick="toggleCustomMusic()" id="music-toggle-btn">🎵 Bật/Tắt Nhạc</button>
             <button class="game-ctrl-btn" id="checkpoint-btn" onclick="placeCheckpoint()">📍 Lưu CP</button>
             <button class="game-ctrl-btn" id="auto-cp-ingame-btn" onclick="toggleAutoCheckpoint()" style="background: linear-gradient(to bottom, #29b6f6, #0288d1); color:#fff;">⚡ Auto: TẮT</button>
         </div>
@@ -468,7 +472,7 @@ let isAutoCheckpointEnabled = false;
 let lastAutoCpDistance = 0;
 
 let customAudio = null;
-let globalCustomImage = null;
+let globalCustomImageURL = null; // [Tối ưu hóa] Lưu dạng URL để dùng CSS
 let isCustomMusicPlaying = false;
 let isActionPressed = false;
 
@@ -527,29 +531,22 @@ function playSound(type) {
     } catch(e) {}
 }
 
-// 6 Màn chơi: 5 màn thường và 1 màn THE TOWER (cần tổng cộng 3 xu để mở khóa)
 const levels = [
-    { name: 'STEREO MADNESS', sub: 'background color 2.1', speed: 5, length: 16000, bgColor: '#0055ff', groundColor: '#00aa55', diff: '⭐ DỄ', bgImg: null },
-    { name: 'POLARGEIST', sub: 'background color 2.2', speed: 5.8, length: 18000, bgColor: '#0033aa', groundColor: '#008844', diff: '⭐⭐ TRUNG BÌNH', bgImg: null },
-    { name: 'BACK ON TRACK', sub: 'background color 2.3', speed: 6.4, length: 20000, bgColor: '#aa5500', groundColor: '#884400', diff: '⭐⭐ TRUNG BÌNH', bgImg: null },
-    { name: 'BASE AFTER BASE', sub: 'background color 2.4', speed: 7.0, length: 22000, bgColor: '#5500aa', groundColor: '#440088', diff: '⭐⭐⭐ KHÓ', bgImg: null },
-    { name: 'CAN\'T LET GO', sub: 'background color 2.5', speed: 7.6, length: 24000, bgColor: '#aa0055', groundColor: '#880044', diff: '⭐⭐⭐⭐ RẤT KHÓ', bgImg: null },
-    { name: 'THE TOWER (HORROR)', sub: '💀 Quái vật rượt đuổi kinh dị', speed: 6.5, length: 22000, bgColor: '#1a0005', groundColor: '#2b000a', diff: '💀 KINH DỊ (YÊU CẦU 3 XU)', bgImg: null }
+    { name: 'STEREO MADNESS', speed: 5, length: 16000, bgColor: '#0055ff', groundColor: '#00aa55', diff: '⭐ DỄ', bgImgURL: null },
+    { name: 'POLARGEIST', speed: 5.8, length: 18000, bgColor: '#0033aa', groundColor: '#008844', diff: '⭐⭐ TRUNG BÌNH', bgImgURL: null },
+    { name: 'BACK ON TRACK', speed: 6.4, length: 20000, bgColor: '#aa5500', groundColor: '#884400', diff: '⭐⭐ TRUNG BÌNH', bgImgURL: null },
+    { name: 'BASE AFTER BASE', speed: 7.0, length: 22000, bgColor: '#5500aa', groundColor: '#440088', diff: '⭐⭐⭐ KHÓ', bgImgURL: null },
+    { name: 'CAN\'T LET GO', speed: 7.6, length: 24000, bgColor: '#aa0055', groundColor: '#880044', diff: '⭐⭐⭐⭐ RẤT KHÓ', bgImgURL: null },
+    { name: 'THE TOWER (HORROR)', speed: 6.5, length: 22000, bgColor: '#1a0005', groundColor: '#2b000a', diff: '💀 KINH DỊ (YÊU CẦU 3 XU)', bgImgURL: null }
 ];
 let currentLevelIndex = 0;
 
-// Hệ thống xu (3 xu cho mỗi màn, tổng 18 xu)
 let levelCoins = [
-    [false, false, false],
-    [false, false, false],
-    [false, false, false],
-    [false, false, false],
-    [false, false, false],
-    [false, false, false]
+    [false, false, false], [false, false, false], [false, false, false],
+    [false, false, false], [false, false, false], [false, false, false]
 ];
 let runCollectedCoins = 0;
 
-// Hệ thống Skin / Icon Kit theo ảnh mẫu (Cube, Ship, Ball, UFO, Wave, Robot, Spider, Swing)
 const skins = [
     { name: 'Cube', type: 'cube', primary: '#72ff52', secondary: '#0055ff' },
     { name: 'Ship', type: 'ship', primary: '#00ffff', secondary: '#002b88' },
@@ -562,9 +559,7 @@ const skins = [
 ];
 let currentSkinIndex = 0;
 
-const player = {
-    x: 150, y: 300, size: 32, vy: 0, gravity: 0.8, jumpForce: -12.5, rotation: 0, isGrounded: false, mode: 'cube'
-};
+const player = { x: 150, y: 300, size: 32, vy: 0, gravity: 0.8, jumpForce: -12.5, rotation: 0, isGrounded: false, mode: 'cube' };
 const obstacles = [];
 const waveTrails = [];
 let horrorMonster = { x: -300, y: 250, speed: 5.2, active: false };
@@ -584,29 +579,22 @@ function loadCustomImage(event) {
     let file = event.target.files[0];
     if (file) {
         let fileURL = URL.createObjectURL(file);
-        let img = new Image();
-        img.src = fileURL;
-        img.onload = () => {
-            levels[currentLevelIndex].bgImg = img;
-            globalCustomImage = img;
-            document.getElementById('media-status').innerText += ` | ✅ Đã tải ảnh nền cho ${levels[currentLevelIndex].name}: ${file.name}`;
-        };
+        levels[currentLevelIndex].bgImgURL = fileURL;
+        globalCustomImageURL = fileURL; // Lưu dạng Blob URL cho CSS Background
+        document.getElementById('media-status').innerText += ` | ✅ Đã tải ảnh nền: ${file.name}`;
     }
 }
 
 function toggleCustomMusic() {
-    if (!customAudio) {
-        alert("Vui lòng bấm 'Thêm nhạc MP3' ở màn hình chính trước khi chơi!");
-        return;
-    }
+    if (!customAudio) return;
     isCustomMusicPlaying = !isCustomMusicPlaying;
     let btn = document.getElementById('music-toggle-btn');
     if (isCustomMusicPlaying) {
         customAudio.play();
-        btn.innerText = '🎵 Tắt Nhạc';
+        btn.innerText = '🎵 Đang Phát';
     } else {
         customAudio.pause();
-        btn.innerText = '🎵 Bật Nhạc';
+        btn.innerText = '🎵 Đã Dừng';
     }
 }
 
@@ -624,7 +612,7 @@ function updateLevelDisplay() {
     document.getElementById('display-level-name').innerText = lvl.name;
     if (isTowerLocked) {
         document.getElementById('display-level-diff').innerText = `🔒 CẦN TỔNG 3 XU (Hiện có: ${totalCoins}/3)`;
-        document.getElementById('level-desc-tip').innerText = `⚠️ Màn THE TOWER kinh dị đang khóa! Hãy chơi các màn khác và thu thập đủ 3 xu (🪙).`;
+        document.getElementById('level-desc-tip').innerText = `⚠️ Màn THE TOWER đang khóa! Cần 3 xu.`;
     } else {
         document.getElementById('display-level-diff').innerText = lvl.diff;
         document.getElementById('level-desc-tip').innerText = `Cuối map có màn bay ziczac (Wave Mode) cực kỳ thách thức!`;
@@ -649,26 +637,42 @@ function generateLevel() {
     let mapEnd = lvl.length;
     runCollectedCoins = 0;
 
+    // [Tối ưu hóa] Grid-based Pattern: Tạo mảng mẫu lặp cố định thay vì Random
+    // Điều này giúp map đồng bộ với nhịp điệu (Rhythm-based)
+    const patterns = [
+        [{ type: 'spike', dx: 0, dy: -32, w: 32, h: 32 }],
+        [
+            { type: 'block', dx: 0, dy: -64, w: 320, h: 64 },
+            { type: 'spike', dx: 144, dy: -96, w: 32, h: 32 }
+        ],
+        [
+            { type: 'spike', dx: 0, dy: -32, w: 32, h: 32 },
+            { type: 'spike', dx: 32, dy: -32, w: 32, h: 32 }
+        ],
+        [
+            { type: 'block', dx: 0, dy: -64, w: 120, h: 64 },
+            { type: 'block', dx: 240, dy: -64, w: 120, h: 64 }
+        ]
+    ];
+
+    let patternIndex = 0;
+    let groundY = 382;
+
     while (currentX < mapEnd - 4500) {
-        let type = Math.random();
-        if (type < 0.3) {
-            obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
-            currentX += 180 + Math.random() * 60;
-        } else {
-            let blockW = 320; 
-            let blockH = 64;
-            let blockY = 382 - blockH;
-            
-            obstacles.push({ x: currentX, y: blockY, w: blockW, h: blockH, type: 'block' });
-            let spikeOffsetX = currentX + (blockW / 2) - 32;
-            obstacles.push({ x: spikeOffsetX, y: blockY - 32, w: 32, h: 32, type: 'spike' });
-            obstacles.push({ x: spikeOffsetX + 32, y: blockY - 32, w: 32, h: 32, type: 'spike' });
-            
-            currentX += blockW + 200 + Math.random() * 80;
-        }
+        let pat = patterns[patternIndex % patterns.length];
+        pat.forEach(p => {
+            obstacles.push({
+                x: currentX + p.dx,
+                y: groundY + p.dy,
+                w: p.w,
+                h: p.h,
+                type: p.type
+            });
+        });
+        currentX += 500; // Khoảng cách đều giúp người chơi bắt nhịp chuẩn xác
+        patternIndex++;
     }
 
-    // Sinh 3 đồng xu (coins) trong màn chơi
     let coinPositions = [Math.floor(mapEnd * 0.25), Math.floor(mapEnd * 0.55), Math.floor(mapEnd * 0.8)];
     coinPositions.forEach((cx, idx) => {
         obstacles.push({ x: cx, y: 220, w: 28, h: 28, type: 'coin', coinIndex: idx, collected: levelCoins[currentLevelIndex][idx] });
@@ -688,11 +692,9 @@ function generateLevel() {
         obstacles.push({ x: wx, y: botZ, w: segmentLen, h: 382 - botZ, type: 'wave_floor' });
     }
 
-    // Nếu là màn THE TOWER (index 5), kích hoạt quái vật kinh dị rượt đuổi
     if (currentLevelIndex === 5) {
         horrorMonster.active = true;
-        horrorMonster.x = -350;
-        horrorMonster.y = 250;
+        horrorMonster.x = -350; horrorMonster.y = 250;
         horrorMonster.speed = lvl.speed - 0.3;
     } else {
         horrorMonster.active = false;
@@ -708,14 +710,7 @@ function toggleAutoCheckpoint() {
 
 function placeCheckpoint() {
     if (gameState === 'PLAYING') {
-        checkpoint = {
-            cameraX: cameraX,
-            y: player.y,
-            vy: player.vy,
-            rotation: player.rotation,
-            isGrounded: player.isGrounded,
-            mode: player.mode
-        };
+        checkpoint = { cameraX: cameraX, y: player.y, vy: player.vy, rotation: player.rotation, isGrounded: player.isGrounded, mode: player.mode };
         let btn = document.getElementById('checkpoint-btn');
         let oldText = btn.innerText;
         btn.innerText = '📍 ĐÃ LƯU!';
@@ -723,52 +718,19 @@ function placeCheckpoint() {
     }
 }
 
-function openLevelSelect() {
-    document.getElementById('main-title-screen').classList.add('hidden');
-    document.getElementById('level-select-screen').classList.remove('hidden');
-    updateLevelDisplay();
-}
-
-function closeLevelSelect() {
-    document.getElementById('level-select-screen').classList.add('hidden');
-    document.getElementById('main-title-screen').classList.remove('hidden');
-}
-
-function openSettings() {
-    document.getElementById('main-title-screen').classList.add('hidden');
-    document.getElementById('settings-screen').classList.remove('hidden');
-}
-
-function closeSettings() {
-    document.getElementById('settings-screen').classList.add('hidden');
-    document.getElementById('main-title-screen').classList.remove('hidden');
-}
-
-function openSkinShop() {
-    document.getElementById('main-title-screen').classList.add('hidden');
-    document.getElementById('level-select-screen').classList.add('hidden');
-    document.getElementById('skin-screen').classList.remove('hidden');
-    initSkinShop();
-}
-
-function closeSkinShop() {
-    document.getElementById('skin-screen').classList.add('hidden');
-    document.getElementById('level-select-screen').classList.remove('hidden');
-}
-
+function openLevelSelect() { document.getElementById('main-title-screen').classList.add('hidden'); document.getElementById('level-select-screen').classList.remove('hidden'); updateLevelDisplay(); }
+function closeLevelSelect() { document.getElementById('level-select-screen').classList.add('hidden'); document.getElementById('main-title-screen').classList.remove('hidden'); }
+function openSettings() { document.getElementById('main-title-screen').classList.add('hidden'); document.getElementById('settings-screen').classList.remove('hidden'); }
+function closeSettings() { document.getElementById('settings-screen').classList.add('hidden'); document.getElementById('main-title-screen').classList.remove('hidden'); }
+function openSkinShop() { document.getElementById('main-title-screen').classList.add('hidden'); document.getElementById('level-select-screen').classList.add('hidden'); document.getElementById('skin-screen').classList.remove('hidden'); initSkinShop(); }
+function closeSkinShop() { document.getElementById('skin-screen').classList.add('hidden'); document.getElementById('level-select-screen').classList.remove('hidden'); }
 function openStats() {
-    document.getElementById('main-title-screen').classList.add('hidden');
-    document.getElementById('level-select-screen').classList.add('hidden');
-    document.getElementById('stats-screen').classList.remove('hidden');
+    document.getElementById('main-title-screen').classList.add('hidden'); document.getElementById('level-select-screen').classList.add('hidden'); document.getElementById('stats-screen').classList.remove('hidden');
     let total = getTotalCollectedCoins();
     document.getElementById('stats-total-coins-text').innerText = `Tổng số xu đã thu thập: ${total} / 18`;
     document.getElementById('stats-progress-bar').style.width = `${(total / 18) * 100}%`;
 }
-
-function closeStats() {
-    document.getElementById('stats-screen').classList.add('hidden');
-    document.getElementById('main-title-screen').classList.remove('hidden');
-}
+function closeStats() { document.getElementById('stats-screen').classList.add('hidden'); document.getElementById('main-title-screen').classList.remove('hidden'); }
 
 function initSkinShop() {
     const container = document.getElementById('skin-grid-container');
@@ -780,11 +742,7 @@ function initSkinShop() {
         <div style="width:28px; height:28px; background:${skin.primary}; border:2px solid #000; position:relative; display:flex; justify-content:center; align-items:center; border-radius:4px;">
             <div style="width:10px; height:10px; background:${skin.secondary}; border:1px solid #fff;"></div>
         </div>`;
-        item.onclick = () => {
-            currentSkinIndex = idx;
-            updateSkinPreview();
-            initSkinShop();
-        };
+        item.onclick = () => { currentSkinIndex = idx; updateSkinPreview(); initSkinShop(); };
         container.appendChild(item);
     });
     updateSkinPreview();
@@ -801,31 +759,24 @@ function updateSkinPreview() {
 
 function startGame() {
     let totalCoins = getTotalCollectedCoins();
-    if (currentLevelIndex === 5 && totalCoins < 3) {
-        alert("🔒 Bạn cần thu thập tổng cộng ít nhất 3 xu (🪙) từ các màn chơi khác để mở khóa màn THE TOWER kinh dị!");
-        return;
-    }
+    if (currentLevelIndex === 5 && totalCoins < 3) { alert("🔒 Bạn cần thu thập tổng cộng ít nhất 3 xu!"); return; }
 
-    document.getElementById('main-title-screen').classList.add('hidden');
-    document.getElementById('level-select-screen').classList.add('hidden');
-    document.getElementById('skin-screen').classList.add('hidden');
-    document.getElementById('stats-screen').classList.add('hidden');
-    document.getElementById('game-over-screen').classList.add('hidden');
-    document.getElementById('victory-screen').classList.add('hidden');
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
     document.getElementById('ui-overlay').classList.remove('hidden');
 
     let lvl = levels[currentLevelIndex];
     document.getElementById('ui-level-name').innerText = lvl.name.split(' ')[0];
 
-    player.x = 150;
-    player.y = 300;
-    player.vy = 0;
-    player.rotation = 0;
-    player.mode = 'cube';
-    cameraX = 0;
-    checkpoint = null;
-    lastAutoCpDistance = 0;
-    isActionPressed = false;
+    // Cập nhật background trực tiếp qua CSS để GPU xử lý siêu mượt
+    let activeBgURL = lvl.bgImgURL || globalCustomImageURL;
+    if (activeBgURL) {
+        canvas.style.backgroundImage = `url(${activeBgURL})`;
+    } else {
+        canvas.style.backgroundImage = 'none';
+    }
+
+    player.x = 150; player.y = 300; player.vy = 0; player.rotation = 0; player.mode = 'cube';
+    cameraX = 0; checkpoint = null; lastAutoCpDistance = 0; isActionPressed = false;
     
     generateLevel();
     gameState = 'PLAYING';
@@ -834,10 +785,7 @@ function startGame() {
     levelCoins[currentLevelIndex].forEach(c => { if(c) collectedInThisLevel++; });
     document.getElementById('ui-coins').innerText = `${collectedInThisLevel}/3`;
 
-    if (customAudio && isCustomMusicPlaying) {
-        customAudio.currentTime = 0;
-        customAudio.play();
-    }
+    if (customAudio && isCustomMusicPlaying) { customAudio.currentTime = 0; customAudio.play(); }
 }
 
 function returnToMenu() {
@@ -852,22 +800,15 @@ function returnToMenu() {
 function gameOver() {
     playSound('crash');
     if (checkpoint) {
-        cameraX = checkpoint.cameraX;
-        player.y = checkpoint.y;
-        player.vy = checkpoint.vy;
-        player.rotation = checkpoint.rotation;
-        player.isGrounded = checkpoint.isGrounded;
-        player.mode = checkpoint.mode;
-        attempts++;
-        document.getElementById('attempts').innerText = attempts;
+        cameraX = checkpoint.cameraX; player.y = checkpoint.y; player.vy = checkpoint.vy;
+        player.rotation = checkpoint.rotation; player.isGrounded = checkpoint.isGrounded; player.mode = checkpoint.mode;
+        attempts++; document.getElementById('attempts').innerText = attempts;
         return;
     }
-
     gameState = 'GAMEOVER';
     if (customAudio) customAudio.pause();
     attempts++;
     document.getElementById('attempts').innerText = attempts;
-    document.getElementById('result-title').innerText = 'THẤT BẠI';
     document.getElementById('result-score').innerText = `Hoàn thành: ${Math.floor(score)}%`;
     document.getElementById('game-over-screen').classList.remove('hidden');
 }
@@ -880,37 +821,12 @@ function gameWin() {
     startVictoryAnimation();
 }
 
-window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' || e.code === 'ArrowUp') {
-        e.preventDefault();
-        isActionPressed = true;
-        jumpOrFly();
-    }
-});
-
-window.addEventListener('keyup', (e) => {
-    if (e.code === 'Space' || e.code === 'ArrowUp') {
-        isActionPressed = false;
-    }
-});
-
-canvas.addEventListener('mousedown', (e) => {
-    isActionPressed = true;
-    jumpOrFly();
-});
-
-window.addEventListener('mouseup', (e) => {
-    isActionPressed = false;
-});
-
-function handleActionStart() {
-    isActionPressed = true;
-    jumpOrFly();
-}
-
-function handleActionEnd() {
-    isActionPressed = false;
-}
+window.addEventListener('keydown', (e) => { if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); isActionPressed = true; jumpOrFly(); }});
+window.addEventListener('keyup', (e) => { if (e.code === 'Space' || e.code === 'ArrowUp') { isActionPressed = false; }});
+canvas.addEventListener('mousedown', (e) => { isActionPressed = true; jumpOrFly(); });
+window.addEventListener('mouseup', (e) => { isActionPressed = false; });
+function handleActionStart() { isActionPressed = true; jumpOrFly(); }
+function handleActionEnd() { isActionPressed = false; }
 
 function jumpOrFly() {
     if (gameState !== 'PLAYING') return;
@@ -929,23 +845,14 @@ function update() {
 
     if (horrorMonster.active) {
         horrorMonster.x += lvl.speed * 0.96;
-        let playerWorldX = player.x + cameraX;
-        if (playerWorldX - horrorMonster.x < 55) {
-            gameOver();
-            return;
-        }
+        if (player.x + cameraX - horrorMonster.x < 55) { gameOver(); return; }
     }
 
     if (player.mode === 'wave') {
-        if (isActionPressed) {
-            player.vy = -6.5;
-        } else {
-            player.vy = 6.5;
-        }
+        player.vy = isActionPressed ? -6.5 : 6.5;
         player.y += player.vy;
         player.rotation = player.vy * 5;
         player.isGrounded = false;
-
         waveTrails.push({ x: player.x + cameraX, y: player.y + player.size/2 });
         if (waveTrails.length > 100) waveTrails.shift();
     } else {
@@ -956,72 +863,43 @@ function update() {
     score = Math.min(100, (cameraX / lvl.length) * 100);
     document.getElementById('progress').style.width = score + '%';
 
-    if (isAutoCheckpointEnabled && cameraX - lastAutoCpDistance >= 1500) {
-        checkpoint = {
-            cameraX: cameraX,
-            y: player.y,
-            vy: player.vy,
-            rotation: player.rotation,
-            isGrounded: player.isGrounded,
-            mode: player.mode
-        };
-        lastAutoCpDistance = cameraX;
-    }
-
-    if (cameraX >= lvl.length) {
-        gameWin();
-        return;
-    }
+    if (isAutoCheckpointEnabled && cameraX - lastAutoCpDistance >= 1500) { placeCheckpoint(); lastAutoCpDistance = cameraX; }
+    if (cameraX >= lvl.length) { gameWin(); return; }
 
     let groundY = 382 - player.size;
     if (player.mode === 'cube') {
         player.isGrounded = false;
         if (player.y >= groundY) {
-            player.y = groundY;
-            player.vy = 0;
-            player.isGrounded = true;
+            player.y = groundY; player.vy = 0; player.isGrounded = true;
             player.rotation = Math.round(player.rotation / 90) * 90;
         }
     }
 
-    let pBox = {
-        x: player.x + 4,
-        y: player.y + 2,
-        w: player.size - 8,
-        h: player.size - 4
-    };
+    let pBox = { x: player.x + 4, y: player.y + 2, w: player.size - 8, h: player.size - 4 };
 
     for (let obs of obstacles) {
         let screenObsX = obs.x - cameraX;
         if (screenObsX > -100 && screenObsX < canvas.width + 100) {
             let oBox = { x: screenObsX, y: obs.y, w: obs.w, h: obs.h };
 
-            if (pBox.x < oBox.x + oBox.w &&
-                pBox.x + pBox.w > oBox.x &&
-                pBox.y < oBox.y + oBox.h &&
-                pBox.y + pBox.h > oBox.y) {
-                
+            if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x && pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
                 if (obs.type === 'spike' || obs.type === 'wave_roof' || obs.type === 'wave_floor') {
                     gameOver();
                 } else if (obs.type === 'block' && player.mode === 'cube') {
-                    let prevY = (player.y - player.vy);
-                    if (prevY + player.size <= obs.y + 20 && player.vy >= 0) {
+                    // [Tối ưu hóa] Xét va chạm 1 pixel chính xác ở mặt trên khối block
+                    let prevBottom = (player.y - player.vy) + player.size;
+                    if (prevBottom <= obs.y + 1 && player.vy >= 0) {
                         player.y = obs.y - player.size;
                         player.vy = 0;
                         player.isGrounded = true;
                         player.rotation = Math.round(player.rotation / 90) * 90;
                     } else {
-                        gameOver();
+                        gameOver(); // Đâm thẳng vào hông khối hoặc đập đầu từ dưới lên
                     }
                 } else if (obs.type === 'wave_portal') {
-                    if (player.mode === 'cube') {
-                        player.mode = 'wave';
-                        obs.x = -9999;
-                    }
+                    if (player.mode === 'cube') { player.mode = 'wave'; obs.x = -9999; }
                 } else if (obs.type === 'coin' && !obs.collected) {
-                    obs.collected = true;
-                    levelCoins[currentLevelIndex][obs.coinIndex] = true;
-                    playSound('coin');
+                    obs.collected = true; levelCoins[currentLevelIndex][obs.coinIndex] = true; playSound('coin');
                     let collectedInThisLevel = 0;
                     levelCoins[currentLevelIndex].forEach(c => { if(c) collectedInThisLevel++; });
                     document.getElementById('ui-coins').innerText = `${collectedInThisLevel}/3`;
@@ -1030,20 +908,17 @@ function update() {
         }
     }
 
-    if (player.mode === 'cube' && !player.isGrounded) {
-        player.rotation += 9;
-    }
+    if (player.mode === 'cube' && !player.isGrounded) { player.rotation += 9; }
 }
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Xóa Canvas để render lại frame mới
 
     let lvl = levels[currentLevelIndex];
+    let activeBgURL = lvl.bgImgURL || globalCustomImageURL;
 
-    let activeBg = lvl.bgImg || globalCustomImage;
-    if (activeBg && activeBg.complete) {
-        ctx.drawImage(activeBg, 0, 0, canvas.width, canvas.height);
-    } else {
+    // [Tối ưu hóa] Nếu không có ảnh nền, vẽ dải màu Gradient, nếu có thì CSS phía sau Canvas tự lo
+    if (!activeBgURL) {
         let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
         bgGrad.addColorStop(0, lvl.bgColor);
         bgGrad.addColorStop(1, '#0b0f19');
@@ -1056,35 +931,24 @@ function draw() {
     let gridSize = 40;
     let offsetX = -((Math.round(cameraX)) % gridSize);
     for (let x = offsetX; x < canvas.width; x += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
     }
 
     if (checkpoint) {
         let cpScreenX = Math.round(checkpoint.cameraX - cameraX + player.x);
         if (cpScreenX > -50 && cpScreenX < canvas.width + 50) {
-            ctx.fillStyle = '#00e676';
-            ctx.fillRect(cpScreenX + 10, 310, 6, 72);
-            ctx.beginPath();
-            ctx.moveTo(cpScreenX + 16, 310);
-            ctx.lineTo(cpScreenX + 45, 325);
-            ctx.lineTo(cpScreenX + 16, 340);
-            ctx.fillStyle = '#ffeb3b';
-            ctx.fill();
+            ctx.fillStyle = '#00e676'; ctx.fillRect(cpScreenX + 10, 310, 6, 72);
+            ctx.beginPath(); ctx.moveTo(cpScreenX + 16, 310); ctx.lineTo(cpScreenX + 45, 325); ctx.lineTo(cpScreenX + 16, 340);
+            ctx.fillStyle = '#ffeb3b'; ctx.fill();
         }
     }
 
     if (waveTrails.length > 1) {
-        ctx.strokeStyle = '#ffeb3b';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
+        ctx.strokeStyle = '#ffeb3b'; ctx.lineWidth = 4; ctx.beginPath();
         for (let i = 0; i < waveTrails.length; i++) {
             let sx = Math.round(waveTrails[i].x - cameraX);
             let sy = Math.round(waveTrails[i].y);
-            if (i === 0) ctx.moveTo(sx, sy);
-            else ctx.lineTo(sx, sy);
+            if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
         }
         ctx.stroke();
     }
@@ -1093,108 +957,48 @@ function draw() {
         let screenX = Math.round(obs.x - cameraX);
         if (screenX > -100 && screenX < canvas.width + 100) {
             if (obs.type === 'spike') {
-                ctx.fillStyle = '#111111';
-                ctx.strokeStyle = '#00ffcc';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(screenX, obs.y + obs.h);
-                ctx.lineTo(screenX + obs.w / 2, obs.y);
-                ctx.lineTo(screenX + obs.w, obs.y + obs.h);
-                ctx.closePath();
-                ctx.fill();
-                ctx.stroke();
+                ctx.fillStyle = '#111111'; ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(screenX, obs.y + obs.h); ctx.lineTo(screenX + obs.w / 2, obs.y); ctx.lineTo(screenX + obs.w, obs.y + obs.h); ctx.closePath();
+                ctx.fill(); ctx.stroke();
             } else if (obs.type === 'block') {
-                ctx.fillStyle = '#002244';
-                ctx.strokeStyle = '#00ffcc';
-                ctx.lineWidth = 3;
-                ctx.fillRect(screenX, obs.y, obs.w, obs.h);
-                ctx.strokeRect(screenX, obs.y, obs.w, obs.h);
-                
+                ctx.fillStyle = '#002244'; ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 3;
+                ctx.fillRect(screenX, obs.y, obs.w, obs.h); ctx.strokeRect(screenX, obs.y, obs.w, obs.h);
                 ctx.fillStyle = '#00ffcc';
-                for(let bx = screenX + 12; bx < screenX + obs.w - 16; bx += 24) {
-                    ctx.fillRect(bx, obs.y + 12, 12, obs.h - 24);
-                }
+                for(let bx = screenX + 12; bx < screenX + obs.w - 16; bx += 24) ctx.fillRect(bx, obs.y + 12, 12, obs.h - 24);
             } else if (obs.type === 'wave_portal') {
-                ctx.fillStyle = 'rgba(255, 152, 0, 0.7)';
-                ctx.strokeStyle = '#ff9800';
-                ctx.lineWidth = 4;
-                ctx.fillRect(screenX, obs.y, obs.w, obs.h);
-                ctx.strokeRect(screenX, obs.y, obs.w, obs.h);
-
-                ctx.fillStyle = '#fff';
-                ctx.font = 'bold 12px Arial';
-                ctx.fillText('WAVE', screenX + 4, obs.y + 65);
+                ctx.fillStyle = 'rgba(255, 152, 0, 0.7)'; ctx.strokeStyle = '#ff9800'; ctx.lineWidth = 4;
+                ctx.fillRect(screenX, obs.y, obs.w, obs.h); ctx.strokeRect(screenX, obs.y, obs.w, obs.h);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Arial'; ctx.fillText('WAVE', screenX + 4, obs.y + 65);
             } else if (obs.type === 'wave_roof' || obs.type === 'wave_floor') {
-                ctx.fillStyle = '#220022';
-                ctx.strokeStyle = '#ff3d00';
-                ctx.lineWidth = 3;
-                ctx.fillRect(screenX, obs.y, obs.w, obs.h);
-                ctx.strokeRect(screenX, obs.y, obs.w, obs.h);
+                ctx.fillStyle = '#220022'; ctx.strokeStyle = '#ff3d00'; ctx.lineWidth = 3;
+                ctx.fillRect(screenX, obs.y, obs.w, obs.h); ctx.strokeRect(screenX, obs.y, obs.w, obs.h);
             } else if (obs.type === 'coin' && !obs.collected) {
-                ctx.beginPath();
-                ctx.arc(screenX + obs.w/2, obs.y + obs.h/2, obs.w/2, 0, Math.PI * 2);
-                ctx.fillStyle = '#ffea00';
-                ctx.fill();
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = '#ff8f00';
-                ctx.stroke();
-                ctx.fillStyle = '#ff8f00';
-                ctx.font = 'bold 14px Arial';
-                ctx.fillText('C', screenX + 9, obs.y + 19);
+                ctx.beginPath(); ctx.arc(screenX + obs.w/2, obs.y + obs.h/2, obs.w/2, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffea00'; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = '#ff8f00'; ctx.stroke();
+                ctx.fillStyle = '#ff8f00'; ctx.font = 'bold 14px Arial'; ctx.fillText('C', screenX + 9, obs.y + 19);
             }
         }
     }
 
-    // Vẽ quái vật kinh dị đuổi theo khi ở màn THE TOWER
     if (horrorMonster.active) {
         let mScreenX = Math.round(horrorMonster.x - cameraX);
         if (mScreenX > -150 && mScreenX < canvas.width + 150) {
-            ctx.fillStyle = '#d50000';
-            ctx.beginPath();
-            ctx.arc(mScreenX + 30, horrorMonster.y + 30, 36, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = '#b71c1c';
-            ctx.stroke();
-
-            // Mắt quỷ đỏ đáng sợ
-            ctx.fillStyle = '#ffeb3b';
-            ctx.beginPath();
-            ctx.arc(mScreenX + 18, horrorMonster.y + 20, 7, 0, Math.PI * 2);
-            ctx.arc(mScreenX + 42, horrorMonster.y + 20, 7, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#000';
-            ctx.beginPath();
-            ctx.arc(mScreenX + 18, horrorMonster.y + 20, 3, 0, Math.PI * 2);
-            ctx.arc(mScreenX + 42, horrorMonster.y + 20, 3, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Miệng rộng
-            ctx.fillStyle = '#000';
-            ctx.beginPath();
-            ctx.ellipse(mScreenX + 30, horrorMonster.y + 44, 18, 9, 0, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fillStyle = '#d50000'; ctx.beginPath(); ctx.arc(mScreenX + 30, horrorMonster.y + 30, 36, 0, Math.PI * 2); ctx.fill();
+            ctx.lineWidth = 4; ctx.strokeStyle = '#b71c1c'; ctx.stroke();
+            ctx.fillStyle = '#ffeb3b'; ctx.beginPath(); ctx.arc(mScreenX + 18, horrorMonster.y + 20, 7, 0, Math.PI * 2); ctx.arc(mScreenX + 42, horrorMonster.y + 20, 7, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(mScreenX + 18, horrorMonster.y + 20, 3, 0, Math.PI * 2); ctx.arc(mScreenX + 42, horrorMonster.y + 20, 3, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(mScreenX + 30, horrorMonster.y + 44, 18, 9, 0, 0, Math.PI * 2); ctx.fill();
         }
     }
 
     let groundY = 382;
     if (player.mode !== 'wave') {
-        ctx.fillStyle = lvl.groundColor;
-        ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
-        
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(0, groundY);
-        ctx.lineTo(canvas.width, groundY);
-        ctx.stroke();
-
+        ctx.fillStyle = lvl.groundColor; ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(canvas.width, groundY); ctx.stroke();
         ctx.fillStyle = '#00cc66';
         let floorGridSize = 32;
         let floorOffsetX = -((Math.round(cameraX)) % floorGridSize);
-        for (let x = floorOffsetX; x < canvas.width; x += floorGridSize) {
-            ctx.fillRect(x, groundY + 4, floorGridSize - 4, 12);
-        }
+        for (let x = floorOffsetX; x < canvas.width; x += floorGridSize) ctx.fillRect(x, groundY + 4, floorGridSize - 4, 12);
     }
 
     let skin = skins[currentSkinIndex];
@@ -1202,172 +1006,72 @@ function draw() {
     ctx.translate(Math.round(player.x + player.size / 2), Math.round(player.y + player.size / 2));
     ctx.rotate((player.rotation * Math.PI) / 180);
 
-    // Vẽ nhân vật tương ứng với các Skin Literal Icon Kit (Cube, Ship, Ball, UFO, Wave, Robot, Spider, Swing)
     if (skin.type === 'ship') {
-        ctx.fillStyle = skin.primary;
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(18, 0);
-        ctx.lineTo(-14, -12);
-        ctx.lineTo(-6, 0);
-        ctx.lineTo(-14, 12);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = skin.secondary;
-        ctx.fillRect(-4, -4, 8, 8);
+        ctx.fillStyle = skin.primary; ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(18, 0); ctx.lineTo(-14, -12); ctx.lineTo(-6, 0); ctx.lineTo(-14, 12); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = skin.secondary; ctx.fillRect(-4, -4, 8, 8);
     } else if (skin.type === 'ball') {
-        ctx.beginPath();
-        ctx.arc(0, 0, player.size/2, 0, Math.PI * 2);
-        ctx.fillStyle = skin.primary;
-        ctx.fill();
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = '#000';
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(0, 0, 8, 0, Math.PI * 2);
-        ctx.fillStyle = skin.secondary;
-        ctx.fill();
-        ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, player.size/2, 0, Math.PI * 2); ctx.fillStyle = skin.primary; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = '#000'; ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.fillStyle = skin.secondary; ctx.fill(); ctx.stroke();
     } else if (skin.type === 'ufo') {
-        ctx.fillStyle = skin.primary;
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.ellipse(0, 4, 16, 10, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(0, -6, 8, Math.PI, 0, false);
-        ctx.fillStyle = skin.secondary;
-        ctx.fill();
-        ctx.stroke();
+        ctx.fillStyle = skin.primary; ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.ellipse(0, 4, 16, 10, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, -6, 8, Math.PI, 0, false); ctx.fillStyle = skin.secondary; ctx.fill(); ctx.stroke();
     } else if (skin.type === 'wave') {
-        ctx.fillStyle = skin.primary;
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(16, 0);
-        ctx.lineTo(-14, -12);
-        ctx.lineTo(-6, 0);
-        ctx.lineTo(-14, 12);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = skin.secondary;
-        ctx.fillRect(-2, -3, 6, 6);
+        ctx.fillStyle = skin.primary; ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(16, 0); ctx.lineTo(-14, -12); ctx.lineTo(-6, 0); ctx.lineTo(-14, 12); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = skin.secondary; ctx.fillRect(-2, -3, 6, 6);
     } else if (skin.type === 'robot') {
-        ctx.fillStyle = skin.primary;
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 3;
-        ctx.fillRect(-12, -16, 24, 28);
-        ctx.strokeRect(-12, -16, 24, 28);
-        ctx.fillStyle = skin.secondary;
-        ctx.fillRect(-8, -12, 16, 10);
+        ctx.fillStyle = skin.primary; ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.fillRect(-12, -16, 24, 28); ctx.strokeRect(-12, -16, 24, 28);
+        ctx.fillStyle = skin.secondary; ctx.fillRect(-8, -12, 16, 10);
     } else if (skin.type === 'spider') {
-        ctx.fillStyle = skin.primary;
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(0, -4, 12, Math.PI, 0, false);
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = skin.secondary;
-        ctx.fillRect(-10, 2, 20, 8);
+        ctx.fillStyle = skin.primary; ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(0, -4, 12, Math.PI, 0, false); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = skin.secondary; ctx.fillRect(-10, 2, 20, 8);
     } else if (skin.type === 'swing') {
-        ctx.beginPath();
-        ctx.arc(0, 0, player.size/2 - 2, 0, Math.PI * 2);
-        ctx.fillStyle = skin.primary;
-        ctx.fill();
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = '#000';
-        ctx.stroke();
-        ctx.fillStyle = skin.secondary;
-        ctx.fillRect(-6, -6, 12, 12);
+        ctx.beginPath(); ctx.arc(0, 0, player.size/2 - 2, 0, Math.PI * 2); ctx.fillStyle = skin.primary; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = '#000'; ctx.stroke();
+        ctx.fillStyle = skin.secondary; ctx.fillRect(-6, -6, 12, 12);
     } else {
-        // Mặc định Cube chuẩn Geometry Dash
-        ctx.fillStyle = skin.primary;
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 4;
-        ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
-        ctx.strokeRect(-player.size / 2, -player.size / 2, player.size, player.size);
-
-        ctx.fillStyle = skin.secondary;
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
+        ctx.fillStyle = skin.primary; ctx.strokeStyle = '#000000'; ctx.lineWidth = 4;
+        ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size); ctx.strokeRect(-player.size / 2, -player.size / 2, player.size, player.size);
+        ctx.fillStyle = skin.secondary; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
         let innerSize = 14;
-        ctx.fillRect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
-        ctx.strokeRect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
+        ctx.fillRect(-innerSize / 2, -innerSize / 2, innerSize, innerSize); ctx.strokeRect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
     }
-
     ctx.restore();
 }
 
 const vCanvas = document.getElementById('victoryCanvas');
 const vCtx = vCanvas.getContext('2d');
 let animFrame = 0;
-
 function startVictoryAnimation() {
     function drawVictory() {
         if (gameState !== 'VICTORY') return;
-        animFrame++;
-        vCtx.clearRect(0, 0, vCanvas.width, vCanvas.height);
-
-        vCtx.fillStyle = '#ffffff';
-        vCtx.fillRect(60, 30, 5, 85);
-        vCtx.beginPath();
-        vCtx.moveTo(65, 30);
+        animFrame++; vCtx.clearRect(0, 0, vCanvas.width, vCanvas.height);
+        vCtx.fillStyle = '#ffffff'; vCtx.fillRect(60, 30, 5, 85);
+        vCtx.beginPath(); vCtx.moveTo(65, 30);
         let wave1 = Math.sin(animFrame * 0.1) * 7;
-        vCtx.lineTo(130, 40 + wave1);
-        vCtx.lineTo(130, 80 + wave1);
-        vCtx.lineTo(65, 70);
-        vCtx.fillStyle = '#ff3366';
-        vCtx.fill();
-
-        vCtx.fillStyle = '#ffffff';
-        vCtx.fillRect(334, 30, 5, 85);
-        vCtx.beginPath();
-        vCtx.moveTo(339, 30);
+        vCtx.lineTo(130, 40 + wave1); vCtx.lineTo(130, 80 + wave1); vCtx.lineTo(65, 70);
+        vCtx.fillStyle = '#ff3366'; vCtx.fill();
+        vCtx.fillStyle = '#ffffff'; vCtx.fillRect(334, 30, 5, 85);
+        vCtx.beginPath(); vCtx.moveTo(339, 30);
         let wave2 = Math.cos(animFrame * 0.1) * 7;
-        vCtx.lineTo(274, 40 + wave2);
-        vCtx.lineTo(274, 80 + wave2);
-        vCtx.lineTo(339, 70);
-        vCtx.fillStyle = '#00e676';
-        vCtx.fill();
-
+        vCtx.lineTo(274, 40 + wave2); vCtx.lineTo(274, 80 + wave2); vCtx.lineTo(339, 70);
+        vCtx.fillStyle = '#00e676'; vCtx.fill();
         let jumpOffset = Math.abs(Math.sin(animFrame * 0.15)) * 22;
         let skin = skins[currentSkinIndex];
-        
-        vCtx.save();
-        vCtx.translate(200, 90 - jumpOffset);
-        vCtx.rotate((animFrame * 5 * Math.PI) / 180);
-
-        vCtx.fillStyle = skin.primary;
-        vCtx.strokeStyle = '#000000';
-        vCtx.lineWidth = 3;
-        vCtx.fillRect(-16, -16, 32, 32);
-        vCtx.strokeRect(-16, -16, 32, 32);
-
-        vCtx.fillStyle = skin.secondary;
-        vCtx.strokeStyle = '#ffffff';
-        vCtx.lineWidth = 2;
-        vCtx.fillRect(-6, -6, 12, 12);
-        vCtx.strokeRect(-6, -6, 12, 12);
-
+        vCtx.save(); vCtx.translate(200, 90 - jumpOffset); vCtx.rotate((animFrame * 5 * Math.PI) / 180);
+        vCtx.fillStyle = skin.primary; vCtx.strokeStyle = '#000000'; vCtx.lineWidth = 3;
+        vCtx.fillRect(-16, -16, 32, 32); vCtx.strokeRect(-16, -16, 32, 32);
+        vCtx.fillStyle = skin.secondary; vCtx.strokeStyle = '#ffffff'; vCtx.lineWidth = 2;
+        vCtx.fillRect(-6, -6, 12, 12); vCtx.strokeRect(-6, -6, 12, 12);
         vCtx.restore();
-
         requestAnimationFrame(drawVictory);
     }
     drawVictory();
 }
 
-function loop() {
-    update();
-    draw();
-    requestAnimationFrame(loop);
-}
-
+function loop() { update(); draw(); requestAnimationFrame(loop); }
 loop();
 </script>
 
