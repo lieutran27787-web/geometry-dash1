@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Geometry Dash - Perfect Masterpiece with SFX Audio</title>
+    <title>Geometry Dash - Cube & Ship Flight Masterpiece</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
         body {
@@ -286,17 +286,17 @@
             100% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 255, 102, 0.6); }
         }
 
-        #mobile-jump-btn {
+        #mobile-action-btn {
             position: absolute; bottom: 8px; left: 8px;
-            width: 110px; height: 50px;
+            width: 120px; height: 50px;
             background: linear-gradient(to bottom, #ff3366, #cc0033);
             border: 3px solid #fff; border-radius: 25px;
-            color: #fff; font-size: 16px; font-weight: bold;
+            color: #fff; font-size: 15px; font-weight: bold;
             display: flex; justify-content: center; align-items: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 6; pointer-events: auto;
             text-shadow: 1px 1px #000; transition: 0.1s;
         }
-        #mobile-jump-btn:active { transform: scale(0.95); background: linear-gradient(to bottom, #ff4d79, #e60039); }
+        #mobile-action-btn:active { transform: scale(0.95); background: linear-gradient(to bottom, #ff4d79, #e60039); }
 
         .btn-common {
             background: linear-gradient(to bottom, #72ff52, #1b8a10); border: 3px solid #fff; color: #fff;
@@ -327,7 +327,7 @@
 
             <div class="title-info-bar">
                 <div>⏱️ TINY</div>
-                <div>🎵 POLARGEIST</div>
+                <div>🎵 CUBE & SHIP</div>
                 <div>ℹ️ SFX AUDIO</div>
             </div>
         </div>
@@ -369,7 +369,7 @@
             
             <div class="title-card" style="width: 300px; padding: 15px;">
                 <div class="top-banner" id="display-level-name" style="font-size: 22px;">STEREO MADNESS</div>
-                <div class="sub-banner" id="display-level-diff" style="font-size: 13px;">⭐ DỄ</div>
+                <div class="sub-banner" id="display-level-diff" style="font-size: 13px;">⭐ DỄ & BAY</div>
                 
                 <div class="title-actions">
                     <div class="circle-btn" style="width: 45px; height: 45px;" onclick="openStats()">🛠️</div>
@@ -382,7 +382,7 @@
 
             <button class="nav-arrow-btn" onclick="changeLevel(1)">►</button>
         </div>
-        <p style="color: #aaddff; font-size: 12px; text-align: center;">Chạm JUMP hoặc nhấn Space để nhảy và nghe hiệu ứng âm thanh!</p>
+        <p style="color: #aaddff; font-size: 12px; text-align: center;">Bao gồm cả màn hình Chạy (Cube) và màn hình Bay (Ship Mode)!</p>
     </div>
 
     <div id="skin-screen" class="screen hidden">
@@ -433,6 +433,7 @@
         </div>
     </div>
 
+    <!-- Giao diện trong game -->
     <div id="ui-overlay" class="hidden">
         <div>Màn: <span id="ui-level-name" style="color: #72ff52;">STEREO</span></div>
         <div style="flex-grow: 1; text-align: center;">
@@ -440,7 +441,7 @@
         </div>
         <div>Thử: <span id="attempts">1</span></div>
 
-        <button id="mobile-jump-btn" onmousedown="jump()" ontouchstart="jump(); event.preventDefault();">🚀 JUMP</button>
+        <button id="mobile-action-btn" onmousedown="handleActionStart()" onmouseup="handleActionEnd()" ontouchstart="handleActionStart(); event.preventDefault();" ontouchend="handleActionEnd(); event.preventDefault();">🚀 JUMP / FLY</button>
 
         <div class="in-game-controls">
             <button class="game-ctrl-btn" onclick="toggleCustomMusic()" id="music-toggle-btn">🎵 Tắt Nhạc</button>
@@ -468,8 +469,8 @@ let lastAutoCpDistance = 0;
 let customAudio = null;
 let customImage = null;
 let isCustomMusicPlaying = false;
+let isActionPressed = false; // Dùng cho chế độ bay (Ship)
 
-// Hệ thống Web Audio API phát âm thanh hiệu ứng (SFX) trực tiếp mượt mà
 let sfxCtx = null;
 function playSound(type) {
     try {
@@ -527,7 +528,7 @@ const skins = [
 let currentSkinIndex = 0;
 
 const player = {
-    x: 150, y: 300, size: 32, vy: 0, gravity: 0.8, jumpForce: -12.5, rotation: 0, isGrounded: false
+    x: 150, y: 300, size: 32, vy: 0, gravity: 0.8, jumpForce: -12.5, rotation: 0, isGrounded: false, mode: 'cube'
 };
 const obstacles = [];
 
@@ -586,10 +587,12 @@ function generateLevel() {
 
     while (currentX < lvl.length - 600) {
         let type = Math.random();
-        if (type < 0.3) {
+        if (type < 0.25) {
+            // Gai đơn
             obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
-            currentX += 200 + Math.random() * 80;
-        } else if (type < 0.7) {
+            currentX += 180 + Math.random() * 60;
+        } else if (type < 0.55) {
+            // Khối bục dài có gai phía trên
             let blockW = 320; 
             let blockH = 64;
             let blockY = 382 - blockH;
@@ -600,11 +603,18 @@ function generateLevel() {
             obstacles.push({ x: spikeOffsetX, y: blockY - 32, w: 32, h: 32, type: 'spike' });
             obstacles.push({ x: spikeOffsetX + 32, y: blockY - 32, w: 32, h: 32, type: 'spike' });
             
-            currentX += blockW + 250 + Math.random() * 100;
+            currentX += blockW + 220 + Math.random() * 80;
         } else {
-            obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
-            obstacles.push({ x: currentX + 32, y: 350, w: 32, h: 32, type: 'spike' });
-            currentX += 280 + Math.random() * 90;
+            // Cổng chuyển đổi chế độ Bay (Ship Portal màu xanh lá/tím) hoặc chướng ngại vật trên không
+            let portalX = currentX;
+            obstacles.push({ x: portalX, y: 250, w: 40, h: 100, type: 'portal' });
+
+            // Tạo các chướng ngại vật trên không (vùng bay)
+            currentX += 80;
+            for (let i = 0; i < 4; i++) {
+                obstacles.push({ x: currentX + (i * 120), y: 100 + (i % 2 === 0 ? 50 : 150), w: 32, h: 32, type: 'spike' });
+            }
+            currentX += 600;
         }
     }
 }
@@ -623,7 +633,8 @@ function placeCheckpoint() {
             y: player.y,
             vy: player.vy,
             rotation: player.rotation,
-            isGrounded: player.isGrounded
+            isGrounded: player.isGrounded,
+            mode: player.mode
         };
         let btn = document.getElementById('checkpoint-btn');
         let oldText = btn.innerText;
@@ -719,9 +730,11 @@ function startGame() {
     player.y = 300;
     player.vy = 0;
     player.rotation = 0;
+    player.mode = 'cube';
     cameraX = 0;
     checkpoint = null;
     lastAutoCpDistance = 0;
+    isActionPressed = false;
     
     generateLevel();
     gameState = 'PLAYING';
@@ -749,6 +762,7 @@ function gameOver() {
         player.vy = checkpoint.vy;
         player.rotation = checkpoint.rotation;
         player.isGrounded = checkpoint.isGrounded;
+        player.mode = checkpoint.mode;
         attempts++;
         document.getElementById('attempts').innerText = attempts;
         return;
@@ -771,19 +785,33 @@ function gameWin() {
     startVictoryAnimation();
 }
 
+// Xử lý sự kiện bàn phím & cảm ứng (Hỗ trợ cả chế độ nhảy Cube và giữ nút bay Ship)
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space' || e.code === 'ArrowUp') {
         e.preventDefault();
-        jump();
+        isActionPressed = true;
+        jumpOrFly();
     }
 });
 
-canvas.addEventListener('mousedown', (e) => {
-    jump();
+window.addEventListener('keyup', (e) => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') {
+        isActionPressed = false;
+    }
 });
 
-function jump() {
-    if (gameState === 'PLAYING' && player.isGrounded) {
+function handleActionStart() {
+    isActionPressed = true;
+    jumpOrFly();
+}
+
+function handleActionEnd() {
+    isActionPressed = false;
+}
+
+function jumpOrFly() {
+    if (gameState !== 'PLAYING') return;
+    if (player.mode === 'cube' && player.isGrounded) {
         player.vy = player.jumpForce;
         player.isGrounded = false;
         playSound('jump');
@@ -795,8 +823,29 @@ function update() {
 
     let lvl = levels[currentLevelIndex];
     cameraX += lvl.speed;
-    player.vy += player.gravity;
-    player.y += player.vy;
+
+    // Xử lý vật lý tùy thuộc vào chế độ (Cube hay Ship - Bay)
+    if (player.mode === 'ship') {
+        // Chế độ bay: Khi giữ nút, máy bay bay lên; nhả ra sẽ rơi xuống
+        if (isActionPressed) {
+            player.vy -= 0.65; // Lực đẩy lên
+        } else {
+            player.vy += 0.65; // Trọng lực kéo xuống
+        }
+        // Giới hạn tốc độ rơi/bay của máy bay
+        player.vy = Math.max(-8, Math.min(8, player.vy));
+        player.y += player.vy;
+        player.rotation = player.vy * 3; // Xoay theo hướng bay
+        player.isGrounded = false;
+
+        // Giới hạn không cho bay ra khỏi màn hình trên/dưới
+        if (player.y < 10) { player.y = 10; player.vy = 0; }
+        if (player.y > 382 - player.size) { player.y = 382 - player.size; player.vy = 0; }
+    } else {
+        // Chế độ nhảy tiêu chuẩn (Cube)
+        player.vy += player.gravity;
+        player.y += player.vy;
+    }
 
     score = Math.min(100, (cameraX / lvl.length) * 100);
     document.getElementById('progress').style.width = score + '%';
@@ -807,7 +856,8 @@ function update() {
             y: player.y,
             vy: player.vy,
             rotation: player.rotation,
-            isGrounded: player.isGrounded
+            isGrounded: player.isGrounded,
+            mode: player.mode
         };
         lastAutoCpDistance = cameraX;
     }
@@ -818,13 +868,14 @@ function update() {
     }
 
     let groundY = 382 - player.size;
-    player.isGrounded = false;
-
-    if (player.y >= groundY) {
-        player.y = groundY;
-        player.vy = 0;
-        player.isGrounded = true;
-        player.rotation = Math.round(player.rotation / 90) * 90;
+    if (player.mode === 'cube') {
+        player.isGrounded = false;
+        if (player.y >= groundY) {
+            player.y = groundY;
+            player.vy = 0;
+            player.isGrounded = true;
+            player.rotation = Math.round(player.rotation / 90) * 90;
+        }
     }
 
     let pBox = {
@@ -846,7 +897,7 @@ function update() {
                 
                 if (obs.type === 'spike') {
                     gameOver();
-                } else if (obs.type === 'block') {
+                } else if (obs.type === 'block' && player.mode === 'cube') {
                     let prevY = (player.y - player.vy);
                     if (prevY + player.size <= obs.y + 20 && player.vy >= 0) {
                         player.y = obs.y - player.size;
@@ -856,12 +907,18 @@ function update() {
                     } else {
                         gameOver();
                     }
+                } else if (obs.type === 'portal') {
+                    // Khi chạm cổng, chuyển sang chế độ Bay (Ship)
+                    if (player.mode === 'cube') {
+                        player.mode = 'ship';
+                        obs.x = -9999; // Ẩn cổng sau khi đi qua
+                    }
                 }
             }
         }
     }
 
-    if (!player.isGrounded) {
+    if (player.mode === 'cube' && !player.isGrounded) {
         player.rotation += 9;
     }
 }
@@ -931,6 +988,17 @@ function draw() {
                 for(let bx = screenX + 12; bx < screenX + obs.w - 16; bx += 24) {
                     ctx.fillRect(bx, obs.y + 12, 12, obs.h - 24);
                 }
+            } else if (obs.type === 'portal') {
+                // Vẽ cổng chuyển đổi chế độ Bay (Ship Portal) màu tím sáng
+                ctx.fillStyle = 'rgba(186, 104, 200, 0.6)';
+                ctx.strokeStyle = '#ea80fc';
+                ctx.lineWidth = 4;
+                ctx.fillRect(screenX, obs.y, obs.w, obs.h);
+                ctx.strokeRect(screenX, obs.y, obs.w, obs.h);
+
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 12px Arial';
+                ctx.fillText('SHIP', screenX + 6, obs.y + 55);
             }
         }
     }
@@ -958,18 +1026,36 @@ function draw() {
     ctx.translate(Math.round(player.x + player.size / 2), Math.round(player.y + player.size / 2));
     ctx.rotate((player.rotation * Math.PI) / 180);
 
-    ctx.fillStyle = skin.primary;
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 4;
-    ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
-    ctx.strokeRect(-player.size / 2, -player.size / 2, player.size, player.size);
+    if (player.mode === 'ship') {
+        // Vẽ hình chiếc tàu không gian (Ship) khi ở màn hình bay
+        ctx.fillStyle = skin.primary;
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(-16, 10);
+        ctx.lineTo(18, 0);
+        ctx.lineTo(-16, -10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
 
-    ctx.fillStyle = skin.secondary;
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
-    let innerSize = 14;
-    ctx.fillRect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
-    ctx.strokeRect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
+        ctx.fillStyle = skin.secondary;
+        ctx.fillRect(-6, -4, 12, 8);
+    } else {
+        // Vẽ hình khối vuông (Cube)
+        ctx.fillStyle = skin.primary;
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 4;
+        ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
+        ctx.strokeRect(-player.size / 2, -player.size / 2, player.size, player.size);
+
+        ctx.fillStyle = skin.secondary;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        let innerSize = 14;
+        ctx.fillRect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
+        ctx.strokeRect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
+    }
 
     ctx.restore();
 }
