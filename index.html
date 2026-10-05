@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Geometry Dash - Cube & Ship Flight Masterpiece</title>
+    <title>Geometry Dash - Wave Endgame Edition</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
         body {
@@ -35,6 +35,7 @@
             background: #112244;
             width: 100%;
             height: 100%;
+            cursor: pointer;
         }
         .screen {
             position: absolute;
@@ -327,8 +328,8 @@
 
             <div class="title-info-bar">
                 <div>⏱️ TINY</div>
-                <div>🎵 CUBE & SHIP</div>
-                <div>ℹ️ SFX AUDIO</div>
+                <div>🎵 WAVE ENDGAME</div>
+                <div>ℹ️ CUSTOM BG</div>
             </div>
         </div>
 
@@ -338,10 +339,10 @@
                 <input type="file" id="mp3-upload" accept="audio/mp3,audio/*" style="display: none;" onchange="loadCustomAudio(event)">
             </label>
             <label class="upload-label" style="background: linear-gradient(to bottom, #e91e63, #c2185b);">
-                🖼️ Thêm ảnh nền
+                🖼️ Thêm ảnh nền tùy chỉnh
                 <input type="file" id="img-upload" accept="image/*" style="display: none;" onchange="loadCustomImage(event)">
             </label>
-            <div id="media-status" style="font-size: 11px; color: #aaddff; margin-top: 4px;">Hệ thống âm thanh Web Audio sẵn sàng phát tiếng!</div>
+            <div id="media-status" style="font-size: 11px; color: #aaddff; margin-top: 4px;">Hỗ trợ ảnh nền riêng cho từng màn chơi & tệp MP3!</div>
         </div>
     </div>
 
@@ -369,7 +370,7 @@
             
             <div class="title-card" style="width: 300px; padding: 15px;">
                 <div class="top-banner" id="display-level-name" style="font-size: 22px;">STEREO MADNESS</div>
-                <div class="sub-banner" id="display-level-diff" style="font-size: 13px;">⭐ DỄ & BAY</div>
+                <div class="sub-banner" id="display-level-diff" style="font-size: 13px;">⭐ DỄ & WAVE CUỐI MAP</div>
                 
                 <div class="title-actions">
                     <div class="circle-btn" style="width: 45px; height: 45px;" onclick="openStats()">🛠️</div>
@@ -382,7 +383,7 @@
 
             <button class="nav-arrow-btn" onclick="changeLevel(1)">►</button>
         </div>
-        <p style="color: #aaddff; font-size: 12px; text-align: center;">Bao gồm cả màn hình Chạy (Cube) và màn hình Bay (Ship Mode)!</p>
+        <p style="color: #aaddff; font-size: 12px; text-align: center;">Cuối map có màn bay ziczac (Wave Mode) cực kỳ thách thức!</p>
     </div>
 
     <div id="skin-screen" class="screen hidden">
@@ -441,7 +442,7 @@
         </div>
         <div>Thử: <span id="attempts">1</span></div>
 
-        <button id="mobile-action-btn" onmousedown="handleActionStart()" onmouseup="handleActionEnd()" ontouchstart="handleActionStart(); event.preventDefault();" ontouchend="handleActionEnd(); event.preventDefault();">🚀 JUMP / FLY</button>
+        <button id="mobile-action-btn" onmousedown="handleActionStart()" onmouseup="handleActionEnd()" ontouchstart="handleActionStart(); event.preventDefault();" ontouchend="handleActionEnd(); event.preventDefault();">🚀 JUMP / WAVE</button>
 
         <div class="in-game-controls">
             <button class="game-ctrl-btn" onclick="toggleCustomMusic()" id="music-toggle-btn">🎵 Tắt Nhạc</button>
@@ -467,9 +468,9 @@ let isAutoCheckpointEnabled = false;
 let lastAutoCpDistance = 0;
 
 let customAudio = null;
-let customImage = null;
+let globalCustomImage = null;
 let isCustomMusicPlaying = false;
-let isActionPressed = false; // Dùng cho chế độ bay (Ship)
+let isActionPressed = false;
 
 let sfxCtx = null;
 function playSound(type) {
@@ -507,11 +508,11 @@ function playSound(type) {
 }
 
 const levels = [
-    { name: 'STEREO MADNESS', sub: 'background color 2.1', speed: 5, length: 16000, bgColor: '#0055ff', groundColor: '#00aa55', diff: '⭐ DỄ' },
-    { name: 'POLARGEIST', sub: 'background color 2.2', speed: 5.8, length: 18000, bgColor: '#0033aa', groundColor: '#008844', diff: '⭐⭐ TRUNG BÌNH' },
-    { name: 'BACK ON TRACK', sub: 'background color 2.3', speed: 6.4, length: 20000, bgColor: '#aa5500', groundColor: '#884400', diff: '⭐⭐ TRUNG BÌNH' },
-    { name: 'BASE AFTER BASE', sub: 'background color 2.4', speed: 7.0, length: 22000, bgColor: '#5500aa', groundColor: '#440088', diff: '⭐⭐⭐ KHÓ' },
-    { name: 'CAN\'T LET GO', sub: 'background color 2.5', speed: 7.6, length: 24000, bgColor: '#aa0055', groundColor: '#880044', diff: '⭐⭐⭐⭐ RẤT KHÓ' }
+    { name: 'STEREO MADNESS', sub: 'background color 2.1', speed: 5, length: 16000, bgColor: '#0055ff', groundColor: '#00aa55', diff: '⭐ DỄ', bgImg: null },
+    { name: 'POLARGEIST', sub: 'background color 2.2', speed: 5.8, length: 18000, bgColor: '#0033aa', groundColor: '#008844', diff: '⭐⭐ TRUNG BÌNH', bgImg: null },
+    { name: 'BACK ON TRACK', sub: 'background color 2.3', speed: 6.4, length: 20000, bgColor: '#aa5500', groundColor: '#884400', diff: '⭐⭐ TRUNG BÌNH', bgImg: null },
+    { name: 'BASE AFTER BASE', sub: 'background color 2.4', speed: 7.0, length: 22000, bgColor: '#5500aa', groundColor: '#440088', diff: '⭐⭐⭐ KHÓ', bgImg: null },
+    { name: 'CAN\'T LET GO', sub: 'background color 2.5', speed: 7.6, length: 24000, bgColor: '#aa0055', groundColor: '#880044', diff: '⭐⭐⭐⭐ RẤT KHÓ', bgImg: null }
 ];
 let currentLevelIndex = 0;
 
@@ -531,6 +532,7 @@ const player = {
     x: 150, y: 300, size: 32, vy: 0, gravity: 0.8, jumpForce: -12.5, rotation: 0, isGrounded: false, mode: 'cube'
 };
 const obstacles = [];
+const waveTrails = []; // Lưu các điểm đuôi ziczac của màn bay Wave
 
 function loadCustomAudio(event) {
     let file = event.target.files[0];
@@ -546,9 +548,13 @@ function loadCustomImage(event) {
     let file = event.target.files[0];
     if (file) {
         let fileURL = URL.createObjectURL(file);
-        customImage = new Image();
-        customImage.src = fileURL;
-        document.getElementById('media-status').innerText += ` | ✅ Đã tải ảnh nền: ${file.name}`;
+        let img = new Image();
+        img.src = fileURL;
+        img.onload = () => {
+            levels[currentLevelIndex].bgImg = img;
+            globalCustomImage = img;
+            document.getElementById('media-status').innerText += ` | ✅ Đã tải ảnh nền cho ${levels[currentLevelIndex].name}: ${file.name}`;
+        };
     }
 }
 
@@ -582,40 +588,45 @@ function changeLevel(direction) {
 
 function generateLevel() {
     obstacles.length = 0;
+    waveTrails.length = 0;
     let lvl = levels[currentLevelIndex];
     let currentX = 1000;
+    let mapEnd = lvl.length;
 
-    while (currentX < lvl.length - 600) {
+    // Sinh chướng ngại vật phần đầu và giữa (Cube mode)
+    while (currentX < mapEnd - 4500) {
         let type = Math.random();
-        if (type < 0.25) {
-            // Gai đơn
+        if (type < 0.3) {
             obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
             currentX += 180 + Math.random() * 60;
-        } else if (type < 0.55) {
-            // Khối bục dài có gai phía trên
+        } else {
             let blockW = 320; 
             let blockH = 64;
             let blockY = 382 - blockH;
             
             obstacles.push({ x: currentX, y: blockY, w: blockW, h: blockH, type: 'block' });
-            
             let spikeOffsetX = currentX + (blockW / 2) - 32;
             obstacles.push({ x: spikeOffsetX, y: blockY - 32, w: 32, h: 32, type: 'spike' });
             obstacles.push({ x: spikeOffsetX + 32, y: blockY - 32, w: 32, h: 32, type: 'spike' });
             
-            currentX += blockW + 220 + Math.random() * 80;
-        } else {
-            // Cổng chuyển đổi chế độ Bay (Ship Portal màu xanh lá/tím) hoặc chướng ngại vật trên không
-            let portalX = currentX;
-            obstacles.push({ x: portalX, y: 250, w: 40, h: 100, type: 'portal' });
-
-            // Tạo các chướng ngại vật trên không (vùng bay)
-            currentX += 80;
-            for (let i = 0; i < 4; i++) {
-                obstacles.push({ x: currentX + (i * 120), y: 100 + (i % 2 === 0 ? 50 : 150), w: 32, h: 32, type: 'spike' });
-            }
-            currentX += 600;
+            currentX += blockW + 200 + Math.random() * 80;
         }
+    }
+
+    // Đặt Cổng Chuyển Đổi sang Màn Bay Ziczac (Wave Portal) ở cuối map (khoảng 70% tiến độ)
+    let wavePortalX = mapEnd - 4200;
+    obstacles.push({ x: wavePortalX, y: 240, w: 40, h: 120, type: 'wave_portal' });
+
+    // Sinh chướng ngại vật phần cuối map: Màn bay Ziczac (Wave Mode giống ảnh mẫu với các đường viền ziczac màu cam neon)
+    let waveX = wavePortalX + 120;
+    let zigzagWidth = 4000;
+    let segmentLen = 60;
+    let topZ = 80;
+    let botZ = 340;
+
+    for (let wx = waveX; wx < waveX + zigzagWidth; wx += segmentLen) {
+        obstacles.push({ x: wx, y: 0, w: segmentLen, h: topZ, type: 'wave_roof' });
+        obstacles.push({ x: wx, y: botZ, w: segmentLen, h: 382 - botZ, type: 'wave_floor' });
     }
 }
 
@@ -785,7 +796,6 @@ function gameWin() {
     startVictoryAnimation();
 }
 
-// Xử lý sự kiện bàn phím & cảm ứng (Hỗ trợ cả chế độ nhảy Cube và giữ nút bay Ship)
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space' || e.code === 'ArrowUp') {
         e.preventDefault();
@@ -798,6 +808,15 @@ window.addEventListener('keyup', (e) => {
     if (e.code === 'Space' || e.code === 'ArrowUp') {
         isActionPressed = false;
     }
+});
+
+canvas.addEventListener('mousedown', (e) => {
+    isActionPressed = true;
+    jumpOrFly();
+});
+
+window.addEventListener('mouseup', (e) => {
+    isActionPressed = false;
 });
 
 function handleActionStart() {
@@ -824,25 +843,19 @@ function update() {
     let lvl = levels[currentLevelIndex];
     cameraX += lvl.speed;
 
-    // Xử lý vật lý tùy thuộc vào chế độ (Cube hay Ship - Bay)
-    if (player.mode === 'ship') {
-        // Chế độ bay: Khi giữ nút, máy bay bay lên; nhả ra sẽ rơi xuống
+    if (player.mode === 'wave') {
         if (isActionPressed) {
-            player.vy -= 0.65; // Lực đẩy lên
+            player.vy = -6.5;
         } else {
-            player.vy += 0.65; // Trọng lực kéo xuống
+            player.vy = 6.5;
         }
-        // Giới hạn tốc độ rơi/bay của máy bay
-        player.vy = Math.max(-8, Math.min(8, player.vy));
         player.y += player.vy;
-        player.rotation = player.vy * 3; // Xoay theo hướng bay
+        player.rotation = player.vy * 5;
         player.isGrounded = false;
 
-        // Giới hạn không cho bay ra khỏi màn hình trên/dưới
-        if (player.y < 10) { player.y = 10; player.vy = 0; }
-        if (player.y > 382 - player.size) { player.y = 382 - player.size; player.vy = 0; }
+        waveTrails.push({ x: player.x + cameraX, y: player.y + player.size/2 });
+        if (waveTrails.length > 100) waveTrails.shift();
     } else {
-        // Chế độ nhảy tiêu chuẩn (Cube)
         player.vy += player.gravity;
         player.y += player.vy;
     }
@@ -895,7 +908,7 @@ function update() {
                 pBox.y < oBox.y + oBox.h &&
                 pBox.y + pBox.h > oBox.y) {
                 
-                if (obs.type === 'spike') {
+                if (obs.type === 'spike' || obs.type === 'wave_roof' || obs.type === 'wave_floor') {
                     gameOver();
                 } else if (obs.type === 'block' && player.mode === 'cube') {
                     let prevY = (player.y - player.vy);
@@ -907,11 +920,10 @@ function update() {
                     } else {
                         gameOver();
                     }
-                } else if (obs.type === 'portal') {
-                    // Khi chạm cổng, chuyển sang chế độ Bay (Ship)
+                } else if (obs.type === 'wave_portal') {
                     if (player.mode === 'cube') {
-                        player.mode = 'ship';
-                        obs.x = -9999; // Ẩn cổng sau khi đi qua
+                        player.mode = 'wave';
+                        obs.x = -9999;
                     }
                 }
             }
@@ -928,8 +940,9 @@ function draw() {
 
     let lvl = levels[currentLevelIndex];
 
-    if (customImage && customImage.complete) {
-        ctx.drawImage(customImage, 0, 0, canvas.width, canvas.height);
+    let activeBg = lvl.bgImg || globalCustomImage;
+    if (activeBg && activeBg.complete) {
+        ctx.drawImage(activeBg, 0, 0, canvas.width, canvas.height);
     } else {
         let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
         bgGrad.addColorStop(0, lvl.bgColor);
@@ -963,6 +976,19 @@ function draw() {
         }
     }
 
+    if (waveTrails.length > 1) {
+        ctx.strokeStyle = '#ffeb3b';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        for (let i = 0; i < waveTrails.length; i++) {
+            let sx = Math.round(waveTrails[i].x - cameraX);
+            let sy = Math.round(waveTrails[i].y);
+            if (i === 0) ctx.moveTo(sx, sy);
+            else ctx.lineTo(sx, sy);
+        }
+        ctx.stroke();
+    }
+
     for (let obs of obstacles) {
         let screenX = Math.round(obs.x - cameraX);
         if (screenX > -100 && screenX < canvas.width + 100) {
@@ -988,37 +1014,44 @@ function draw() {
                 for(let bx = screenX + 12; bx < screenX + obs.w - 16; bx += 24) {
                     ctx.fillRect(bx, obs.y + 12, 12, obs.h - 24);
                 }
-            } else if (obs.type === 'portal') {
-                // Vẽ cổng chuyển đổi chế độ Bay (Ship Portal) màu tím sáng
-                ctx.fillStyle = 'rgba(186, 104, 200, 0.6)';
-                ctx.strokeStyle = '#ea80fc';
+            } else if (obs.type === 'wave_portal') {
+                ctx.fillStyle = 'rgba(255, 152, 0, 0.7)';
+                ctx.strokeStyle = '#ff9800';
                 ctx.lineWidth = 4;
                 ctx.fillRect(screenX, obs.y, obs.w, obs.h);
                 ctx.strokeRect(screenX, obs.y, obs.w, obs.h);
 
                 ctx.fillStyle = '#fff';
                 ctx.font = 'bold 12px Arial';
-                ctx.fillText('SHIP', screenX + 6, obs.y + 55);
+                ctx.fillText('WAVE', screenX + 4, obs.y + 65);
+            } else if (obs.type === 'wave_roof' || obs.type === 'wave_floor') {
+                ctx.fillStyle = '#220022';
+                ctx.strokeStyle = '#ff3d00';
+                ctx.lineWidth = 3;
+                ctx.fillRect(screenX, obs.y, obs.w, obs.h);
+                ctx.strokeRect(screenX, obs.y, obs.w, obs.h);
             }
         }
     }
 
     let groundY = 382;
-    ctx.fillStyle = lvl.groundColor;
-    ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
-    
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(0, groundY);
-    ctx.lineTo(canvas.width, groundY);
-    ctx.stroke();
+    if (player.mode !== 'wave') {
+        ctx.fillStyle = lvl.groundColor;
+        ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(0, groundY);
+        ctx.lineTo(canvas.width, groundY);
+        ctx.stroke();
 
-    ctx.fillStyle = '#00cc66';
-    let floorGridSize = 32;
-    let floorOffsetX = -((Math.round(cameraX)) % floorGridSize);
-    for (let x = floorOffsetX; x < canvas.width; x += floorGridSize) {
-        ctx.fillRect(x, groundY + 4, floorGridSize - 4, 12);
+        ctx.fillStyle = '#00cc66';
+        let floorGridSize = 32;
+        let floorOffsetX = -((Math.round(cameraX)) % floorGridSize);
+        for (let x = floorOffsetX; x < canvas.width; x += floorGridSize) {
+            ctx.fillRect(x, groundY + 4, floorGridSize - 4, 12);
+        }
     }
 
     let skin = skins[currentSkinIndex];
@@ -1026,23 +1059,22 @@ function draw() {
     ctx.translate(Math.round(player.x + player.size / 2), Math.round(player.y + player.size / 2));
     ctx.rotate((player.rotation * Math.PI) / 180);
 
-    if (player.mode === 'ship') {
-        // Vẽ hình chiếc tàu không gian (Ship) khi ở màn hình bay
+    if (player.mode === 'wave') {
         ctx.fillStyle = skin.primary;
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(-16, 10);
-        ctx.lineTo(18, 0);
-        ctx.lineTo(-16, -10);
+        ctx.moveTo(14, 0);
+        ctx.lineTo(-12, -10);
+        ctx.lineTo(-6, 0);
+        ctx.lineTo(-12, 10);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
 
         ctx.fillStyle = skin.secondary;
-        ctx.fillRect(-6, -4, 12, 8);
+        ctx.fillRect(-2, -3, 6, 6);
     } else {
-        // Vẽ hình khối vuông (Cube)
         ctx.fillStyle = skin.primary;
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 4;
@@ -1129,3 +1161,4 @@ loop();
 
 </body>
 </html>
+e.html thành công.")
