@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash - Ultimate Edition (Uniform Height Blocks)</title>
+    <title>Geometry Dash - Ultimate Edition (High Sensitivity Hitbox)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -492,7 +492,7 @@
             <button class="nav-arrow-btn" onclick="changeLevel(1)">►</button>
         </div>
         
-        <p style="color: #aaddff; font-size: 13px;">Tất cả các khối bục dài đều có chiều cao bằng nhau (phẳng tuyệt đối)!</p>
+        <p style="color: #aaddff; font-size: 13px;">Độ nhạy va chạm cực cao, tiếp xúc bục siêu mượt mà!</p>
     </div>
 
     <!-- Màn hình Kho Skin -->
@@ -636,7 +636,6 @@ function generateLevel() {
             obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
             currentX += 180 + Math.random() * 60;
         } else if (type < 0.7) {
-            // Tất cả các khối bục dài đều có chiều cao bằng nhau chuẩn xác (64px)
             let blockW = 280; 
             let blockH = 64;
             let blockY = 382 - blockH;
@@ -834,7 +833,14 @@ function update() {
         player.rotation = Math.round(player.rotation / 90) * 90;
     }
 
-    let pBox = { x: player.x + 4, y: player.y + 4, w: player.size - 8, h: player.size - 8 };
+    // HITBOX CỰC KỲ NHẠY VÀ CHUẨN XÁC
+    // Thu nhỏ hitbox đi 6px (mỗi bên 3px) giúp nhân vật bắt va chạm mượt mà, không bị kẹt khi nhảy lên bục
+    let pBox = {
+        x: player.x + 3,
+        y: player.y + 3,
+        w: player.size - 6,
+        h: player.size - 6
+    };
 
     for (let obs of obstacles) {
         let screenObsX = obs.x - cameraX;
@@ -849,8 +855,10 @@ function update() {
                 if (obs.type === 'spike') {
                     gameOver();
                 } else if (obs.type === 'block') {
-                    let prevY = player.y - player.vy;
-                    if (prevY + player.size <= obs.y + 12 && player.vy >= 0) {
+                    // Kiểm tra tiếp đất siêu nhạy từ trên xuống đỉnh bục
+                    let prevY = (player.y - player.vy);
+                    // Khoảng tiếp xúc nhạy (cho phép nhân vật nhận diện đứng trên bục cực nhanh)
+                    if (prevY + player.size <= obs.y + 16 && player.vy >= 0) {
                         player.y = obs.y - player.size;
                         player.vy = 0;
                         player.isGrounded = true;
@@ -921,7 +929,7 @@ function draw() {
             } else if (obs.type === 'block') {
                 ctx.fillStyle = '#002244';
                 ctx.strokeStyle = '#00ffcc';
-                ctx.lineWidth, ctx.lineWidth = 3;
+                ctx.lineWidth = 3;
                 ctx.fillRect(screenX, obs.y, obs.w, obs.h);
                 ctx.strokeRect(screenX, obs.y, obs.w, obs.h);
                 
@@ -964,7 +972,7 @@ function draw() {
 
     ctx.fillStyle = skin.secondary;
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth, ctx.lineWidth = 2;
+    ctx.lineWidth = 2;
     let innerSize = 14;
     ctx.fillRect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
     ctx.strokeRect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
