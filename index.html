@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometry Dash - Ultimate Edition (Extended Block Ramps)</title>
+    <title>Geometry Dash - Ultimate Edition (Uniform Height Blocks)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -492,7 +492,7 @@
             <button class="nav-arrow-btn" onclick="changeLevel(1)">►</button>
         </div>
         
-        <p style="color: #aaddff; font-size: 13px;">Đoạn dốc/bậc thang dẫn lên khối bục được kéo dài và thoải hơn!</p>
+        <p style="color: #aaddff; font-size: 13px;">Tất cả các khối bục dài đều có chiều cao bằng nhau (phẳng tuyệt đối)!</p>
     </div>
 
     <!-- Màn hình Kho Skin -->
@@ -628,7 +628,7 @@ function changeLevel(direction) {
 function generateLevel() {
     obstacles.length = 0;
     let lvl = levels[currentLevelIndex];
-    let currentX = 600;
+    let currentX = 900; // Khoảng đà an toàn ở đầu màn
 
     while (currentX < lvl.length - 400) {
         let type = Math.random();
@@ -636,31 +636,24 @@ function generateLevel() {
             obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
             currentX += 180 + Math.random() * 60;
         } else if (type < 0.7) {
-            // Thay vì bậc cao ngay lập tức, ta tạo cấu trúc bẫy/bậc thang thoai thoải (ramp/stairs) ở đoạn trước bục chính để nhân vật chạy lên mượt mà
-            let rampH1 = 32;
-            let rampH2 = 48;
-            let mainBlockH = 64;
-
-            // Bậc 1 dẫn lên (thoải hơn ở đoạn trước chỗ nhảy lên bục)
-            obstacles.push({ x: currentX, y: 382 - rampH1, w: 64, h: rampH1, type: 'block' });
-            // Bậc 2
-            obstacles.push({ x: currentX + 64, y: 382 - rampH2, w: 64, h: rampH2, type: 'block' });
+            // Tất cả các khối bục dài đều có chiều cao bằng nhau chuẩn xác (64px)
+            let blockW = 280; 
+            let blockH = 64;
+            let blockY = 382 - blockH;
             
-            // Khối bục chính kéo dài siêu rộng ở phía trên (rộng 256px)
-            let blockW = 256;
-            let blockY = 382 - mainBlockH;
-            obstacles.push({ x: currentX + 128, y: blockY, w: blockW, h: mainBlockH, type: 'block' });
+            // 1. Khối bục dài ở dưới (phẳng, chiều cao bằng nhau)
+            obstacles.push({ x: currentX, y: blockY, w: blockW, h: blockH, type: 'block' });
             
-            // Hàng gai thu gọn chỉ rộng 2 ô (64px) đặt ở giữa bục chính
-            let spikeOffsetX = currentX + 128 + (blockW / 2) - 32;
+            // 2. Hàng gai trên đỉnh chỉ rộng 2 ô (64px) đặt cân đối ở giữa bục
+            let spikeOffsetX = currentX + (blockW / 2) - 32;
             obstacles.push({ x: spikeOffsetX, y: blockY - 32, w: 32, h: 32, type: 'spike' });
             obstacles.push({ x: spikeOffsetX + 32, y: blockY - 32, w: 32, h: 32, type: 'spike' });
             
-            currentX += 128 + blockW + 200 + Math.random() * 80;
+            currentX += blockW + 200 + Math.random() * 80;
         } else {
             obstacles.push({ x: currentX, y: 350, w: 32, h: 32, type: 'spike' });
             obstacles.push({ x: currentX + 32, y: 350, w: 32, h: 32, type: 'spike' });
-            currentX += 240 + Math.random() * 70;
+            currentX += 260 + Math.random() * 70;
         }
     }
 }
@@ -785,7 +778,7 @@ function gameOver() {
     document.getElementById('result-title').innerText = 'THẤT BẠI';
     document.getElementById('result-title').style.color = '#ff5252';
     document.getElementById('result-score').innerText = `Hoàn thành: ${Math.floor(score)}%`;
-    document.getElementById('game-over-screen').classList.add('hidden');
+    document.getElementById('game-over-screen').classList.remove('hidden');
 }
 
 function gameWin() {
@@ -971,7 +964,7 @@ function draw() {
 
     ctx.fillStyle = skin.secondary;
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
+    ctx.lineWidth, ctx.lineWidth = 2;
     let innerSize = 14;
     ctx.fillRect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
     ctx.strokeRect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
