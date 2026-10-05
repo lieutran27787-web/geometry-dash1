@@ -421,12 +421,13 @@
     </div>
 
     <div id="victory-screen" class="screen hidden">
-        <div class="victory-card">
-            <h1 style="color: #ffeb3b; font-size: 28px; text-shadow: 2px 2px #000; margin-bottom: 8px;">🔥 KHẢ NĂNG BÁ KHÍ! 🔥</h1>
-            <p style="color: #72ff52; font-size: 14px; font-weight: bold; margin-bottom: 15px; line-height: 1.4;">"Bằng một sự tập trung tột độ và ý chí sắt đá, ngươi đã đạp bằng mọi gian khó, khải hoàn trở về với khí phách anh hùng và uy quyền bá khí lẫy lừng!"</p>
-            
-            <canvas id="victoryCanvas" width="380" height="130" style="display: block; margin: 0 auto 15px; background: rgba(0,0,0,0.5); border-radius: 8px; border: 2px solid #00ffcc;"></canvas>
-
+        <div class="victory-card" style="border: 4px solid #72ff52; background: rgba(0,0,0,0.9); box-shadow: 0 0 40px rgba(114,255,82,0.6); max-width: 520px; padding: 20px;">
+            <div style="font-family: Arial, sans-serif; font-size: 32px; font-weight: 900; color: #72ff52; text-shadow: 3px 3px #000, -2px -2px #000, 2px -2px #000, -2px 2px #000, 0 0 15px #72ff52; margin-bottom: 12px; letter-spacing: 2px; text-transform: uppercase;">
+                LEVEL COMPLETE!
+            </div>
+            <h1 style="color: #ffeb3b; font-size: 22px; text-shadow: 2px 2px #000; margin-bottom: 6px;">🔥 KHẢ NĂNG BÁ KHÍ! 🔥</h1>
+            <p style="color: #72ff52; font-size: 13px; font-weight: bold; margin-bottom: 12px; line-height: 1.4;">"Bằng một sự tập trung tột độ và ý chí sắt đá, ngươi đã đạp bằng mọi gian khó, khải hoàn trở về với khí phách anh hùng và uy quyền bá khí lẫy lừng!"</p>
+            <canvas id="victoryCanvas" width="360" height="110" style="display: block; margin: 0 auto 12px; background: rgba(0,0,0,0.6); border-radius: 8px; border: 2px solid #00ffcc;"></canvas>
             <div style="display: flex; justify-content: center; gap: 15px;">
                 <button class="btn-common" onclick="startGame()">CHƠI LẠI</button>
                 <button class="btn-common" style="background: linear-gradient(to bottom, #00bcd4, #00838f);" onclick="returnToMenu()">VỀ MENU</button>
@@ -434,7 +435,6 @@
         </div>
     </div>
 
-    <!-- Giao diện trong game -->
     <div id="ui-overlay" class="hidden">
         <div>Màn: <span id="ui-level-name" style="color: #72ff52;">STEREO</span></div>
         <div style="flex-grow: 1; text-align: center;">
@@ -447,7 +447,7 @@
         <div class="in-game-controls">
             <button class="game-ctrl-btn" onclick="toggleCustomMusic()" id="music-toggle-btn">🎵 Tắt Nhạc</button>
             <button class="game-ctrl-btn" id="checkpoint-btn" onclick="placeCheckpoint()">📍 Lưu CP</button>
-            <button class="game-ctrl-btn" onclick="toggleAutoCheckpoint()" id="auto-cp-ingame-btn" style="background: linear-gradient(to bottom, #29b6f6, #0288d1); color:#fff;">⚡ Auto: TẮT</button>
+            <button class="game-ctrl-btn" id="auto-cp-ingame-btn" onclick="toggleAutoCheckpoint()" style="background: linear-gradient(to bottom, #29b6f6, #0288d1); color:#fff;">⚡ Auto: TẮT</button>
         </div>
     </div>
 
@@ -532,7 +532,7 @@ const player = {
     x: 150, y: 300, size: 32, vy: 0, gravity: 0.8, jumpForce: -12.5, rotation: 0, isGrounded: false, mode: 'cube'
 };
 const obstacles = [];
-const waveTrails = []; // Lưu các điểm đuôi ziczac của màn bay Wave
+const waveTrails = [];
 
 function loadCustomAudio(event) {
     let file = event.target.files[0];
@@ -593,7 +593,6 @@ function generateLevel() {
     let currentX = 1000;
     let mapEnd = lvl.length;
 
-    // Sinh chướng ngại vật phần đầu và giữa (Cube mode)
     while (currentX < mapEnd - 4500) {
         let type = Math.random();
         if (type < 0.3) {
@@ -613,11 +612,9 @@ function generateLevel() {
         }
     }
 
-    // Đặt Cổng Chuyển Đổi sang Màn Bay Ziczac (Wave Portal) ở cuối map (khoảng 70% tiến độ)
     let wavePortalX = mapEnd - 4200;
     obstacles.push({ x: wavePortalX, y: 240, w: 40, h: 120, type: 'wave_portal' });
 
-    // Sinh chướng ngại vật phần cuối map: Màn bay Ziczac (Wave Mode giống ảnh mẫu với các đường viền ziczac màu cam neon)
     let waveX = wavePortalX + 120;
     let zigzagWidth = 4000;
     let segmentLen = 60;
@@ -1133,6 +1130,7 @@ function startVictoryAnimation() {
 
         vCtx.fillStyle = skin.primary;
         vCtx.strokeStyle = '#000000';
+        vPkgWidth = 3;
         vCtx.lineWidth = 3;
         vCtx.fillRect(-16, -16, 32, 32);
         vCtx.strokeRect(-16, -16, 32, 32);
@@ -1160,5 +1158,5 @@ loop();
 </script>
 
 </body>
-</html>
-e.html thành công.")
+</html>'''
+    f.write(html_content)
