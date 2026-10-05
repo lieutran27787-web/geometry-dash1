@@ -483,26 +483,39 @@ function playSound(type) {
         }
         let osc = sfxCtx.createOscillator();
         let gain = sfxCtx.createGain();
-        osc.connect(gain);
+        let filter = sfxCtx.createBiquadFilter();
+
+        // Sử dụng bộ lọc thông thấp (lowpass) để loại bỏ hoàn toàn tiếng rè/tần số cao gắt
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(2000, sfxCtx.currentTime);
+
+        osc.connect(filter);
+        filter.connect(gain);
         gain.connect(sfxCtx.destination);
 
         let now = sfxCtx.currentTime;
         if (type === 'jump') {
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(300, now);
-            osc.frequency.exponentialRampToValueAtTime(700, now + 0.12);
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+            osc.frequency.setValueAtTime(280, now);
+            osc.frequency.exponentialRampToValueAtTime(650, now + 0.1);
+            
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.linearRampToValueAtTime(0.12, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+            
             osc.start(now);
             osc.stop(now + 0.12);
         } else if (type === 'crash') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, now);
-            osc.frequency.linearRampToValueAtTime(40, now + 0.2);
-            gain.gain.setValueAtTime(0.3, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(140, now);
+            osc.frequency.linearRampToValueAtTime(45, now + 0.18);
+            
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.linearRampToValueAtTime(0.18, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+            
             osc.start(now);
-            osc.stop(now + 0.2);
+            osc.stop(now + 0.18);
         }
     } catch(e) {}
 }
@@ -512,7 +525,7 @@ const levels = [
     { name: 'POLARGEIST', sub: 'background color 2.2', speed: 5.8, length: 18000, bgColor: '#0033aa', groundColor: '#008844', diff: '⭐⭐ TRUNG BÌNH', bgImg: null },
     { name: 'BACK ON TRACK', sub: 'background color 2.3', speed: 6.4, length: 20000, bgColor: '#aa5500', groundColor: '#884400', diff: '⭐⭐ TRUNG BÌNH', bgImg: null },
     { name: 'BASE AFTER BASE', sub: 'background color 2.4', speed: 7.0, length: 22000, bgColor: '#5500aa', groundColor: '#440088', diff: '⭐⭐⭐ KHÓ', bgImg: null },
-    { name: 'CAN\'T LET GO', sub: 'background color 2.5', speed: 7.6, length: 24000, bgColor: '#aa0055', groundColor: '#880044', diff: '⭐⭐⭐⭐ RẤT KHÓ', bgImg: null }
+    { name: 'CAN'T LET GO', sub: 'background color 2.5', speed: 7.6, length: 24000, bgColor: '#aa0055', groundColor: '#880044', diff: '⭐⭐⭐⭐ RẤT KHÓ', bgImg: null }
 ];
 let currentLevelIndex = 0;
 
