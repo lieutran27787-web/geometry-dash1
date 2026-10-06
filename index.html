@@ -422,7 +422,7 @@
             </div>
             <div class="title-info-bar">
                 <div>🪙 TỔNG XU: <span id="total-coins-val">0</span>/18</div>
-                <div>🎵 WAVE CUBE</div>
+                <div>🎵 WAVE & CUBE</div>
                 <div>⭐ 6 MÀN CHƠI</div>
             </div>
         </div>
@@ -538,7 +538,9 @@
         </div>
         <div>Xu: <span id="ui-coins" style="color: #ffeb3b;">0/3</span></div>
 
-        <button id="mobile-action-btn" onmousedown="game.handleInput(true)" onmouseup="game.handleInput(false)" ontouchstart="game.handleInput(true); event.preventDefault();" ontouchend="game.handleInput(false); event.preventDefault();">🚀 JUMP</button>
+        <button id="mobile-action-btn" onmousedown="game.handleInput(true)" onmouseup="game.handleInput(false)" ontouchstart="game.handleInput(true); event.preventDefault();" ontouchend="game.handleInput(false); event.preventDefault();">
+            🚀 JUMP
+        </button>
         
         <div class="in-game-controls">
             <button class="game-ctrl-btn" onclick="game.audio.toggleBGM()" id="music-toggle-btn">🎵 Bật/Tắt Nhạc</button>
@@ -553,7 +555,7 @@
 
 <script>
 // ==========================================
-// 1. DATA CẤU HÌNH TRÒ CHƠI
+// 1. DATA CẤU HÌNH TRÒ CHƠI VÀ ÂM NHẠC TỪNG MÀN
 // ==========================================
 const GAME_CONFIG = {
     gravity: 0.8, 
@@ -571,12 +573,12 @@ const GAME_CONFIG = {
         { name: 'Swing', type: 'swing', primary: '#795548', secondary: '#ffccbc' }
     ],
     levels: [
-        { name: 'STEREO MADNESS', speed: 5, length: 16000, bgColor: '#0055ff', groundColor: '#00aa55', diff: '⭐ DỄ', bgImgURL: null, bgMusicURL: 'nhac-level-1.mp3' },
-        { name: 'POLARGEIST', speed: 5.8, length: 18000, bgColor: '#0033aa', groundColor: '#008844', diff: '⭐⭐ TRUNG BÌNH', bgImgURL: null, bgMusicURL: 'nhac-level-2.mp3' },
-        { name: 'BACK ON TRACK', speed: 6.4, length: 20000, bgColor: '#aa5500', groundColor: '#884400', diff: '⭐⭐ TRUNG BÌNH', bgImgURL: null, bgMusicURL: 'nhac-level-3.mp3' },
-        { name: 'BASE AFTER BASE', speed: 7.0, length: 22000, bgColor: '#5500aa', groundColor: '#440088', diff: '⭐⭐⭐ KHÓ', bgImgURL: null, bgMusicURL: 'nhac-level-4.mp3' },
-        { name: 'CAN\'T LET GO', speed: 7.6, length: 24000, bgColor: '#aa0055', groundColor: '#880044', diff: '⭐⭐⭐⭐ RẤT KHÓ', bgImgURL: null, bgMusicURL: 'nhac-level-5.mp3' },
-        { name: 'THE TOWER (HORROR)', speed: 6.5, length: 22000, bgColor: '#1a0005', groundColor: '#2b000a', diff: '💀 KINH DỊ', bgImgURL: null, bgMusicURL: 'nhac-level-6.mp3' }
+        { name: 'STEREO MADNESS', speed: 5, length: 16000, bgColor: '#0055ff', groundColor: '#00aa55', diff: '⭐ DỄ', bgImgURL: null, bgMusicURL: 'tet-nha-ba-hoan.mp3' },
+        { name: 'POLARGEIST', speed: 5.8, length: 18000, bgColor: '#0033aa', groundColor: '#008844', diff: '⭐⭐ TRUNG BÌNH', bgImgURL: null, bgMusicURL: 'tao-la-ngoi-sao-ca-nhac.mp3' },
+        { name: 'BACK ON TRACK', speed: 6.4, length: 20000, bgColor: '#aa5500', groundColor: '#884400', diff: '⭐⭐ TRUNG BÌNH', bgImgURL: null, bgMusicURL: 'gucci-nike-dior.mp3' },
+        { name: 'BASE AFTER BASE', speed: 7.0, length: 22000, bgColor: '#5500aa', groundColor: '#440088', diff: '⭐⭐⭐ KHÓ', bgImgURL: null, bgMusicURL: 'ro-nam-do-hoi-den.mp3' },
+        { name: 'CAN\'T LET GO', speed: 7.6, length: 24000, bgColor: '#aa0055', groundColor: '#880044', diff: '⭐⭐⭐⭐ RẤT KHÓ', bgImgURL: null, bgMusicURL: 'kin-sang-sik.mp3' },
+        { name: 'THE TOWER (HORROR)', speed: 6.5, length: 22000, bgColor: '#1a0005', groundColor: '#2b000a', diff: '💀 KINH DỊ', bgImgURL: null, bgMusicURL: 'dung-dong-vai-anh.mp3' }
     ]
 };
 
@@ -707,6 +709,7 @@ class Player {
 
     update(isActionPressed) {
         if (this.mode === 'wave') {
+            // CƠ CHẾ BAY WAVE ZICZAC
             this.vy = isActionPressed ? -GAME_CONFIG.waveSpeed : GAME_CONFIG.waveSpeed; 
             this.y += this.vy; 
             this.rotation = this.vy * 5; 
@@ -719,6 +722,7 @@ class Player {
             this.shipTrails.push({ y: this.y + this.size/2 }); 
             if (this.shipTrails.length > 25) this.shipTrails.shift();
         } else {
+            // CƠ CHẾ CUBE BÌNH THƯỜNG
             this.shipTrails = []; 
             this.vy += GAME_CONFIG.gravity; 
             this.y += this.vy; 
@@ -833,7 +837,7 @@ class Player {
 }
 
 // ==========================================
-// 4. LỚP QUẢN LÝ MÀN CHƠI (LEVEL MANAGER)
+// 4. LỚP QUẢN LÝ MÀN CHƠI VÀ ĐỊA HÌNH
 // ==========================================
 class LevelManager {
     constructor() {
@@ -867,6 +871,7 @@ class LevelManager {
         let mapEnd = lvl.length; 
         let groundY = GAME_CONFIG.groundY;
         
+        // SINH ĐỊA HÌNH TỰ ĐỘNG THAY ĐỔI THEO MÀN
         while (currentX < mapEnd) {
             let inWaveZone1 = (currentX > 2900 && currentX < 4700); 
             let inWaveZone2 = (currentX > 7900 && currentX < 9700);
@@ -898,7 +903,7 @@ class LevelManager {
             currentX += 550 - (levelIndex * 40) + Math.random() * 100; 
         }
 
-        // Tạo cổng Wave
+        // TẠO CÁC CỔNG BIẾN HÌNH (Wave Portal màu cam, Cube Portal màu xanh)
         this.obstacles.push({ x: 3000, y: 240, w: 40, h: 120, type: 'wave_portal', active: true });
         for (let wx = 3120; wx < 4500; wx += 60) { 
             this.obstacles.push({ x: wx, y: 0, w: 60, h: 80, type: 'wave_roof' }); 
@@ -906,7 +911,6 @@ class LevelManager {
         }
         this.obstacles.push({ x: 4600, y: 240, w: 40, h: 120, type: 'cube_portal', active: true });
 
-        // Tạo cổng Wave thứ 2
         this.obstacles.push({ x: 8000, y: 240, w: 40, h: 120, type: 'wave_portal', active: true });
         for (let wx = 8120; wx < 9500; wx += 60) { 
             this.obstacles.push({ x: wx, y: 0, w: 60, h: 80, type: 'wave_roof' }); 
@@ -914,12 +918,13 @@ class LevelManager {
         }
         this.obstacles.push({ x: 9600, y: 240, w: 40, h: 120, type: 'cube_portal', active: true });
 
-        // Đặt Tiền Xu
+        // TẠO XU
         let coinPositions = [Math.floor(mapEnd * 0.25), Math.floor(mapEnd * 0.55), Math.floor(mapEnd * 0.8)];
         coinPositions.forEach((cx, idx) => { 
             this.obstacles.push({ x: cx, y: 220, w: 28, h: 28, type: 'coin', coinIndex: idx, collected: this.levelCoins[levelIndex][idx] }); 
         });
 
+        // KÍCH HOẠT QUÁI VẬT CHO MÀN THE TOWER
         if (levelIndex === 5) { 
             this.horrorMonster.active = true; 
             this.horrorMonster.x = -350; 
@@ -1035,7 +1040,7 @@ class UIManager {
 }
 
 // ==========================================
-// 6. MAIN ENGINE (QUẢN LÝ VÒNG LẶP VÀ VẬT LÝ)
+// 6. ENGINE CHÍNH VÀ VÒNG LẶP VẬT LÝ
 // ==========================================
 class GameEngine {
     constructor() {
@@ -1059,6 +1064,7 @@ class GameEngine {
         this.accumulator = 0; 
         this.TIME_STEP = 1000 / 60;
         
+        // Quản lý Bấm nút (Keyboard & Touch)
         window.addEventListener('keydown', (e) => { 
             if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); this.handleInput(true); }
         });
@@ -1210,6 +1216,7 @@ class GameEngine {
             this.triggerVictory(); return; 
         }
         
+        // KIỂM TRA VA CHẠM (COLLISION)
         let px = this.player.x + 4, py = this.player.y + 2, pw = this.player.size - 8, ph = this.player.size - 4;
         for (let obs of this.levelManager.obstacles) {
             let sx = obs.x - this.cameraX;
@@ -1289,7 +1296,7 @@ class GameEngine {
             } 
         }
 
-        // Vẽ vệt sáng
+        // Vẽ vệt sáng cầu vồng
         if (this.player.mode === 'wave' && this.player.shipTrails.length > 1) {
             let colors = ['#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082']; 
             let trailWidth = 2;
@@ -1306,7 +1313,7 @@ class GameEngine {
             }
         }
 
-        // Vẽ Objects
+        // Vẽ Chướng ngại vật
         for (let obs of this.levelManager.obstacles) {
             let screenX = Math.round(obs.x - this.cameraX);
             if (screenX > -100 && screenX < this.canvas.width + 100) {
@@ -1371,7 +1378,6 @@ class GameEngine {
             this.ctx.fillRect(x, groundY + 4, floorGridSize - 4, 12); 
         }
 
-        // Vẽ nhân vật cuối cùng để đè lên mọi thứ
         this.player.draw(this.ctx, this.ui.currentSkinIndex);
 
         if (this.ui.attemptFadeTimer > 0) { 
@@ -1392,7 +1398,6 @@ class GameEngine {
     }
 }
 
-// Khởi chạy hệ thống Game
 const game = new GameEngine();
 </script>
 </body>
